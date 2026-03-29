@@ -16,8 +16,6 @@ from sensor_msgs.msg import Imu
 from tf2_ros import Buffer, TransformException, TransformListener
 
 from navegacion_gps.heading_math import AngleSeries
-from navegacion_gps.heading_math import circular_mean_deg
-from navegacion_gps.heading_math import normalize_yaw_deg
 from navegacion_gps.heading_math import shortest_angular_distance_deg
 from navegacion_gps.heading_math import yaw_deg_from_quaternion_xyzw
 
@@ -211,7 +209,8 @@ def build_report(node: StartupHeadingDiagnosisNode) -> dict[str, Any]:
         interpretation.append("No IMU/local comparison available.")
     elif abs(local_minus_imu) <= 5.0:
         interpretation.append(
-            "Local odometry yaw is almost identical to IMU yaw; startup yaw is likely seeded by the IMU."
+            "Local odometry yaw is almost identical to IMU yaw; "
+            "startup yaw is likely seeded by the IMU."
         )
     else:
         interpretation.append(
@@ -244,7 +243,10 @@ def _print_human_report(report: dict[str, Any]) -> None:
     errors = report["errors_deg"]
     frames = report["frames"]
     print("Startup heading diagnosis")
-    print(f"- Assumption: spawn/model should face East ({report['assumption']['spawn_expected_yaw_deg']:.1f} deg ROS ENU)")
+    print(
+        "- Assumption: spawn/model should face East "
+        f"({report['assumption']['spawn_expected_yaw_deg']:.1f} deg ROS ENU)"
+    )
     print(
         f"- Frames: map={frames['map_frame']} odom={frames['odom_frame']} "
         f"base={frames['base_frame']} imu_frame={frames['imu_frame_id'] or 'N/A'}"

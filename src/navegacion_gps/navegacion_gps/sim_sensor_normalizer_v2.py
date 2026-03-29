@@ -19,6 +19,8 @@ from navegacion_gps.gps_profiles import (
 DEFAULT_IMU_ORIENTATION_VARIANCE = 0.01
 DEFAULT_IMU_ANGULAR_VELOCITY_VARIANCE = 0.01
 DEFAULT_IMU_LINEAR_ACCELERATION_VARIANCE = 0.1
+
+
 def _covariance_is_zero(values) -> bool:
     return all(abs(float(value)) <= 1.0e-12 for value in values)
 

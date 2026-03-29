@@ -467,7 +467,8 @@ class DatumSetterNode(Node):
                 with self._lock:
                     self._pending_auto_set = True
                 self.get_logger().warning(
-                    "RTK detected but no valid IMU yaw yet; datum auto-set will run on next valid IMU sample"
+                    "RTK detected but no valid IMU yaw yet; "
+                    "datum auto-set will run on next valid IMU sample"
                 )
 
     def _on_imu(self, msg: Imu) -> None:

@@ -530,8 +530,12 @@ class NavCommandServerNode(Node):
         return out_lat, out_lon
 
     def _fallback_fromll_yaw(self, yaw_deg: float) -> float:
-        if self.approx_fromll_fallback_enabled and math.isfinite(self.approx_fromll_datum_yaw_deg):
-            return self._normalize_yaw_deg(float(yaw_deg) + float(self.approx_fromll_datum_yaw_deg))
+        if self.approx_fromll_fallback_enabled and math.isfinite(
+            self.approx_fromll_datum_yaw_deg
+        ):
+            return self._normalize_yaw_deg(
+                float(yaw_deg) + float(self.approx_fromll_datum_yaw_deg)
+            )
         return self._normalize_yaw_deg(yaw_deg)
 
     def _project_geographic_yaw_to_fromll(

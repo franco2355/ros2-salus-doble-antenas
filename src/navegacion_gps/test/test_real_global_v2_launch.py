@@ -34,23 +34,32 @@ def test_real_global_v2_launch_reuses_real_stack_with_global_navigation() -> Non
 
 def test_localization_global_v2_launch_supports_datum_overrides() -> None:
     launch_contents = _read("launch/localization_global_v2.launch.py")
+    gated_arg = 'DeclareLaunchArgument(\n                "enable_global_odom_stationary_gate"'
+    imu_gate_arg = 'DeclareLaunchArgument(\n                "enable_global_imu_stationary_gate"'
+    yaw_hold_arg = 'DeclareLaunchArgument(\n                "enable_global_stationary_yaw_hold"'
+    map_gps_arg = 'DeclareLaunchArgument(\n                "enable_map_gps_absolute_measurement"'
+    navsat_yaw_arg = 'DeclareLaunchArgument("navsat_use_odometry_yaw", default_value="false")'
+    gps_heading_arg = 'DeclareLaunchArgument("enable_gps_course_heading", default_value="false")'
+    gps_heading_topic_arg = (
+        'DeclareLaunchArgument("gps_course_heading_topic", default_value="/gps/course_heading")'
+    )
 
     assert 'DeclareLaunchArgument("datum_lat"' in launch_contents
     assert 'DeclareLaunchArgument("datum_lon"' in launch_contents
     assert 'DeclareLaunchArgument("datum_yaw_deg"' in launch_contents
-    assert 'DeclareLaunchArgument(\n                "enable_global_odom_stationary_gate"' in launch_contents
-    assert 'DeclareLaunchArgument(\n                "enable_global_imu_stationary_gate"' in launch_contents
-    assert 'DeclareLaunchArgument(\n                "enable_global_stationary_yaw_hold"' in launch_contents
-    assert 'DeclareLaunchArgument(\n                "enable_map_gps_absolute_measurement"' in launch_contents
+    assert gated_arg in launch_contents
+    assert imu_gate_arg in launch_contents
+    assert yaw_hold_arg in launch_contents
+    assert map_gps_arg in launch_contents
     assert 'name="global_odom_stationary_gate"' in launch_contents
     assert 'name="global_imu_stationary_gate"' in launch_contents
     assert 'name="global_yaw_stationary_hold"' in launch_contents
     assert 'name="map_gps_absolute_measurement"' in launch_contents
     assert "OpaqueFunction(function=_build_navsat_transform)" in launch_contents
     assert '"wait_for_datum": True' in launch_contents
-    assert 'DeclareLaunchArgument("navsat_use_odometry_yaw", default_value="false")' in launch_contents
-    assert 'DeclareLaunchArgument("enable_gps_course_heading", default_value="false")' in launch_contents
-    assert 'DeclareLaunchArgument("gps_course_heading_topic", default_value="/gps/course_heading")' in launch_contents
+    assert navsat_yaw_arg in launch_contents
+    assert gps_heading_arg in launch_contents
+    assert gps_heading_topic_arg in launch_contents
     assert '"use_odometry_yaw": navsat_use_odometry_yaw' in launch_contents
     assert 'DeclareLaunchArgument(\n                "map_gps_absolute_topic"' in launch_contents
     assert '{"odom1": map_gps_absolute_topic}' in launch_contents
@@ -63,10 +72,13 @@ def test_localization_global_v2_launch_supports_datum_overrides() -> None:
 
 def test_rviz_real_global_v2_launch_targets_global_config_for_local_pc() -> None:
     launch_contents = _read("launch/rviz_real_global_v2.launch.py")
+    launch_rsp_arg = (
+        'DeclareLaunchArgument(\n                "launch_robot_state_publisher"'
+    )
 
     assert "rviz_global_v2.rviz" in launch_contents
     assert 'DeclareLaunchArgument(\n                "use_sim_time"' in launch_contents
     assert 'default_value="False"' in launch_contents
-    assert 'DeclareLaunchArgument(\n                "launch_robot_state_publisher"' in launch_contents
+    assert launch_rsp_arg in launch_contents
     assert "condition=IfCondition(launch_robot_state_publisher)" in launch_contents
     assert 'executable="rviz2"' in launch_contents

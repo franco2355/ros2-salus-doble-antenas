@@ -39,7 +39,7 @@ setup(
             'config/rs16.yaml',
         ]),
     ] + _wsdl_data_files(),
-    install_requires=['setuptools', 'websockets', 'requests', 'PyYAML'],
+    install_requires=['setuptools', 'websockets', 'requests', 'PyYAML', 'pymavlink>=2.4.43'],
     zip_safe=True,
     description='ROS 2 sensor integration for Pixhawk telemetry, MAVROS and web tools',
     license='MIT',

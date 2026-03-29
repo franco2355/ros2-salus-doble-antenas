@@ -66,7 +66,10 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "launch_robot_state_publisher",
                 default_value="false",
-                description="Launch a local robot_state_publisher for RViz when no other publisher is running",
+                description=(
+                    "Launch a local robot_state_publisher for RViz "
+                    "when no other publisher is running"
+                ),
             ),
             OpaqueFunction(
                 function=_build_robot_state_publisher,

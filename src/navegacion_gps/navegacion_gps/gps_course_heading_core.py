@@ -142,7 +142,10 @@ class GpsCourseHeadingEstimator:
                 latest_fix_age_s=latest_fix_age_s,
             )
 
-        if not math.isfinite(float(yaw_rate_rps)) or abs(float(yaw_rate_rps)) > self.max_abs_yaw_rate_rps:
+        if (
+            not math.isfinite(float(yaw_rate_rps))
+            or abs(float(yaw_rate_rps)) > self.max_abs_yaw_rate_rps
+        ):
             return self._invalid(
                 reason="yaw_rate_too_high",
                 speed_mps=speed_mps,

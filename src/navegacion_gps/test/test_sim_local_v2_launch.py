@@ -24,5 +24,11 @@ def test_sim_local_v2_launch_disables_legacy_bridge_nodes() -> None:
 
     assert 'executable="cmd_vel_ackermann_bridge_v2"' not in launch_contents
     assert 'executable="sim_drive_telemetry"' not in launch_contents
-    assert 'DeclareLaunchArgument("invert_measured_steer_sign", default_value="True")' in launch_contents
-    assert 'DeclareLaunchArgument("invert_steer_from_cmd_vel", default_value="True")' in launch_contents
+    assert (
+        'DeclareLaunchArgument("invert_measured_steer_sign", default_value="True")'
+        in launch_contents
+    )
+    assert (
+        'DeclareLaunchArgument("invert_steer_from_cmd_vel", default_value="True")'
+        in launch_contents
+    )

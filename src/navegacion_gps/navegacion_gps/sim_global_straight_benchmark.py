@@ -11,13 +11,10 @@ from typing import Any, Optional
 
 import rclpy
 from geographic_msgs.msg import GeoPoint
-from geometry_msgs.msg import PointStamped
 from interfaces.msg import DriveTelemetry, NavEvent
 from interfaces.srv import SetNavGoalLL
 from nav_msgs.msg import Odometry
-from rclpy.duration import Duration
 from rclpy.node import Node
-from rclpy.time import Time
 from robot_localization.srv import FromLL
 from sensor_msgs.msg import NavSatFix
 from std_msgs.msg import String
@@ -64,7 +61,9 @@ def _meters_per_deg_lon(lat_deg: float) -> float:
     return 111_320.0 * max(1.0e-6, abs(math.cos(math.radians(float(lat_deg)))))
 
 
-def _offset_lat_lon(lat_deg: float, lon_deg: float, north_m: float, east_m: float) -> tuple[float, float]:
+def _offset_lat_lon(
+    lat_deg: float, lon_deg: float, north_m: float, east_m: float
+) -> tuple[float, float]:
     lat = float(lat_deg) + float(north_m) / 111_320.0
     lon = float(lon_deg) + float(east_m) / _meters_per_deg_lon(lat_deg)
     return lat, lon
@@ -261,7 +260,9 @@ class StraightBenchmarkNode(Node):
                 }
         raise RuntimeError("timeout waiting for /fromLL response")
 
-    def send_goal(self, lat: float, lon: float, yaw_deg: float, timeout_s: float = 10.0) -> dict[str, Any]:
+    def send_goal(
+        self, lat: float, lon: float, yaw_deg: float, timeout_s: float = 10.0
+    ) -> dict[str, Any]:
         request = SetNavGoalLL.Request()
         request.lat = float(lat)
         request.lon = float(lon)
@@ -453,7 +454,11 @@ def _phase_summary(samples: list[dict[str, Any]]) -> dict[str, Any]:
             "mean": _mean(odom_global_lateral),
             "std": _std(odom_global_lateral),
             "span": _span(odom_global_lateral),
-            "max_abs": max(abs(value) for value in odom_global_lateral) if odom_global_lateral else None,
+            "max_abs": (
+                max(abs(value) for value in odom_global_lateral)
+                if odom_global_lateral
+                else None
+            ),
         },
         "odom_global_vy_mps": {
             "mean": _mean(odom_global_vy),

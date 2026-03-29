@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-22.04
+    env:
+      CI_IMAGE: ros2_salus_ci:latest
+      CI_PACKAGES: interfaces controller_server map_tools navegacion_gps sensores
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build workspace image
+        run: |
+          docker build \
+            --build-arg USER_UID="$(id -u)" \
+            --build-arg USER_GID="$(id -g)" \
+            --tag "${CI_IMAGE}" \
+            .
+
+      - name: Build and test own ROS packages
+        run: |
+          docker run --rm \
+            --user root \
+            --workdir /ros2_ws \
+            --volume "${GITHUB_WORKSPACE}:/ros2_ws" \
+            --env DEBIAN_FRONTEND=noninteractive \
+            --env HOST_UID="$(id -u)" \
+            --env HOST_GID="$(id -g)" \
+            --env CI_PACKAGES="${CI_PACKAGES}" \
+            "${CI_IMAGE}" \
+            bash -lc '
+              # Los setup.bash de ROS usan variables no definidas; evitar "-u".
+              set -eo pipefail
+              trap '"'"'for path in build install log; do
+                if [ -e "$path" ]; then
+                  chown -R "${HOST_UID}:${HOST_GID}" "$path"
+                fi
+              done'"'"' EXIT
+
+              source /opt/ros/humble/setup.bash
+              apt-get update
+              rosdep update
+              rosdep install --from-paths src --ignore-src -r -y --rosdistro humble
+              colcon build --packages-select ${CI_PACKAGES} --symlink-install --event-handlers console_direct+
+              colcon test --packages-select ${CI_PACKAGES} --event-handlers console_direct+ --return-code-on-test-failure
+              colcon test-result --verbose
+            '

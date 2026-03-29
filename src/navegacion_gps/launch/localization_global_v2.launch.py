@@ -106,7 +106,9 @@ def _build_map_ekf(context):
     map_filter_odom_topic = (
         global_odom_gated_topic if enable_global_odom_stationary_gate else "/odometry/local"
     )
-    map_filter_imu_topic = global_imu_gated_topic if enable_global_imu_stationary_gate else imu_topic
+    map_filter_imu_topic = (
+        global_imu_gated_topic if enable_global_imu_stationary_gate else imu_topic
+    )
 
     parameters = [
         global_localization_params_file,
@@ -202,7 +204,6 @@ def generate_launch_description():
     twist_covariance_vx = LaunchConfiguration("twist_covariance_vx")
     twist_covariance_vy = LaunchConfiguration("twist_covariance_vy")
     twist_covariance_yaw_rate = LaunchConfiguration("twist_covariance_yaw_rate")
-    global_localization_params_file = LaunchConfiguration("global_localization_params_file")
     enable_global_odom_stationary_gate = LaunchConfiguration(
         "enable_global_odom_stationary_gate"
     )
