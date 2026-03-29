@@ -5,6 +5,6 @@ set -euo pipefail
 # Uso:
 #   ./tools/exec-root.sh
 
-CONTAINER="ros2"
+CONTAINER="${ROS2_CONTAINER_NAME:-ros2}"
 
 docker exec -u 0 -it "${CONTAINER}" bash

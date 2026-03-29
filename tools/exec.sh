@@ -6,7 +6,7 @@ set -euo pipefail
 #   ./tools/exec.sh                # abre una shell interactiva
 #   ./tools/exec.sh <cmd> [args]   # ejecuta el comando dentro del contenedor
 
-CONTAINER="ros2"
+CONTAINER="${ROS2_CONTAINER_NAME:-ros2}"
 
 if [[ $# -eq 0 ]]; then
   docker exec -it "${CONTAINER}" bash

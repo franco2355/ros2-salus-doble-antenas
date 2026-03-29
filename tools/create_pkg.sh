@@ -5,7 +5,7 @@ set -euo pipefail
 # Uso:
 #   ./tools/create_pkg.sh <nombre_paquete> [args...]
 
-CONTAINER="ros2"
+CONTAINER="${ROS2_CONTAINER_NAME:-ros2}"
 
 if [[ $# -lt 1 ]]; then
   echo "Uso: $0 <nombre_paquete> [args...]"

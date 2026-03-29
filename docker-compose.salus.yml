@@ -1,0 +1,7 @@
+services:
+  ros2:
+    image: ros2-humble-perception-ws-salus
+    container_name: ros2_salus
+
+  netdata:
+    container_name: netdata_salus

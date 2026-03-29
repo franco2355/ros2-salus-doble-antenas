@@ -6,7 +6,7 @@ set -euo pipefail
 #   ./tools/compile-ros.sh               # compila todo el workspace
 #   ./tools/compile-ros.sh pkg1 pkg2 ... # compila solo esos paquetes
 
-CONTAINER="ros2"
+CONTAINER="${ROS2_CONTAINER_NAME:-ros2}"
 WS="/ros2_ws"
 
 if [[ $# -gt 0 ]]; then
