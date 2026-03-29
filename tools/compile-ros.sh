@@ -6,8 +6,9 @@ set -euo pipefail
 #   ./tools/compile-ros.sh               # compila todo el workspace
 #   ./tools/compile-ros.sh pkg1 pkg2 ... # compila solo esos paquetes
 
-CONTAINER="${ROS2_CONTAINER_NAME:-ros2}"
+CONTAINER="${ROS2_CONTAINER_NAME:-ros2_salus}"
 WS="/ros2_ws"
+RMW_IMPLEMENTATION_VALUE="${RMW_IMPLEMENTATION:-rmw_cyclonedds_cpp}"
 
 if [[ $# -gt 0 ]]; then
   PKG_LIST=("$@")
@@ -23,6 +24,7 @@ echo "Compilando ${TARGET_MSG} dentro del contenedor '${CONTAINER}'..."
 docker exec -it "${CONTAINER}" bash -lc "\
   # Dentro del contenedor evitamos '-u' porque los setup.bash de ROS usan vars no definidas
   set -eo pipefail && \
+  export RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION_VALUE} && \
   source /opt/ros/\${ROS_DISTRO:-humble}/setup.bash && \
   if [ -f ${WS}/install/setup.bash ]; then source ${WS}/install/setup.bash; fi && \
   cd ${WS} && \

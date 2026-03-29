@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CONTAINER="${ROS2_CONTAINER_NAME:-ros2}"
+CONTAINER="${ROS2_CONTAINER_NAME:-ros2_salus}"
+RMW_IMPLEMENTATION_VALUE="${RMW_IMPLEMENTATION:-rmw_cyclonedds_cpp}"
 
 ./tools/stop_sim_global_v2.sh >/dev/null 2>&1 || true
 
@@ -12,7 +13,7 @@ fi
 
 docker exec "${CONTAINER}" bash -lc "
   mkdir -p /ros2_ws/logs
-  nohup bash -lc 'source /opt/ros/humble/setup.bash; source /ros2_ws/install/setup.bash; ros2 launch navegacion_gps sim_global_v2.launch.py gps_profile:=f9p_rtk launch_web_app:=True use_keepout:=False' \
+  nohup bash -lc 'export RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION_VALUE}; source /opt/ros/humble/setup.bash; source /ros2_ws/install/setup.bash; ros2 launch navegacion_gps sim_global_v2.launch.py gps_profile:=f9p_rtk launch_web_app:=True use_keepout:=False' \
     </dev/null >/ros2_ws/logs/sim_global_v2.log 2>&1 &
 "
 

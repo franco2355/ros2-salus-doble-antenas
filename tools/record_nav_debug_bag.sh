@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CONTAINER="ros2"
+CONTAINER="${ROS2_CONTAINER_NAME:-ros2_salus}"
 WS="/ros2_ws"
 PROFILE="${1:-core}"
+RMW_IMPLEMENTATION_VALUE="${RMW_IMPLEMENTATION:-rmw_cyclonedds_cpp}"
 STAMP="$(date +%Y%m%d_%H%M%S)"
 OUT_DIR="${WS}/bags/nav_debug_${PROFILE}_${STAMP}"
 
@@ -11,6 +12,7 @@ CORE_TOPICS=(
   /gps/fix
   /odometry/local
   /odometry/gps
+  /odometry/global
   /imu/data
   /scan
   /cmd_vel
@@ -19,8 +21,10 @@ CORE_TOPICS=(
   /collision_monitor_state
   /nav_command_server/telemetry
   /nav_command_server/events
+  /controller/drive_telemetry
   /controller/status
   /controller/telemetry
+  /gps/course_heading/debug
   /diagnostics
   /tf
   /tf_static
@@ -55,6 +59,7 @@ printf '  %s\n' "${TOPICS[@]}"
 
 docker exec -it "${CONTAINER}" bash -lc "\
   set -eo pipefail && \
+  export RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION_VALUE} && \
   source /opt/ros/\${ROS_DISTRO:-humble}/setup.bash && \
   if [ -f ${WS}/install/setup.bash ]; then source ${WS}/install/setup.bash; fi && \
   mkdir -p ${WS}/bags && \

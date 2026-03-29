@@ -44,6 +44,8 @@ setup(
             'map_gps_absolute_measurement = navegacion_gps.map_gps_absolute_measurement:main',
             'zones_manager = navegacion_gps.zones_manager:main',
             'nav_command_server = navegacion_gps.nav_command_server:main',
+            'nav_benchmark_report = navegacion_gps.nav_benchmark_report:main',
+            'nav_benchmark_runner = navegacion_gps.nav_benchmark_runner:main',
             'nav_snapshot_server = navegacion_gps.nav_snapshot_server:main',
             'nav_observability = navegacion_gps.nav_observability:main',
             'polygon_stamped_republisher = navegacion_gps.polygon_stamped_republisher:main',

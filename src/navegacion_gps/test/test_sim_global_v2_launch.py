@@ -40,11 +40,17 @@ def test_sim_global_v2_launch_reuses_current_sim_stack_without_rviz() -> None:
     gps_heading_yaw_rate_arg = (
         'DeclareLaunchArgument("gps_course_heading_max_abs_yaw_rate_rps", default_value="0.06")'
     )
+    gps_heading_hold_arg = (
+        'DeclareLaunchArgument("gps_course_heading_invalid_hold_s", default_value="0.8")'
+    )
     gps_heading_publish_arg = (
         'DeclareLaunchArgument("gps_course_heading_publish_hz", default_value="10.0")'
     )
     gps_heading_variance_arg = (
         'DeclareLaunchArgument("gps_course_heading_yaw_variance_rad2", default_value="0.05")'
+    )
+    gps_heading_hold_variance_arg = (
+        'DeclareLaunchArgument(\n                "gps_course_heading_hold_yaw_variance_multiplier",'
     )
     approx_lat_arg = '"approx_fromll_datum_lat": ParameterValue(datum_lat, value_type=float)'
     approx_lon_arg = '"approx_fromll_datum_lon": ParameterValue(datum_lon, value_type=float)'
@@ -72,8 +78,10 @@ def test_sim_global_v2_launch_reuses_current_sim_stack_without_rviz() -> None:
     assert gps_heading_speed_arg in launch_contents
     assert gps_heading_steer_arg in launch_contents
     assert gps_heading_yaw_rate_arg in launch_contents
+    assert gps_heading_hold_arg in launch_contents
     assert gps_heading_publish_arg in launch_contents
     assert gps_heading_variance_arg in launch_contents
+    assert gps_heading_hold_variance_arg in launch_contents
     assert 'DeclareLaunchArgument("gps_profile", default_value="ideal")' in launch_contents
     assert 'executable="gps_course_heading"' in launch_contents
     assert '"gps_profile": gps_profile' in launch_contents
@@ -83,7 +91,9 @@ def test_sim_global_v2_launch_reuses_current_sim_stack_without_rviz() -> None:
     assert '"navsat_use_odometry_yaw": "false"' in launch_contents
     assert '"enable_gps_course_heading": enable_gps_course_heading' in launch_contents
     assert '"gps_course_heading_topic": "/gps/course_heading"' in launch_contents
+    assert '"invalid_hold_s": ParameterValue(' in launch_contents
     assert '"publish_hz": ParameterValue(' in launch_contents
+    assert '"hold_yaw_variance_multiplier": ParameterValue(' in launch_contents
     assert 'DeclareLaunchArgument("launch_web_app", default_value="True")' in launch_contents
     assert '"odom_topic": "/odometry/global"' in launch_contents
     assert '"launch_nav_command_server": "false"' in launch_contents

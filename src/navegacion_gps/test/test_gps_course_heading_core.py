@@ -113,3 +113,68 @@ def test_estimator_accepts_stable_straight_motion() -> None:
     assert estimate.reason == "ok"
     assert estimate.yaw_deg is not None
     assert abs(estimate.yaw_deg) < 5.0
+
+
+def test_estimator_holds_last_valid_heading_during_short_steer_excursion() -> None:
+    estimator = GpsCourseHeadingEstimator(
+        min_distance_m=2.0,
+        min_speed_mps=0.8,
+        max_abs_steer_deg=3.0,
+        max_abs_yaw_rate_rps=0.06,
+        invalid_hold_s=0.8,
+    )
+    estimator.add_fix(-31.0, -64.0, 0.0)
+    estimator.add_fix(-31.0, -63.99997, 3.0)
+
+    baseline = estimator.estimate(
+        now_s=3.0,
+        speed_mps=1.2,
+        steer_deg=0.5,
+        steer_valid=True,
+        yaw_rate_rps=0.01,
+    )
+    held = estimator.estimate(
+        now_s=3.4,
+        speed_mps=1.2,
+        steer_deg=4.5,
+        steer_valid=True,
+        yaw_rate_rps=0.05,
+    )
+
+    assert baseline.valid is True
+    assert baseline.reason == "ok"
+    assert held.valid is True
+    assert held.reason == "hold_steer_too_high"
+    assert held.yaw_deg == baseline.yaw_deg
+
+
+def test_estimator_hold_expires_after_grace_window() -> None:
+    estimator = GpsCourseHeadingEstimator(
+        min_distance_m=2.0,
+        min_speed_mps=0.8,
+        max_abs_steer_deg=3.0,
+        max_abs_yaw_rate_rps=0.06,
+        max_fix_age_s=1.0,
+        invalid_hold_s=0.5,
+    )
+    estimator.add_fix(-31.0, -64.0, 0.0)
+    estimator.add_fix(-31.0, -63.99997, 3.0)
+
+    valid = estimator.estimate(
+        now_s=3.0,
+        speed_mps=1.2,
+        steer_deg=0.5,
+        steer_valid=True,
+        yaw_rate_rps=0.01,
+    )
+    expired = estimator.estimate(
+        now_s=3.7,
+        speed_mps=1.2,
+        steer_deg=4.5,
+        steer_valid=True,
+        yaw_rate_rps=0.05,
+    )
+
+    assert valid.valid is True
+    assert expired.valid is False
+    assert expired.reason == "steer_too_high"

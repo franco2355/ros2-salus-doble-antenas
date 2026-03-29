@@ -43,8 +43,10 @@ class GpsCourseHeadingNode(Node):
         self.declare_parameter("max_abs_steer_deg", 6.0)
         self.declare_parameter("max_abs_yaw_rate_rps", 0.12)
         self.declare_parameter("max_fix_age_s", 0.5)
+        self.declare_parameter("invalid_hold_s", 0.0)
         self.declare_parameter("publish_hz", 5.0)
         self.declare_parameter("yaw_variance_rad2", 0.20)
+        self.declare_parameter("hold_yaw_variance_multiplier", 4.0)
 
         gps_topic = str(self.get_parameter("gps_topic").value)
         odom_topic = str(self.get_parameter("odom_topic").value)
@@ -57,6 +59,9 @@ class GpsCourseHeadingNode(Node):
         self._yaw_variance_rad2 = max(
             1.0e-6, float(self.get_parameter("yaw_variance_rad2").value)
         )
+        self._hold_yaw_variance_multiplier = max(
+            1.0, float(self.get_parameter("hold_yaw_variance_multiplier").value)
+        )
         self._estimator = GpsCourseHeadingEstimator(
             min_distance_m=float(self.get_parameter("min_distance_m").value),
             min_speed_mps=float(self.get_parameter("min_speed_mps").value),
@@ -65,6 +70,7 @@ class GpsCourseHeadingNode(Node):
                 self.get_parameter("max_abs_yaw_rate_rps").value
             ),
             max_fix_age_s=float(self.get_parameter("max_fix_age_s").value),
+            invalid_hold_s=float(self.get_parameter("invalid_hold_s").value),
         )
 
         self._last_fix_stamp_s: Optional[float] = None
@@ -143,6 +149,9 @@ class GpsCourseHeadingNode(Node):
         msg.orientation.y = qy
         msg.orientation.z = qz
         msg.orientation.w = qw
+        yaw_variance_rad2 = self._yaw_variance_rad2
+        if str(estimate.reason).startswith("hold_"):
+            yaw_variance_rad2 *= self._hold_yaw_variance_multiplier
         msg.orientation_covariance = [
             1.0e6,
             0.0,
@@ -152,7 +161,7 @@ class GpsCourseHeadingNode(Node):
             0.0,
             0.0,
             0.0,
-            float(self._yaw_variance_rad2),
+            float(yaw_variance_rad2),
         ]
         msg.angular_velocity_covariance = [-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         msg.linear_acceleration_covariance = [

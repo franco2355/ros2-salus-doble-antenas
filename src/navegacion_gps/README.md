@@ -15,6 +15,8 @@ Fuente de verdad: `launch/`, `config/`, `setup.py` y tests del paquete
   - [REAL_LOCAL_V2_CHECKLIST.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/REAL_LOCAL_V2_CHECKLIST.md)
 - Navegación global V2:
   - [REAL_GLOBAL_V2_CHECKLIST.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/REAL_GLOBAL_V2_CHECKLIST.md)
+- Benchmarks y observabilidad:
+  - [docs/nav-benchmarks.md](/home/leo/codigo/ROS2_SALUS/docs/nav-benchmarks.md)
 - Diseño y transición:
   - [IMPLEMENTATION_PLAN_GLOBAL_NAV_V2.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/IMPLEMENTATION_PLAN_GLOBAL_NAV_V2.md)
   - clasificación recomendada: histórico / transición
@@ -72,6 +74,8 @@ La V2 global agrega la capa `map -> odom` sobre la base local Ackermann, con `na
 - `./tools/launch_sim_global_v2.sh`
 - `./tools/launch_real_global_v2.sh`
 - `./tools/record_nav_debug_bag.sh`
+- `./tools/run_nav_benchmark.sh`
+- `./tools/compare_nav_benchmarks.sh`
 
 ## Nota de uso
 - Si buscás una guía operativa corta, usá este README y la matriz de launches.

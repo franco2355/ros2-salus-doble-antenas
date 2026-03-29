@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 from rclpy.node import Node
 
 from controller_server.control_logic import DesiredCommand
@@ -63,10 +65,13 @@ def create_transport_backend(
     sim_joint_states_topic: str,
     sim_front_left_steer_joint: str,
     sim_front_right_steer_joint: str,
+    sim_wheelbase_m: float,
+    sim_track_width_m: float,
     sim_max_steering_angle_rad: float,
     sim_telemetry_timeout_s: float,
     sim_invert_actuation_steer_sign: bool,
     sim_invert_measured_steer_sign: bool,
+    sim_max_joint_odom_steer_delta_deg: float,
 ):
     backend_name = str(transport_backend).strip().lower()
     if backend_name == "uart":
@@ -88,10 +93,13 @@ def create_transport_backend(
             joint_states_topic=sim_joint_states_topic,
             front_left_steer_joint=sim_front_left_steer_joint,
             front_right_steer_joint=sim_front_right_steer_joint,
+            wheelbase_m=sim_wheelbase_m,
+            track_width_m=sim_track_width_m,
             max_steering_angle_rad=sim_max_steering_angle_rad,
             telemetry_timeout_s=sim_telemetry_timeout_s,
             invert_actuation_steer_sign=sim_invert_actuation_steer_sign,
             invert_measured_steer_sign=sim_invert_measured_steer_sign,
+            max_joint_odom_delta_rad=math.radians(sim_max_joint_odom_steer_delta_deg),
         )
     raise ValueError(
         f"Unsupported transport_backend='{transport_backend}'. Expected 'uart' or 'sim_gazebo'."

@@ -1,0 +1,154 @@
+version: 1
+default_profile: heading_core
+
+profiles:
+  smoke:
+    description: "2 escenarios cortos para validar si un cambio rompio lo basico."
+    scenarios:
+      - straight_short_6m
+      - turn_left_short
+  heading_core:
+    description: "Set minimo recomendado para comparar saltos de heading y deriva lateral."
+    scenarios:
+      - idle_heading_12s
+      - straight_short_6m
+      - straight_medium_12m
+      - turn_left_short
+  regression_core:
+    description: "Cobertura balanceada para tuning normal antes/despues de cambios."
+    scenarios:
+      - idle_heading_12s
+      - straight_short_6m
+      - straight_medium_12m
+      - turn_left_short
+      - turn_right_short
+      - diagonal_far_left
+  full:
+    description: "Suite completa. Usar solo cuando el cambio ya paso smoke y heading_core."
+    scenarios:
+      - idle_heading_12s
+      - straight_short_6m
+      - straight_medium_12m
+      - turn_left_short
+      - turn_right_short
+      - diagonal_far_left
+      - diagonal_far_right
+      - long_straight_25m
+
+scenarios:
+  idle_heading_12s:
+    order: 5
+    difficulty: 0
+    type: hold
+    description: "Reposo 12 s"
+    purpose: "Aislar saltos del frame global sin contaminar con movimiento."
+    tags: [diagnostic, idle, heading]
+    pre_idle_s: 4.0
+    hold_s: 12.0
+    post_idle_s: 3.0
+    sample_hz: 5.0
+
+  straight_short_6m:
+    order: 10
+    difficulty: 1
+    type: body_relative_goal
+    description: "Recta corta 6 m"
+    purpose: "Smoke test para heading global, lateral error y cierre de goal."
+    tags: [straight, short, heading]
+    forward_m: 6.0
+    left_m: 0.0
+    yaw_mode: path
+    pre_idle_s: 5.0
+    run_timeout_s: 60.0
+    post_idle_s: 6.0
+    sample_hz: 5.0
+
+  straight_medium_12m:
+    order: 20
+    difficulty: 2
+    type: body_relative_goal
+    description: "Recta media 12 m"
+    purpose: "Exponer drift acumulado, estabilidad map->odom y cierres de heading."
+    tags: [straight, medium, heading]
+    forward_m: 12.0
+    left_m: 0.0
+    yaw_mode: path
+    pre_idle_s: 5.0
+    run_timeout_s: 90.0
+    post_idle_s: 8.0
+    sample_hz: 5.0
+
+  turn_left_short:
+    order: 30
+    difficulty: 2
+    type: body_relative_goal
+    description: "Curva simple izquierda"
+    purpose: "Medir como responde el heading global durante una maniobra suave."
+    tags: [turn, left, short]
+    forward_m: 8.0
+    left_m: 3.0
+    yaw_mode: path
+    pre_idle_s: 5.0
+    run_timeout_s: 75.0
+    post_idle_s: 8.0
+    sample_hz: 5.0
+
+  turn_right_short:
+    order: 40
+    difficulty: 2
+    type: body_relative_goal
+    description: "Curva simple derecha"
+    purpose: "Detectar asimetrias entre giros izquierda/derecha."
+    tags: [turn, right, short]
+    forward_m: 8.0
+    left_m: -3.0
+    yaw_mode: path
+    pre_idle_s: 5.0
+    run_timeout_s: 75.0
+    post_idle_s: 8.0
+    sample_hz: 5.0
+
+  diagonal_far_left:
+    order: 50
+    difficulty: 3
+    type: body_relative_goal
+    description: "Goal diagonal lejano izquierda"
+    purpose: "Forzar trayectoria mas larga para ver si el mapa corrige a saltos."
+    tags: [diagonal, far, left]
+    forward_m: 15.0
+    left_m: 8.0
+    yaw_mode: path
+    pre_idle_s: 5.0
+    run_timeout_s: 120.0
+    post_idle_s: 10.0
+    sample_hz: 5.0
+
+  diagonal_far_right:
+    order: 60
+    difficulty: 3
+    type: body_relative_goal
+    description: "Goal diagonal lejano derecha"
+    purpose: "Complementar el diagonal izquierdo y detectar sesgos del estimador."
+    tags: [diagonal, far, right]
+    forward_m: 15.0
+    left_m: -8.0
+    yaw_mode: path
+    pre_idle_s: 5.0
+    run_timeout_s: 120.0
+    post_idle_s: 10.0
+    sample_hz: 5.0
+
+  long_straight_25m:
+    order: 70
+    difficulty: 4
+    type: body_relative_goal
+    description: "Recta larga 25 m"
+    purpose: "Stress test para drift longitudinal y saltos espaciados de heading."
+    tags: [straight, long, stress]
+    forward_m: 25.0
+    left_m: 0.0
+    yaw_mode: path
+    pre_idle_s: 5.0
+    run_timeout_s: 150.0
+    post_idle_s: 10.0
+    sample_hz: 5.0

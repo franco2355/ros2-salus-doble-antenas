@@ -118,10 +118,13 @@ def generate_launch_description():
                         "sim_joint_states_topic": "/joint_states",
                         "sim_front_left_steer_joint": "front_left_steer_joint",
                         "sim_front_right_steer_joint": "front_right_steer_joint",
+                        "sim_wheelbase_m": 0.94,
+                        "sim_track_width_m": 0.75,
                         "sim_max_steering_angle_rad": 0.5235987756,
                         "sim_telemetry_timeout_s": 0.5,
                         "sim_invert_actuation_steer_sign": True,
                         "sim_invert_measured_steer_sign": True,
+                        "sim_max_joint_odom_steer_delta_deg": 5.0,
                     }
                 ],
             ),

@@ -59,9 +59,15 @@ def generate_launch_description():
     gps_course_heading_max_abs_yaw_rate_rps = LaunchConfiguration(
         "gps_course_heading_max_abs_yaw_rate_rps"
     )
+    gps_course_heading_invalid_hold_s = LaunchConfiguration(
+        "gps_course_heading_invalid_hold_s"
+    )
     gps_course_heading_publish_hz = LaunchConfiguration("gps_course_heading_publish_hz")
     gps_course_heading_yaw_variance_rad2 = LaunchConfiguration(
         "gps_course_heading_yaw_variance_rad2"
+    )
+    gps_course_heading_hold_yaw_variance_multiplier = LaunchConfiguration(
+        "gps_course_heading_hold_yaw_variance_multiplier"
     )
     gps_profile = LaunchConfiguration("gps_profile")
     launch_web_app = LaunchConfiguration("launch_web_app")
@@ -131,8 +137,17 @@ def generate_launch_description():
             # en simulacion para aceptarlo solo en tramos claramente rectos.
             DeclareLaunchArgument("gps_course_heading_max_abs_steer_deg", default_value="3.0"),
             DeclareLaunchArgument("gps_course_heading_max_abs_yaw_rate_rps", default_value="0.06"),
+            # Cuando el vehiculo entra en una curva leve, dejar caer el heading
+            # en un solo ciclo hace que el EKF global reoriente `map->odom`
+            # demasiado brusco. Mantenemos el ultimo yaw valido por una ventana
+            # corta y con menor confianza para suavizar esa transicion.
+            DeclareLaunchArgument("gps_course_heading_invalid_hold_s", default_value="0.8"),
             DeclareLaunchArgument("gps_course_heading_publish_hz", default_value="10.0"),
             DeclareLaunchArgument("gps_course_heading_yaw_variance_rad2", default_value="0.05"),
+            DeclareLaunchArgument(
+                "gps_course_heading_hold_yaw_variance_multiplier",
+                default_value="4.0",
+            ),
             # Sim global defaults to the ideal profile so LL/map debugging is not
             # polluted by GNSS noise unless the operator opts into RTK/M8N.
             DeclareLaunchArgument("gps_profile", default_value="ideal"),
@@ -196,10 +211,13 @@ def generate_launch_description():
                         "sim_joint_states_topic": "/joint_states",
                         "sim_front_left_steer_joint": "front_left_steer_joint",
                         "sim_front_right_steer_joint": "front_right_steer_joint",
+                        "sim_wheelbase_m": 0.94,
+                        "sim_track_width_m": 0.75,
                         "sim_max_steering_angle_rad": 0.5235987756,
                         "sim_telemetry_timeout_s": 0.5,
                         "sim_invert_actuation_steer_sign": True,
                         "sim_invert_measured_steer_sign": True,
+                        "sim_max_joint_odom_steer_delta_deg": 5.0,
                     }
                 ],
             ),
@@ -273,11 +291,18 @@ def generate_launch_description():
                         "max_abs_yaw_rate_rps": ParameterValue(
                             gps_course_heading_max_abs_yaw_rate_rps, value_type=float
                         ),
+                        "invalid_hold_s": ParameterValue(
+                            gps_course_heading_invalid_hold_s, value_type=float
+                        ),
                         "publish_hz": ParameterValue(
                             gps_course_heading_publish_hz, value_type=float
                         ),
                         "yaw_variance_rad2": ParameterValue(
                             gps_course_heading_yaw_variance_rad2, value_type=float
+                        ),
+                        "hold_yaw_variance_multiplier": ParameterValue(
+                            gps_course_heading_hold_yaw_variance_multiplier,
+                            value_type=float,
                         ),
                     }
                 ],

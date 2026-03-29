@@ -44,10 +44,13 @@ class ControllerServerNode(Node):
         self.declare_parameter("sim_joint_states_topic", "/joint_states")
         self.declare_parameter("sim_front_left_steer_joint", "front_left_steer_joint")
         self.declare_parameter("sim_front_right_steer_joint", "front_right_steer_joint")
+        self.declare_parameter("sim_wheelbase_m", 0.94)
+        self.declare_parameter("sim_track_width_m", 0.75)
         self.declare_parameter("sim_max_steering_angle_rad", 0.5235987756)
         self.declare_parameter("sim_telemetry_timeout_s", 0.5)
         self.declare_parameter("sim_invert_actuation_steer_sign", True)
         self.declare_parameter("sim_invert_measured_steer_sign", True)
+        self.declare_parameter("sim_max_joint_odom_steer_delta_deg", 5.0)
 
         self._serial_port = self.get_parameter("serial_port").value
         self._serial_baud = int(self.get_parameter("serial_baud").value)
@@ -102,6 +105,10 @@ class ControllerServerNode(Node):
         self._sim_front_right_steer_joint = str(
             self.get_parameter("sim_front_right_steer_joint").value
         )
+        self._sim_wheelbase_m = max(1.0e-6, float(self.get_parameter("sim_wheelbase_m").value))
+        self._sim_track_width_m = max(
+            0.0, float(self.get_parameter("sim_track_width_m").value)
+        )
         self._sim_max_steering_angle_rad = abs(
             float(self.get_parameter("sim_max_steering_angle_rad").value)
         )
@@ -113,6 +120,9 @@ class ControllerServerNode(Node):
         )
         self._sim_invert_measured_steer_sign = bool(
             self.get_parameter("sim_invert_measured_steer_sign").value
+        )
+        self._sim_max_joint_odom_steer_delta_deg = max(
+            0.0, float(self.get_parameter("sim_max_joint_odom_steer_delta_deg").value)
         )
 
         self._auto_cmd = safe_command()
@@ -132,10 +142,13 @@ class ControllerServerNode(Node):
             sim_joint_states_topic=self._sim_joint_states_topic,
             sim_front_left_steer_joint=self._sim_front_left_steer_joint,
             sim_front_right_steer_joint=self._sim_front_right_steer_joint,
+            sim_wheelbase_m=self._sim_wheelbase_m,
+            sim_track_width_m=self._sim_track_width_m,
             sim_max_steering_angle_rad=self._sim_max_steering_angle_rad,
             sim_telemetry_timeout_s=self._sim_telemetry_timeout_s,
             sim_invert_actuation_steer_sign=self._sim_invert_actuation_steer_sign,
             sim_invert_measured_steer_sign=self._sim_invert_measured_steer_sign,
+            sim_max_joint_odom_steer_delta_deg=self._sim_max_joint_odom_steer_delta_deg,
         )
         self._client.start()
 

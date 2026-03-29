@@ -13,6 +13,7 @@ Fuente de verdad: launches, scripts, nodos y tests del checkout actual
 - Raíz del monorepo:
   - [README.md](/home/leo/codigo/ROS2_SALUS/README.md)
   - [docs/launch-matrix.md](/home/leo/codigo/ROS2_SALUS/docs/launch-matrix.md)
+  - [docs/nav-benchmarks.md](/home/leo/codigo/ROS2_SALUS/docs/nav-benchmarks.md)
   - [docs/runtime-architecture.md](/home/leo/codigo/ROS2_SALUS/docs/runtime-architecture.md)
 - Paquetes:
   - [src/interfaces/README.md](/home/leo/codigo/ROS2_SALUS/src/interfaces/README.md)
@@ -28,6 +29,7 @@ Fuente de verdad: launches, scripts, nodos y tests del checkout actual
   - [src/navegacion_gps/REAL_LOCAL_V2_CHECKLIST.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/REAL_LOCAL_V2_CHECKLIST.md)
 - Navegación global V2:
   - [src/navegacion_gps/REAL_GLOBAL_V2_CHECKLIST.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/REAL_GLOBAL_V2_CHECKLIST.md)
+  - [docs/nav-benchmarks.md](/home/leo/codigo/ROS2_SALUS/docs/nav-benchmarks.md)
 
 ## Legacy vigente
 - Mainline de navegación:

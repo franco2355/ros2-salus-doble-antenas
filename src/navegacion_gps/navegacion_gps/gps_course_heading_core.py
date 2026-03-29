@@ -56,6 +56,7 @@ class GpsCourseHeadingEstimator:
         max_abs_yaw_rate_rps: float = 0.12,
         max_fix_age_s: float = 0.5,
         history_window_s: float = 12.0,
+        invalid_hold_s: float = 0.0,
     ) -> None:
         self.min_distance_m = max(0.01, float(min_distance_m))
         self.min_speed_mps = max(0.0, float(min_speed_mps))
@@ -63,7 +64,10 @@ class GpsCourseHeadingEstimator:
         self.max_abs_yaw_rate_rps = max(0.0, float(max_abs_yaw_rate_rps))
         self.max_fix_age_s = max(0.01, float(max_fix_age_s))
         self.history_window_s = max(self.max_fix_age_s, float(history_window_s))
+        self.invalid_hold_s = max(0.0, float(invalid_hold_s))
         self._fixes: Deque[GpsFixSample] = deque()
+        self._last_valid_estimate: Optional[CourseHeadingEstimate] = None
+        self._last_valid_now_s: Optional[float] = None
 
     def add_fix(self, lat: float, lon: float, stamp_s: float) -> None:
         if not (
@@ -134,8 +138,9 @@ class GpsCourseHeadingEstimator:
             )
 
         if abs(float(steer_deg)) > self.max_abs_steer_deg:
-            return self._invalid(
+            return self._invalid_or_hold(
                 reason="steer_too_high",
+                now_s=float(now_s),
                 speed_mps=speed_mps,
                 steer_deg=steer_deg,
                 yaw_rate_rps=yaw_rate_rps,
@@ -146,8 +151,9 @@ class GpsCourseHeadingEstimator:
             not math.isfinite(float(yaw_rate_rps))
             or abs(float(yaw_rate_rps)) > self.max_abs_yaw_rate_rps
         ):
-            return self._invalid(
+            return self._invalid_or_hold(
                 reason="yaw_rate_too_high",
+                now_s=float(now_s),
                 speed_mps=speed_mps,
                 steer_deg=steer_deg,
                 yaw_rate_rps=yaw_rate_rps,
@@ -187,7 +193,7 @@ class GpsCourseHeadingEstimator:
             ref_lon=candidate.lon,
         )
         yaw_deg = ros_yaw_deg_from_north_east(north_m=north_m, east_m=east_m)
-        return CourseHeadingEstimate(
+        estimate = CourseHeadingEstimate(
             valid=True,
             reason="ok",
             yaw_deg=float(yaw_deg),
@@ -198,6 +204,9 @@ class GpsCourseHeadingEstimator:
             latest_fix_age_s=float(latest_fix_age_s),
             sample_dt_s=float(max(0.0, latest.stamp_s - candidate.stamp_s)),
         )
+        self._last_valid_estimate = estimate
+        self._last_valid_now_s = float(now_s)
+        return estimate
 
     def _trim_history(self, *, now_s: float) -> None:
         threshold_s = float(now_s) - self.history_window_s
@@ -230,3 +239,55 @@ class GpsCourseHeadingEstimator:
             latest_fix_age_s=latest_fix_age_s,
             sample_dt_s=None,
         )
+
+    def _invalid_or_hold(
+        self,
+        *,
+        reason: str,
+        now_s: float,
+        speed_mps: float,
+        steer_deg: Optional[float],
+        yaw_rate_rps: float,
+        latest_fix_age_s: Optional[float],
+    ) -> CourseHeadingEstimate:
+        if self._can_hold_last_valid(now_s=now_s):
+            last_valid = self._last_valid_estimate
+            if last_valid is not None and last_valid.yaw_deg is not None:
+                return CourseHeadingEstimate(
+                    valid=True,
+                    reason=f"hold_{reason}",
+                    yaw_deg=float(last_valid.yaw_deg),
+                    distance_m=float(last_valid.distance_m),
+                    speed_mps=float(speed_mps),
+                    steer_deg=(
+                        float(steer_deg)
+                        if steer_deg is not None and math.isfinite(float(steer_deg))
+                        else None
+                    ),
+                    yaw_rate_rps=(
+                        float(yaw_rate_rps)
+                        if math.isfinite(float(yaw_rate_rps))
+                        else 0.0
+                    ),
+                    latest_fix_age_s=latest_fix_age_s,
+                    sample_dt_s=last_valid.sample_dt_s,
+                )
+
+        return self._invalid(
+            reason=reason,
+            speed_mps=speed_mps,
+            steer_deg=steer_deg,
+            yaw_rate_rps=yaw_rate_rps,
+            latest_fix_age_s=latest_fix_age_s,
+        )
+
+    def _can_hold_last_valid(self, *, now_s: float) -> bool:
+        if self.invalid_hold_s <= 0.0:
+            return False
+        if self._last_valid_estimate is None or self._last_valid_now_s is None:
+            return False
+        if self._last_valid_estimate.yaw_deg is None:
+            return False
+        if (float(now_s) - self._last_valid_now_s) > self.invalid_hold_s:
+            return False
+        return True

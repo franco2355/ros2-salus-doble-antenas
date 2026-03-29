@@ -18,7 +18,9 @@ from controller_server.control_logic import DesiredCommand
 
 
 DEFAULT_SIM_WHEELBASE_M = 0.94
+DEFAULT_SIM_TRACK_WIDTH_M = 0.75
 DEFAULT_ODOM_STEER_MIN_SPEED_MPS = 0.05
+DEFAULT_MAX_JOINT_ODOM_STEER_DELTA_RAD = math.radians(5.0)
 
 
 @dataclass(slots=True)
@@ -48,16 +50,20 @@ def translate_command_state_to_gazebo_twist(
     return (float(command_state.speed_mps), steering_angle_rad)
 
 
-def select_physical_steering_angle_rad(
+def shortest_angular_distance_rad(from_angle_rad: float, to_angle_rad: float) -> float:
+    return math.atan2(
+        math.sin(float(to_angle_rad) - float(from_angle_rad)),
+        math.cos(float(to_angle_rad) - float(from_angle_rad)),
+    )
+
+
+def steering_angle_from_odom(
     *,
-    joint_angle_rad: Optional[float],
     odom_linear_x_mps: Optional[float],
     odom_angular_z_rps: Optional[float],
     wheelbase_m: float = DEFAULT_SIM_WHEELBASE_M,
     min_speed_mps: float = DEFAULT_ODOM_STEER_MIN_SPEED_MPS,
 ) -> Optional[float]:
-    if joint_angle_rad is not None and math.isfinite(float(joint_angle_rad)):
-        return float(joint_angle_rad)
     if odom_linear_x_mps is None or odom_angular_z_rps is None:
         return None
 
@@ -66,7 +72,88 @@ def select_physical_steering_angle_rad(
         return None
     if abs(float(wheelbase_m)) < 1.0e-6:
         return None
-    return math.atan2(float(wheelbase_m) * float(odom_angular_z_rps), signed_speed_mps)
+    return math.atan(float(wheelbase_m) * float(odom_angular_z_rps) / signed_speed_mps)
+
+
+def steering_angle_from_wheel_angles(
+    *,
+    left_joint_angle_rad: Optional[float],
+    right_joint_angle_rad: Optional[float],
+    wheelbase_m: float = DEFAULT_SIM_WHEELBASE_M,
+    track_width_m: float = DEFAULT_SIM_TRACK_WIDTH_M,
+) -> Optional[float]:
+    left = (
+        float(left_joint_angle_rad)
+        if left_joint_angle_rad is not None and math.isfinite(float(left_joint_angle_rad))
+        else None
+    )
+    right = (
+        float(right_joint_angle_rad)
+        if right_joint_angle_rad is not None and math.isfinite(float(right_joint_angle_rad))
+        else None
+    )
+    if left is None and right is None:
+        return None
+    if left is not None and right is not None:
+        tan_left = math.tan(left)
+        tan_right = math.tan(right)
+        denom = tan_left + tan_right
+        if abs(denom) < 1.0e-6:
+            return 0.5 * (left + right)
+        center = math.atan(2.0 * tan_left * tan_right / denom)
+        if math.isfinite(center):
+            return center
+        return 0.5 * (left + right)
+
+    if abs(float(wheelbase_m)) < 1.0e-6:
+        return left if left is not None else right
+
+    track_half_m = 0.5 * abs(float(track_width_m))
+    if left is not None:
+        tan_left = math.tan(left)
+        if abs(tan_left) < 1.0e-6:
+            return 0.0
+        center_radius_m = float(wheelbase_m) / tan_left + track_half_m
+        return math.atan(float(wheelbase_m) / center_radius_m)
+
+    tan_right = math.tan(right)
+    if abs(tan_right) < 1.0e-6:
+        return 0.0
+    center_radius_m = float(wheelbase_m) / tan_right - track_half_m
+    return math.atan(float(wheelbase_m) / center_radius_m)
+
+
+def select_physical_steering_angle_rad(
+    *,
+    left_joint_angle_rad: Optional[float],
+    right_joint_angle_rad: Optional[float],
+    odom_linear_x_mps: Optional[float],
+    odom_angular_z_rps: Optional[float],
+    wheelbase_m: float = DEFAULT_SIM_WHEELBASE_M,
+    track_width_m: float = DEFAULT_SIM_TRACK_WIDTH_M,
+    min_speed_mps: float = DEFAULT_ODOM_STEER_MIN_SPEED_MPS,
+    max_joint_odom_delta_rad: float = DEFAULT_MAX_JOINT_ODOM_STEER_DELTA_RAD,
+) -> Optional[float]:
+    joint_angle_rad = steering_angle_from_wheel_angles(
+        left_joint_angle_rad=left_joint_angle_rad,
+        right_joint_angle_rad=right_joint_angle_rad,
+        wheelbase_m=wheelbase_m,
+        track_width_m=track_width_m,
+    )
+    odom_angle_rad = steering_angle_from_odom(
+        odom_linear_x_mps=odom_linear_x_mps,
+        odom_angular_z_rps=odom_angular_z_rps,
+        wheelbase_m=wheelbase_m,
+        min_speed_mps=min_speed_mps,
+    )
+    if joint_angle_rad is None:
+        return odom_angle_rad
+    if odom_angle_rad is None:
+        return joint_angle_rad
+    delta_rad = abs(shortest_angular_distance_rad(joint_angle_rad, odom_angle_rad))
+    if delta_rad > max(0.0, float(max_joint_odom_delta_rad)):
+        return odom_angle_rad
+    return joint_angle_rad
 
 
 def build_status_flags(
@@ -97,9 +184,13 @@ def synthesize_telemetry(
     *,
     command_state: CommandState,
     odom_sample: Optional[OdomSample],
-    joint_angle_rad: Optional[float],
+    left_joint_angle_rad: Optional[float],
+    right_joint_angle_rad: Optional[float],
     invert_measured_steer_sign: bool,
     telemetry_timeout_s: float,
+    wheelbase_m: float = DEFAULT_SIM_WHEELBASE_M,
+    track_width_m: float = DEFAULT_SIM_TRACK_WIDTH_M,
+    max_joint_odom_delta_rad: float = DEFAULT_MAX_JOINT_ODOM_STEER_DELTA_RAD,
 ) -> Optional[Telemetry]:
     rx_monotonic_s = (
         float(odom_sample.rx_monotonic_s) if odom_sample is not None else time.monotonic()
@@ -121,9 +212,13 @@ def synthesize_telemetry(
             float(odom_sample.linear_y_mps),
         )
         steering_angle_rad = select_physical_steering_angle_rad(
-            joint_angle_rad=joint_angle_rad,
+            left_joint_angle_rad=left_joint_angle_rad,
+            right_joint_angle_rad=right_joint_angle_rad,
             odom_linear_x_mps=odom_sample.linear_x_mps,
             odom_angular_z_rps=odom_sample.angular_z_rps,
+            wheelbase_m=wheelbase_m,
+            track_width_m=track_width_m,
+            max_joint_odom_delta_rad=max_joint_odom_delta_rad,
         )
 
     steer_deg = None
@@ -164,19 +259,25 @@ class SimGazeboBackend:
         joint_states_topic: str,
         front_left_steer_joint: str,
         front_right_steer_joint: str,
+        wheelbase_m: float,
+        track_width_m: float,
         max_steering_angle_rad: float,
         telemetry_timeout_s: float,
         invert_actuation_steer_sign: bool,
         invert_measured_steer_sign: bool,
+        max_joint_odom_delta_rad: float = DEFAULT_MAX_JOINT_ODOM_STEER_DELTA_RAD,
     ) -> None:
         self._node = node
         self._tx_period_s = 1.0 / max(1.0, float(tx_hz))
         self._telemetry_timeout_s = max(0.05, float(telemetry_timeout_s))
         self._front_left_steer_joint = str(front_left_steer_joint)
         self._front_right_steer_joint = str(front_right_steer_joint)
+        self._wheelbase_m = max(1.0e-6, float(wheelbase_m))
+        self._track_width_m = max(0.0, float(track_width_m))
         self._max_steering_angle_rad = abs(float(max_steering_angle_rad))
         self._invert_actuation_steer_sign = bool(invert_actuation_steer_sign)
         self._invert_measured_steer_sign = bool(invert_measured_steer_sign)
+        self._max_joint_odom_delta_rad = max(0.0, float(max_joint_odom_delta_rad))
 
         self._state_lock = threading.Lock()
         self._state = CommandState(
@@ -184,7 +285,8 @@ class SimGazeboBackend:
             max_reverse_mps=float(max_reverse_mps),
         )
         self._latest_odom: Optional[OdomSample] = None
-        self._latest_joint_angle_rad: Optional[float] = None
+        self._latest_left_joint_angle_rad: Optional[float] = None
+        self._latest_right_joint_angle_rad: Optional[float] = None
         self._stats = CommsStats()
         self._running = False
 
@@ -219,13 +321,18 @@ class SimGazeboBackend:
         with self._state_lock:
             command_state = CommandState(**self._state.to_dict())
             odom_sample = self._latest_odom
-            joint_angle_rad = self._latest_joint_angle_rad
+            left_joint_angle_rad = self._latest_left_joint_angle_rad
+            right_joint_angle_rad = self._latest_right_joint_angle_rad
         return synthesize_telemetry(
             command_state=command_state,
             odom_sample=odom_sample,
-            joint_angle_rad=joint_angle_rad,
+            left_joint_angle_rad=left_joint_angle_rad,
+            right_joint_angle_rad=right_joint_angle_rad,
             invert_measured_steer_sign=self._invert_measured_steer_sign,
             telemetry_timeout_s=self._telemetry_timeout_s,
+            wheelbase_m=self._wheelbase_m,
+            track_width_m=self._track_width_m,
+            max_joint_odom_delta_rad=self._max_joint_odom_delta_rad,
         )
 
     def get_command_state(self) -> dict:
@@ -255,17 +362,15 @@ class SimGazeboBackend:
 
     def _on_joint_states(self, msg: JointState) -> None:
         positions_by_name = dict(zip(msg.name, msg.position))
-        steer_samples = []
-        for joint_name in (
-            self._front_left_steer_joint,
-            self._front_right_steer_joint,
-        ):
-            if joint_name in positions_by_name:
-                steer_samples.append(float(positions_by_name[joint_name]))
-        if not steer_samples:
+        left_joint_angle_rad = positions_by_name.get(self._front_left_steer_joint)
+        right_joint_angle_rad = positions_by_name.get(self._front_right_steer_joint)
+        if left_joint_angle_rad is None and right_joint_angle_rad is None:
             return
         with self._state_lock:
-            self._latest_joint_angle_rad = sum(steer_samples) / float(len(steer_samples))
+            if left_joint_angle_rad is not None:
+                self._latest_left_joint_angle_rad = float(left_joint_angle_rad)
+            if right_joint_angle_rad is not None:
+                self._latest_right_joint_angle_rad = float(right_joint_angle_rad)
 
     def _publish_current_command(self) -> None:
         with self._state_lock:

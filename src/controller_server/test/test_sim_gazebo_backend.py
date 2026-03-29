@@ -12,6 +12,7 @@ from controller_server.sim_gazebo_backend import (
     SimGazeboBackend,
     build_status_flags,
     select_physical_steering_angle_rad,
+    steering_angle_from_wheel_angles,
     synthesize_telemetry,
     translate_command_state_to_gazebo_twist,
 )
@@ -70,13 +71,54 @@ def test_translate_command_state_to_gazebo_twist_inverts_actuation_sign() -> Non
 
 
 def test_select_physical_steering_angle_prefers_joint_state_over_odom() -> None:
+    left_joint_angle = math.radians(13.0)
+    right_joint_angle = math.radians(11.0)
     steering_angle = select_physical_steering_angle_rad(
-        joint_angle_rad=0.2,
+        left_joint_angle_rad=left_joint_angle,
+        right_joint_angle_rad=right_joint_angle,
         odom_linear_x_mps=1.0,
         odom_angular_z_rps=0.8,
+        max_joint_odom_delta_rad=math.radians(30.0),
     )
 
-    assert math.isclose(steering_angle, 0.2, rel_tol=0.0, abs_tol=1.0e-9)
+    expected = steering_angle_from_wheel_angles(
+        left_joint_angle_rad=left_joint_angle,
+        right_joint_angle_rad=right_joint_angle,
+    )
+    assert expected is not None
+    assert math.isclose(steering_angle, expected, rel_tol=0.0, abs_tol=1.0e-9)
+
+
+@pytest.mark.parametrize(
+    ("left_joint_deg", "right_joint_deg", "expected_center_deg"),
+    [
+        (23.064121, 17.631289, 20.0),
+        (-17.631289, -23.064121, -20.0),
+    ],
+)
+def test_steering_angle_from_wheel_angles_recovers_center_angle(
+    left_joint_deg: float,
+    right_joint_deg: float,
+    expected_center_deg: float,
+) -> None:
+    steering_angle = steering_angle_from_wheel_angles(
+        left_joint_angle_rad=math.radians(left_joint_deg),
+        right_joint_angle_rad=math.radians(right_joint_deg),
+    )
+
+    assert steering_angle == pytest.approx(math.radians(expected_center_deg), abs=1.0e-6)
+
+
+def test_select_physical_steering_angle_uses_odom_when_joint_estimate_disagrees() -> None:
+    steering_angle = select_physical_steering_angle_rad(
+        left_joint_angle_rad=math.radians(2.0),
+        right_joint_angle_rad=math.radians(2.0),
+        odom_linear_x_mps=1.0,
+        odom_angular_z_rps=math.tan(math.radians(18.0)) / 0.94,
+        max_joint_odom_delta_rad=math.radians(5.0),
+    )
+
+    assert steering_angle == pytest.approx(math.radians(18.0), abs=1.0e-6)
 
 
 def test_synthesize_telemetry_marks_pi_and_inverts_measured_sign() -> None:
@@ -99,7 +141,8 @@ def test_synthesize_telemetry_marks_pi_and_inverts_measured_sign() -> None:
     telemetry = synthesize_telemetry(
         command_state=command_state,
         odom_sample=odom_sample,
-        joint_angle_rad=math.radians(12.0),
+        left_joint_angle_rad=math.radians(12.7),
+        right_joint_angle_rad=math.radians(11.3),
         invert_measured_steer_sign=True,
         telemetry_timeout_s=0.5,
     )
@@ -139,10 +182,13 @@ def test_create_transport_backend_builds_sim_backend() -> None:
         sim_joint_states_topic="/joint_states",
         sim_front_left_steer_joint="front_left_steer_joint",
         sim_front_right_steer_joint="front_right_steer_joint",
+        sim_wheelbase_m=0.94,
+        sim_track_width_m=0.75,
         sim_max_steering_angle_rad=0.5235987756,
         sim_telemetry_timeout_s=0.5,
         sim_invert_actuation_steer_sign=True,
         sim_invert_measured_steer_sign=True,
+        sim_max_joint_odom_steer_delta_deg=5.0,
     )
 
     assert isinstance(backend, SimGazeboBackend)
@@ -163,10 +209,13 @@ def test_create_transport_backend_rejects_unknown_backend() -> None:
             sim_joint_states_topic="/joint_states",
             sim_front_left_steer_joint="front_left_steer_joint",
             sim_front_right_steer_joint="front_right_steer_joint",
+            sim_wheelbase_m=0.94,
+            sim_track_width_m=0.75,
             sim_max_steering_angle_rad=0.5235987756,
             sim_telemetry_timeout_s=0.5,
             sim_invert_actuation_steer_sign=True,
             sim_invert_measured_steer_sign=True,
+            sim_max_joint_odom_steer_delta_deg=5.0,
         )
 
 
@@ -182,6 +231,8 @@ def test_sim_gazebo_backend_publishes_actuation_and_telemetry() -> None:
         joint_states_topic="/joint_states",
         front_left_steer_joint="front_left_steer_joint",
         front_right_steer_joint="front_right_steer_joint",
+        wheelbase_m=0.94,
+        track_width_m=0.75,
         max_steering_angle_rad=0.5235987756,
         telemetry_timeout_s=0.5,
         invert_actuation_steer_sign=True,
@@ -219,4 +270,4 @@ def test_sim_gazebo_backend_publishes_actuation_and_telemetry() -> None:
     assert telemetry is not None
     assert telemetry.control_source == ControlSource.PI
     assert telemetry.speed_mps == pytest.approx(0.8)
-    assert telemetry.steer_deg == pytest.approx(-math.degrees(0.2))
+    assert telemetry.steer_deg == pytest.approx(-math.degrees(0.2), abs=0.1)
