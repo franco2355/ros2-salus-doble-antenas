@@ -1,0 +1,197 @@
+# ============================================================================
+# localization_global_v2.yaml
+#
+# Este archivo define SOLO la capa global de localización para los perfiles
+# `sim_global_v2` y `real_global_v2`.
+#
+# Arquitectura buscada:
+#   1. El EKF local existente calcula `/odometry/local`
+#      y publica TF: `odom -> base_footprint`
+#   2. `navsat_transform` convierte GPS geográfico (`/gps/fix`)
+#      a una odometría diagnóstica (`/odometry/gps`)
+#   3. En `sim_global_v2`, un nodo auxiliar proyecta `/gps/fix`
+#      directamente al frame `map` y publica `/gps/odometry_map`
+#   3. El EKF global fusiona:
+#      - `/odometry/local`  -> referencia local continua
+#      - `/gps/odometry_map` o `/odometry/gps` -> corrección global
+#      - `/imu/data`        -> yaw_rate
+#      y publica:
+#      - `/odometry/global`
+#      - TF `map -> odom`
+#
+# Árbol TF esperado:
+#   map -> odom -> base_footprint
+#
+# Nota conceptual:
+# - `odom` debe ser suave y continuo, aunque derive.
+# - `map` debe ser globalmente consistente, aunque pueda corregir a `odom`.
+# ============================================================================
+
+ekf_filter_node_map:
+  ros__parameters:
+    # Frecuencia de actualización del filtro global.
+    frequency: 30.0
+
+    # Si una medición tarda más que esto en llegar, el filtro la considera vieja.
+    sensor_timeout: 0.2
+
+    # Todo el filtro se resuelve en 2D: ignora z, roll y pitch.
+    two_d_mode: true
+    transform_time_offset: 0.0
+    transform_timeout: 0.0
+    print_diagnostics: true
+
+    # Este EKF publica el TF global `map -> odom`.
+    publish_tf: true
+
+    # `map` = frame global corregido
+    # `odom` = frame local continuo
+    # `base_footprint` = base del robot en 2D
+    #
+    # Como `world_frame = map`, este filtro trabaja en global y la salida TF
+    # corrige la relación entre `map` y `odom`.
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: base_footprint
+    world_frame: map
+
+    # ------------------------------------------------------------------------
+    # Fuente 0: odometría local ya filtrada
+    #
+    # `/odometry/local` viene del EKF local actual:
+    #   wheel odometry + IMU
+    #
+    # Esta fuente aporta continuidad y suavidad. En esta variante la usamos
+    # solo para la parte cinemática, evitando arrastrar a `map` la pose absoluta
+    # driftada del frame local.
+    # ------------------------------------------------------------------------
+    # Los launches `*_global_v2` inyectan una copia gated de la odometría local
+    # para anular sólo la cinemática cuando `DriveTelemetry` indica reposo.
+    odom0: /odometry/local_global
+
+    # Configuración de estados:
+    # [x, y, z, roll, pitch, yaw, vx, vy, vz, vroll, vpitch, vyaw, ax, ay, az]
+    #
+    # Aquí se usan de `/odometry/local`:
+    # - vx
+    # - vy
+    # - vyaw
+    #
+    # No se usan x, y ni yaw absolutos para que el frame global no copie la
+    # deriva acumulada del EKF local. En esta variante dejamos yaw fuera del
+    # EKF global para desacoplarlo de errores de heading local durante curvas
+    # pronunciadas. Tambien usamos vy=0 del modelo Ackermann como restriccion
+    # no holonomica:
+    # no representa una velocidad lateral "medida" por GPS, sino la cinemática
+    # esperada del vehículo para evitar que el EKF explique el ruido global como
+    # deslizamiento lateral.
+    odom0_config: [false, false, false,
+                   false, false, false,
+                   true,  true,  false,
+                   false, false, true,
+                   false, false, false]
+    odom0_queue_size: 10
+    odom0_differential: false
+    odom0_relative: false
+
+    # ------------------------------------------------------------------------
+    # Fuente 1: observación global derivada del GPS
+    #
+    # Por default este YAML apunta a `/odometry/gps` para `real_global_v2`.
+    # En `sim_global_v2`, el launch overridea `odom1` a `/gps/odometry_map`,
+    # una medición absoluta expresada directamente en `map` y obtenida
+    # llamando al servicio `fromLL`.
+    #
+    # Esta fuente aporta la corrección absoluta del frame `map`.
+    # ------------------------------------------------------------------------
+    odom1: /odometry/gps
+
+    # De esta fuente se usan solo x e y.
+    # No se usa yaw ni velocidades, porque el GPS es bueno para posición
+    # absoluta pero no para orientar el robot en este setup. En simulación,
+    # la fuente overrideada ya llega expresada en `map`.
+    odom1_config: [true,  true,  false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+    odom1_queue_size: 10
+    odom1_differential: false
+    odom1_relative: false
+
+    # ------------------------------------------------------------------------
+    # Fuente 2: IMU
+    #
+    # En esta capa global la IMU se usa de forma conservadora:
+    # solo aporta yaw_rate (velocidad angular z).
+    #
+    # No estamos usando yaw absoluto de la IMU en este EKF para no acoplar
+    # el heading global demasiado fuerte a una orientación que puede no cerrar
+    # bien con el GPS.
+    # ------------------------------------------------------------------------
+    imu0: /imu/data
+    imu0_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, true,
+                  false, false, false]
+    imu0_queue_size: 20
+    imu0_differential: false
+    imu0_relative: false
+    imu0_remove_gravitational_acceleration: true
+
+    # Fuente opcional inyectada por launch solo en `sim_global_v2`:
+    # `imu1` puede publicar yaw absoluto estimado por avance GPS
+    # (`/gps/course_heading`). No sirve en estático y debe usarse con gating
+    # conservador para no contaminar curvas pronunciadas.
+    #
+    # Los launches `*_global_v2` tambien pueden inyectar `odom2` con un
+    # pseudo-yaw tomado de `/odometry/local` solo en reposo. Ese hold evita
+    # que `map -> odom` rote libremente cuando no existe heading absoluto
+    # valido en estático.
+
+# ----------------------------------------------------------------------------
+# navsat_transform
+#
+# Este nodo toma el GPS geográfico y lo proyecta al frame global.
+#
+# Entrada conceptual:
+#   `/gps/fix` + `/odometry/local` + orientación
+#
+# Salida:
+#   `/odometry/gps`
+#
+# Importante:
+# - No publica directamente `map -> odom`
+# - Solo produce una observación global que luego el EKF global fusiona
+# ----------------------------------------------------------------------------
+navsat_transform:
+  ros__parameters:
+    frequency: 30.0
+    magnetic_declination_radians: 0.0
+    yaw_offset: 0.0
+
+    # Fuerza z=0 para mantener navegación planar.
+    zero_altitude: true
+
+    # No necesitamos UTM en esta variante.
+    broadcast_utm_transform: false
+
+    # Publica la salida ya convertida en `/odometry/gps`.
+    publish_filtered_gps: true
+
+    # Aquí NO usamos yaw tomado de `/odometry/local`.
+    # La idea es desacoplar el heading global de la orientación local.
+    use_odometry_yaw: false
+
+    # Convencion fija operativa para `global v2`:
+    # por default el robot arranca mirando al Este (`datum_yaw_deg = 0.0`
+    # en ROS ENU). Esto NO representa un heading global medido; es solo una
+    # hipotesis visible y overrideable para estabilizar el arranque.
+    wait_for_datum: true
+    datum: [-31.4858037, -64.2410570, 0.0]
+
+    # Contrato de tópicos del nodo.
+    gps_topic: /gps/fix
+    odom_topic: /odometry/local
+    output_topic: /odometry/gps

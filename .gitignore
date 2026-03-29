@@ -1,0 +1,12 @@
+# Workspace outputs
+/build/
+/install/
+/log/
+
+# Python caches
+**/__pycache__/
+**/.pytest_cache/
+
+# Local editor / scratch state
+/.vscode/
+/.trash_mapviz/

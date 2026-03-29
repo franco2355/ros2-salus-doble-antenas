@@ -1,0 +1,64 @@
+services:
+  ros2:
+    build:
+      context: .
+      args:
+        USER_UID: ${UID:-1000}
+        USER_GID: ${GID:-1000}
+    image: ros2-humble-perception-ws
+    container_name: ros2
+    network_mode: host
+    privileged: true
+    restart: unless-stopped
+    group_add:
+      - "986"
+      - "20"
+    volumes:
+      - ./src:/ros2_ws/src
+      - ./tools:/ros2_ws/tools
+      - ./build:/ros2_ws/build
+      - ./install:/ros2_ws/install
+      - ./log:/ros2_ws/log
+      - /dev:/dev
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${HOME}/.Xauthority:/home/ros/.Xauthority:rw
+    stdin_open: true
+    tty: true
+    environment:
+      - DISPLAY=${DISPLAY}
+      - XAUTHORITY=/home/ros/.Xauthority
+      - QT_X11_NO_MITSHM=1
+      - TURTLEBOT3_MODEL=waffle
+      - GZ_SIM_RESOURCE_PATH=/opt/ros/humble/share:/home/ros/ws/install:/home/ros/ws/src
+      - IGN_GAZEBO_RESOURCE_PATH=/opt/ros/humble/share:/home/ros/ws/install:/home/ros/ws/src
+
+  netdata:
+    image: netdata/netdata:stable
+    container_name: netdata
+    pid: host
+    network_mode: host
+    restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - netdataconfig:/etc/netdata
+      - netdatalib:/var/lib/netdata
+      - netdatacache:/var/cache/netdata
+      - /:/host/root:ro,rslave
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /var/log:/host/var/log:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /run/dbus:/run/dbus:ro
+
+volumes:
+  netdataconfig:
+  netdatalib:
+  netdatacache:

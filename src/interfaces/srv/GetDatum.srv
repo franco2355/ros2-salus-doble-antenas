@@ -1,0 +1,13 @@
+---
+bool ok
+string error
+bool already_set
+bool has_current_gps
+bool gps_is_rtk
+float64 current_gps_lat
+float64 current_gps_lon
+float64 datum_lat
+float64 datum_lon
+builtin_interfaces/Time last_set_stamp
+string last_set_source
+bool last_set_with_rtk

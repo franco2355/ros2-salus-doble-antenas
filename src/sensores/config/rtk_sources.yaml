@@ -1,0 +1,8 @@
+sources:
+- id: casisa
+  label: CASISA
+  host: rtk2go.com
+  port: 2101
+  mountpoint: CASISA
+  username: a.eye.bionics@gmail.com
+  password: none

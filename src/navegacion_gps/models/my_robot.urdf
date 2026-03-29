@@ -1,0 +1,348 @@
+<?xml version="1.0"?>
+<robot name="my_robot">
+    <material name="gray">
+        <color rgba="0.7 0.7 0.7 1.0"/>
+    </material>
+    <material name="green">
+        <color rgba="0.0 0.6 0.0 1.0"/>
+    </material>
+    <material name="white">
+        <color rgba="1.0 1.0 1.0 1.0"/>
+    </material>
+    <material name="black">
+        <color rgba="0.0 0.0 0.0 1.0"/>
+    </material>
+
+    <!-- link: parte rigida del robot -->
+    <link name="base_link">
+      <visual>
+        <geometry><box size="1.6 0.4 0.4"/></geometry>
+        <origin xyz="0.0 0.0 0.2" rpy="0 0 0"/>
+        <material name="green"/>
+      </visual>
+
+      <collision>
+        <geometry><box size="1.6 0.4 0.4"/></geometry>
+        <origin xyz="0.0 0.0 0.2" rpy="0 0 0"/>
+      </collision>
+
+      <inertial>
+        <origin xyz="0.0 0.0 0.2" rpy="0 0 0"/>
+        <mass value="30.0"/>
+        <inertia ixx="2.0" ixy="0" ixz="0" iyy="6.0" iyz="0" izz="6.0"/>
+      </inertial>
+    </link>
+
+
+    <!-- link virtual (no tiene visuales) -->
+    <link name="base_footprint">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.001"/>
+        <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+      </inertial>
+    </link>
+
+    <link name="lidar_link">
+      <visual>
+        <geometry><cylinder radius="0.1" length="0.05"/></geometry>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <material name="white"/>
+      </visual>
+      <collision>
+        <geometry><cylinder radius="0.1" length="0.05"/></geometry>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.2"/>
+        <inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-4"/>
+      </inertial>
+    </link>
+    <link name="camera_link">
+      <visual>
+        <geometry><box size="0.05 0.05 0.05"/></geometry>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <material name="white"/>
+      </visual>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.05"/>
+        <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/>
+      </inertial>
+    </link>
+
+    <link name="left_back_wheel">
+        <visual>
+            <geometry>
+                <cylinder radius="0.3" length="0.25"/>
+            </geometry>
+            <!-- se debe usar esto para corregir la orientación de las ruedas -->
+            <origin xyz="0.0 0.0 0.0" rpy="1.570796327 0.0 0.0"/>
+            <material name="black"/>
+        </visual>
+        <collision>
+          <geometry><cylinder radius="0.3" length="0.25"/></geometry>
+          <origin xyz="0 0 0" rpy="1.570796327 0 0"/>
+        </collision>
+
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <mass value="2.0"/>
+          <inertia ixx="0.02" ixy="0" ixz="0" iyy="0.02" iyz="0" izz="0.02"/>
+        </inertial>
+    </link>
+    <link name="right_back_wheel">
+        <visual>
+            <geometry>
+                <cylinder radius="0.3" length="0.25"/>
+            </geometry>
+            <!-- se debe usar esto para corregir la orientación de las ruedas -->
+            <origin xyz="0.0 0.0 0.0" rpy="1.570796327 0.0 0.0"/>
+            <material name="black"/>
+        </visual>
+        <collision>
+          <geometry><cylinder radius="0.3" length="0.25"/></geometry>
+          <origin xyz="0 0 0" rpy="1.570796327 0 0"/>
+        </collision>
+
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <mass value="2.0"/>
+          <inertia ixx="0.02" ixy="0" ixz="0" iyy="0.02" iyz="0" izz="0.02"/>
+        </inertial>
+    </link>
+    
+    <link name="left_front_wheel">
+        <visual>
+            <geometry>
+                <cylinder radius="0.32" length="0.2"/>
+            </geometry>
+            <!-- se debe usar esto para corregir la orientación de las ruedas -->
+            <origin xyz="0.0 0.0 0.0" rpy="1.570796327 0.0 0.0"/>
+            <material name="black"/>
+        </visual>
+        <collision>
+          <geometry><cylinder radius="0.3" length="0.25"/></geometry>
+          <origin xyz="0 0 0" rpy="1.570796327 0 0"/>
+        </collision>
+
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <mass value="2.0"/>
+          <inertia ixx="0.02" ixy="0" ixz="0" iyy="0.02" iyz="0" izz="0.02"/>
+        </inertial>
+    </link>
+    <link name="right_front_wheel">
+        <visual>
+            <geometry>
+                <cylinder radius="0.32" length="0.2"/>
+            </geometry>
+            <!-- se debe usar esto para corregir la orientación de las ruedas -->
+            <origin xyz="0.0 0.0 0.0" rpy="1.570796327 0.0 0.0"/>
+            <material name="black"/>
+        </visual>
+        <collision>
+          <geometry><cylinder radius="0.3" length="0.25"/></geometry>
+          <origin xyz="0 0 0" rpy="1.570796327 0 0"/>
+        </collision>
+
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <mass value="2.0"/>
+          <inertia ixx="0.02" ixy="0" ixz="0" iyy="0.02" iyz="0" izz="0.02"/>
+        </inertial>
+    </link>
+    <link name="left_steer_link">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.5"/>
+        <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+      </inertial>
+    </link>
+
+    <link name="right_steer_link">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.5"/>
+        <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+      </inertial>
+    </link>
+
+
+    <!-- joint: permite crear la TF (establecer las relaciones entre dos links) -->
+    <joint name="base_joint" type="fixed">
+        <parent link="base_footprint"/>
+        <child link="base_link"/>
+        <origin xyz="0.0 0.0 0.08" rpy="0.0 0.0 0.0"/>
+    </joint>
+
+    <joint name="base_lidar_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="lidar_link"/>
+        <origin xyz="0.2 0.0 0.425" rpy="0.0 0.0 0.0"/>
+    </joint>
+    <joint name="base_camera_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="camera_link"/>
+        <origin xyz="0.70 0.0 0.425" rpy="0.0 0.0 0.0"/>
+    </joint>
+
+    <!-- se usa continuous para las ruedas -->
+    <joint name="base_LBwheeel_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="left_back_wheel"/>
+        <origin xyz="-0.5 0.325 0.2" rpy="0 0.0 0.0"/>
+        <axis xyz="0 1.0 0.0"/>
+    </joint>
+    <joint name="base_RBwheeel_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="right_back_wheel"/>
+        <origin xyz="-0.5 -0.325 0.2" rpy="0 0.0 0.0"/>
+        <axis xyz="0 1.0 0.0"/>
+    </joint>
+    <joint name="left_steer_joint" type="revolute">
+        <parent link="base_link"/>
+        <child link="left_steer_link"/>
+        <origin xyz="0.5 0.3 0.22" rpy="0 0 0"/>
+        <axis xyz="0 0 1"/>
+        <limit lower="-0.6" upper="0.6" effort="30" velocity="2.0"/>
+        </joint>
+
+        <joint name="left_front_wheel_joint" type="continuous">
+        <parent link="left_steer_link"/>
+        <child link="left_front_wheel"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <axis xyz="0 1 0"/>
+    </joint>
+    <joint name="right_steer_joint" type="revolute">
+        <parent link="base_link"/>
+        <child link="right_steer_link"/>
+        <origin xyz="0.5 -0.3 0.22" rpy="0 0 0"/>
+        <axis xyz="0 0 1"/>
+        <limit lower="-0.6" upper="0.6" effort="30" velocity="2.0"/>
+        </joint>
+
+        <joint name="right_front_wheel_joint" type="continuous">
+        <parent link="right_steer_link"/>
+        <child link="right_front_wheel"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <axis xyz="0 1 0"/>
+    </joint>
+
+
+    <!-- FUNCIONALIDADES PARA GAZEBO (hace funcionar los sensores) -->
+      <!-- =========================
+       Gazebo Classic LiDAR 3D (PointCloud2)
+       Características:
+       - update_rate: 10 Hz
+       - horizontal: 720 samples, ±90°
+       - vertical: 16 samples, ±10°
+       - range: 0.2 .. 50 m
+       Publica: /lidar/points (sensor_msgs/PointCloud2)
+       ========================= -->
+  <gazebo reference="lidar_link">
+    <sensor type="gpu_ray" name="lidar_3d">
+      <always_on>true</always_on>
+      <visualize>true</visualize>
+      <update_rate>10</update_rate>
+
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>720</samples>
+            <resolution>1</resolution>
+            <min_angle>-1.57079632679</min_angle>
+            <max_angle> 1.57079632679</max_angle>
+          </horizontal>
+
+          <vertical>
+            <samples>16</samples>
+            <resolution>1</resolution>
+            <min_angle>-0.1745329252</min_angle>
+            <max_angle> 0.1745329252</max_angle>
+          </vertical>
+        </scan>
+
+        <range>
+          <min>0.2</min>
+          <max>50.0</max>
+          <resolution>0.01</resolution>
+        </range>
+
+        <!-- Ruido opcional (podés borrar si no querés) -->
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.01</stddev>
+        </noise>
+      </ray>
+
+      <plugin name="gazebo_ros_lidar" filename="libgazebo_ros_ray_sensor.so">
+        <ros>
+          <namespace>/</namespace>
+          <remapping>~/out:=/lidar/points</remapping>
+        </ros>
+        <frame_name>lidar_link</frame_name>
+        <output_type>sensor_msgs/PointCloud2</output_type>
+      </plugin>
+    </sensor>
+  </gazebo>
+      <!-- =========================
+       Gazebo Classic Camera (Image + CameraInfo)
+       - update_rate: 30 Hz
+       - resolución: 640x480
+       Publica:
+         /camera/image_raw  (sensor_msgs/Image)
+         /camera/camera_info (sensor_msgs/CameraInfo)
+       ========================= -->
+  <gazebo reference="camera_link">
+    <sensor type="camera" name="front_camera">
+      <always_on>true</always_on>
+      <visualize>true</visualize>
+      <update_rate>30</update_rate>
+
+      <camera>
+        <horizontal_fov>1.57079632679</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.1</near>
+          <far>50.0</far>
+        </clip>
+      </camera>
+
+      <plugin name="gazebo_ros_camera" filename="libgazebo_ros_camera.so">
+        <ros>
+          <namespace>/</namespace>
+          <remapping>~/image_raw:=/camera/image_raw</remapping>
+          <remapping>~/camera_info:=/camera/camera_info</remapping>
+        </ros>
+        <camera_name>front_camera</camera_name>
+        <frame_name>camera_link</frame_name>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+  <!-- plugin para el control diferencial -->
+  <gazebo>
+    <plugin name="diff_drive" filename="libgazebo_ros_diff_drive.so">
+      <ros>
+        <remapping>cmd_vel:=/cmd_vel</remapping>
+        <remapping>odom:=/odom</remapping>
+      </ros>
+      <left_joint>base_LBwheeel_joint</left_joint>
+      <right_joint>base_RBwheeel_joint</right_joint>
+      <wheel_separation>0.65</wheel_separation>
+      <wheel_diameter>0.6</wheel_diameter>
+      <publish_odom>true</publish_odom>
+      <publish_odom_tf>true</publish_odom_tf>
+      <odom_frame>odom</odom_frame>
+      <robot_base_frame>base_footprint</robot_base_frame>
+      <update_rate>50</update_rate>
+    </plugin>
+  </gazebo>
+</robot>

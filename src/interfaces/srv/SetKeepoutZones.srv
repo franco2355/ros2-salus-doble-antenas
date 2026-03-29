@@ -1,0 +1,5 @@
+interfaces/NoGoZone[] zones
+---
+bool ok
+string error
+bool published

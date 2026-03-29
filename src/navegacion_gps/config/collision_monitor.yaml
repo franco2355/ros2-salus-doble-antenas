@@ -1,0 +1,57 @@
+collision_monitor:
+  ros__parameters:
+    use_sim_time: true
+    base_frame_id: base_footprint
+    odom_frame_id: odom
+    cmd_vel_in_topic: /cmd_vel
+    cmd_vel_out_topic: /cmd_vel_safe
+    state_topic: /collision_monitor_state
+    expected_planner_frequency: 10.0
+    transform_tolerance: 0.5
+    state_update_rate: 10.0
+    source_timeout: 1.0
+    stop_pub_timeout: 0.5
+    polygons: ["footprint", "stop_zone"]
+    
+    footprint:
+      type: "polygon"
+      action_type: "stop"
+      min_points: 3
+      points: [1.19, 0.46, 1.19, -0.46, -0.25, -0.46, -0.25, 0.46]
+      visualize: true
+      enabled: true
+
+    stop_zone:
+      type: "polygon"
+      action_type: "stop"
+      min_points: 3
+      points: [2.19, 0.76, 2.19, -0.76, -0.55, -0.76, -0.55, 0.76]
+      polygon_pub_topic: "/stop_zone"
+      visualize: true
+      enabled: true
+
+    observation_sources: ["scan", "ultrasound_rear_center", "ultrasound_rear_left", "ultrasound_rear_right", "ultrasound_front_left", "ultrasound_front_right"]
+    scan:
+      type: scan
+      topic: /scan
+      enabled: true
+    ultrasound_rear_center:
+      type: scan
+      topic: /ultrasound/rear_center
+      enabled: true
+    ultrasound_rear_left:
+      type: scan
+      topic: /ultrasound/rear_left
+      enabled: true
+    ultrasound_rear_right:
+      type: scan
+      topic: /ultrasound/rear_right
+      enabled: true
+    ultrasound_front_left:
+      type: scan
+      topic: /ultrasound/front_left
+      enabled: true
+    ultrasound_front_right:
+      type: scan
+      topic: /ultrasound/front_right
+      enabled: true

@@ -1,0 +1,32 @@
+# Referencia historica de los repositorios usados para armar este monorepo.
+# No usar este archivo con vcstool: el flujo esperado de este workspace es
+# clonar un unico repositorio git y trabajar desde la raiz.
+
+root_workspace:
+  former_repository:
+    url: git@github.com:GermanMorini/aeye-ros-workspace.git
+    version: sim-real-parity
+
+packages:
+  src/navegacion_gps:
+    former_repository:
+      url: git@github.com:GermanMorini/aeye-navegacion.git
+      version: sim-real-parity
+  src/rslidar_msg:
+    former_repository:
+      url: https://github.com/RoboSense-LiDAR/rslidar_msg
+  src/rslidar_sdk:
+    former_repository:
+      url: https://github.com/RoboSense-LiDAR/rslidar_sdk.git
+  src/sensores:
+    former_repository:
+      url: git@github.com:GermanMorini/aeye-sensores.git
+      version: main
+  src/map_tools:
+    former_repository:
+      url: git@github.com:GermanMorini/aeye-map-tools.git
+      version: sim-real-parity
+  src/controller_server:
+    former_repository:
+      url: git@github.com:GermanMorini/aeye-controller-server.git
+      version: sim-real-parity

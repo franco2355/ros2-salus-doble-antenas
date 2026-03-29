@@ -1,0 +1,10 @@
+float64 lat
+float64 lon
+float64 yaw_deg
+float64[] lats
+float64[] lons
+float64[] yaws_deg
+bool loop
+---
+bool ok
+string error

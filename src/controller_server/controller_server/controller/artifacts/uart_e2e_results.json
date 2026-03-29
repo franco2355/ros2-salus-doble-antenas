@@ -1,0 +1,834 @@
+{
+  "started_ts": 1772042533.3155541,
+  "esp32_host": "esp32-salus.local",
+  "uart_port": "/dev/serial0",
+  "steps": [
+    {
+      "step": "baseline_safe",
+      "hold_s": 1.0,
+      "snapshot": {
+        "ts": 1772042503.5610259,
+        "desired": {
+          "drive_enabled": false,
+          "estop": false,
+          "steer_pct": 0,
+          "speed_mps": 0.0,
+          "brake_pct": 0,
+          "max_speed_mps": 12.0
+        },
+        "telemetry": {
+          "status_flags": 9,
+          "ready": true,
+          "estop_active": false,
+          "failsafe_active": false,
+          "pi_fresh": true,
+          "control_source": "NONE",
+          "overspeed_active": false,
+          "speed_mps": 0.0,
+          "steer_deg": 0.09,
+          "brake_applied_pct": 0,
+          "raw_speed_centi_mps": 0,
+          "raw_steer_centi_deg": 9,
+          "rx_monotonic_s": 2972.0617776
+        },
+        "stats": {
+          "tx_frames_ok": 141,
+          "tx_errors": 0,
+          "rx_frames_ok": 276,
+          "rx_crc_errors": 0,
+          "rx_parse_drops": 0
+        }
+      },
+      "esp32_logs_immediate": [
+        "1772042501.831 [PI][STATUS] driver=READY lastFrame=15ms verFlags=0x20 steer=0 speedCmd=0.00m/s brake=0 estop=N drive=N ok=53 crcErr=0 malformed=0 verErr=0",
+        "1772042501.845 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042501.865 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042501.930 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b100 ageUs=0 periodUs=0 ok=0 invState=3529 invJump=0 isr=3529 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042502.137 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042502.137 [DRIVE] sin datos frescos del RC (>50ms); usando 0",
+        "1772042502.137 [DRIVE] ciclo tardo 36.05ms",
+        "1772042502.164 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b100 ageUs=0 periodUs=0 ok=0 invState=3529 invJump=0 isr=3529 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042502.171 [DRIVE] dt=40.73ms (objetivo 30.00ms)"
+      ],
+      "esp32_logs_after_hold": [
+        "1772042503.211 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b100 ageUs=0 periodUs=0 ok=0 invState=3529 invJump=0 isr=3529 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042503.264 [PI][STATUS] driver=READY lastFrame=11ms verFlags=0x20 steer=0 speedCmd=0.00m/s brake=0 estop=N drive=N ok=123 crcErr=0 malformed=0 verErr=0",
+        "1772042503.415 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042503.468 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b100 ageUs=0 periodUs=0 ok=0 invState=3529 invJump=0 isr=3529 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}"
+      ]
+    },
+    {
+      "step": "drive_on",
+      "hold_s": 1.0,
+      "snapshot": {
+        "ts": 1772042505.3613763,
+        "desired": {
+          "drive_enabled": true,
+          "estop": false,
+          "steer_pct": 0,
+          "speed_mps": 0.0,
+          "brake_pct": 0,
+          "max_speed_mps": 12.0
+        },
+        "telemetry": {
+          "status_flags": 25,
+          "ready": true,
+          "estop_active": false,
+          "failsafe_active": false,
+          "pi_fresh": true,
+          "control_source": "PI",
+          "overspeed_active": false,
+          "speed_mps": 0.0,
+          "steer_deg": 0.0,
+          "brake_applied_pct": 0,
+          "raw_speed_centi_mps": 0,
+          "raw_steer_centi_deg": 0,
+          "rx_monotonic_s": 2973.869344714
+        },
+        "stats": {
+          "tx_frames_ok": 231,
+          "tx_errors": 0,
+          "rx_frames_ok": 457,
+          "rx_crc_errors": 0,
+          "rx_parse_drops": 0
+        }
+      },
+      "esp32_logs_immediate": [
+        "1772042503.627 [DRIVE][PIDTRACE] tMs=44277 src=PI mode=NORMAL targetRawMps=0.000 targetMps=0.000 speedMps=0.000 speedFiltMps=0.000 errMps=0.000 p=0.000 i=0.000 d=0.000 pidUnsat=0.000 pidOutPct=0.000 pidSatPct=0.000 ffBasePct=0.000 ffDeltaPct=0.000 cmdPreSlewPct=0.000 ffActive=N throttleRawPct=0.000 throttleFiltPct=0.000 pwmCmdPct=0.00 pwmDuty=62/255 pwmDutyPct=24.31 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042503.673 [PI][STATUS] driver=READY lastFrame=15ms verFlags=0x22 steer=0 speedCmd=0.00m/s brake=0 estop=N drive=Y ok=145 crcErr=0 malformed=0 verErr=0",
+        "1772042503.685 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042503.706 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042503.717 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b100 ageUs=0 periodUs=0 ok=0 invState=3529 invJump=0 isr=3529 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042503.878 [DRIVE][PIDTRACE] tMs=44498 src=PI mode=NORMAL targetRawMps=0.000 targetMps=0.000 speedMps=0.000 speedFiltMps=0.000 errMps=0.000 p=0.000 i=0.000 d=0.000 pidUnsat=0.000 pidOutPct=0.000 pidSatPct=0.000 ffBasePct=0.000 ffDeltaPct=0.000 cmdPreSlewPct=0.000 ffActive=N throttleRawPct=0.000 throttleFiltPct=0.000 pwmCmdPct=0.00 pwmDuty=62/255 pwmDutyPct=24.31 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042503.981 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042503.981 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b100 ageUs=0 periodUs=0 ok=0 invState=3529 invJump=0 isr=3529 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}"
+      ],
+      "esp32_logs_after_hold": [
+        "1772042505.028 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042505.044 [PI][STATUS] driver=READY lastFrame=7ms verFlags=0x22 steer=0 speedCmd=0.00m/s brake=0 estop=N drive=Y ok=214 crcErr=0 malformed=0 verErr=0",
+        "1772042505.209 [DRIVE][PIDTRACE] tMs=45821 src=PI mode=NORMAL targetRawMps=0.000 targetMps=0.000 speedMps=0.000 speedFiltMps=0.000 errMps=0.000 p=0.000 i=0.000 d=0.000 pidUnsat=0.000 pidOutPct=0.000 pidSatPct=0.000 ffBasePct=0.000 ffDeltaPct=0.000 cmdPreSlewPct=0.000 ffActive=N throttleRawPct=0.000 throttleFiltPct=0.000 pwmCmdPct=0.00 pwmDuty=62/255 pwmDutyPct=24.31 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042505.209 [DRIVE] ciclo tardo 30.23ms",
+        "1772042505.268 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b100 ageUs=0 periodUs=0 ok=0 invState=3529 invJump=0 isr=3529 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042505.312 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}"
+      ]
+    },
+    {
+      "step": "speed_0_80",
+      "hold_s": 2.0,
+      "snapshot": {
+        "ts": 1772042508.1617286,
+        "desired": {
+          "drive_enabled": true,
+          "estop": false,
+          "steer_pct": 0,
+          "speed_mps": 0.8,
+          "brake_pct": 0,
+          "max_speed_mps": 12.0
+        },
+        "telemetry": {
+          "status_flags": 25,
+          "ready": true,
+          "estop_active": false,
+          "failsafe_active": false,
+          "pi_fresh": true,
+          "control_source": "PI",
+          "overspeed_active": false,
+          "speed_mps": 0.66,
+          "steer_deg": 0.0,
+          "brake_applied_pct": 0,
+          "raw_speed_centi_mps": 66,
+          "raw_steer_centi_deg": 0,
+          "rx_monotonic_s": 2976.680864166
+        },
+        "stats": {
+          "tx_frames_ok": 371,
+          "tx_errors": 0,
+          "rx_frames_ok": 737,
+          "rx_crc_errors": 0,
+          "rx_parse_drops": 0
+        }
+      },
+      "esp32_logs_immediate": [
+        "1772042505.414 [DRIVE][PIDTRACE] tMs=46047 src=PI mode=NORMAL targetRawMps=0.000 targetMps=0.000 speedMps=0.000 speedFiltMps=0.000 errMps=0.000 p=0.000 i=0.000 d=0.000 pidUnsat=0.000 pidOutPct=0.000 pidSatPct=0.000 ffBasePct=0.000 ffDeltaPct=0.000 cmdPreSlewPct=0.000 ffActive=N throttleRawPct=0.000 throttleFiltPct=0.000 pwmCmdPct=0.00 pwmDuty=62/255 pwmDutyPct=24.31 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042505.414 [PI][STATUS] driver=READY lastFrame=19ms verFlags=0x22 steer=0 speedCmd=0.80m/s brake=0 estop=N drive=Y ok=232 crcErr=0 malformed=0 verErr=0",
+        "1772042505.441 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}[DRIVE] dt=44.30ms (objetivo 30.00ms)",
+        "1772042505.445 [DRIVE] cmd=1 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=2 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.09m/s speed=0.00m/s mode=NORMAL pidOut=0.9% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.09 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1755ms) sat=N iclamp=N ageMs=44069",
+        "1772042505.517 [DRIVE] cmd=2 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=9 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.18m/s speed=0.00m/s mode=NORMAL pidOut=2.3% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.18 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1709ms) sat=N iclamp=N ageMs=44115",
+        "1772042505.518 [DRIVE] cmd=3 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=6 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.25m/s speed=0.00m/s mode=NORMAL pidOut=3.4% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.25 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1673ms) sat=N iclamp=N ageMs=44152",
+        "1772042505.532 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b100 ageUs=0 periodUs=0 ok=0 invState=3529 invJump=0 isr=3529 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042505.545 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.80m/s target=0.25m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.25m/s p=2.53 i=0.04 d=0.00 unsat=2.58 sat=2.58 ffBase=31.6% ffDelta=2.6% ffPre=34.2% ffAct=Y overErr=0.00 throttle=3.4% throttleRaw=34.2% throttleFilt=3.4% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=1073 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042505.556 [DRIVE] cmd=5 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=3 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.33m/s speed=0.00m/s mode=NORMAL pidOut=4.5% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.33 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1633ms) sat=N iclamp=N ageMs=44191",
+        "1772042505.619 [DRIVE] cmd=6 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=2 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.40m/s speed=0.00m/s mode=NORMAL pidOut=5.6% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.40 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1597ms) sat=N iclamp=N ageMs=44228",
+        "1772042505.619 [DRIVE][PIDTRACE] tMs=46250 src=PI mode=NORMAL targetRawMps=0.800 targetMps=0.405 speedMps=0.000 speedFiltMps=0.000 errMps=0.405 p=4.046 i=0.098 d=0.000 pidUnsat=4.145 pidOutPct=5.634 pidSatPct=4.145 ffBasePct=32.523 ffDeltaPct=4.145 cmdPreSlewPct=36.668 ffActive=Y throttleRawPct=36.668 throttleFiltPct=5.634 pwmCmdPct=6.00 pwmDuty=62/255 pwmDutyPct=24.31 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=1597 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042505.643 [DRIVE] cmd=7 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=8 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.50m/s speed=0.00m/s mode=NORMAL pidOut=7.0% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.50 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1550ms) sat=N iclamp=N ageMs=44274",
+        "1772042505.680 [DRIVE] cmd=8 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=5 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.57m/s speed=0.00m/s mode=NORMAL pidOut=8.1% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.57 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1514ms) sat=N iclamp=N ageMs=44311",
+        "1772042505.721 [DRIVE] cmd=9 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=2 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.65m/s speed=0.00m/s mode=NORMAL pidOut=9.3% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.65 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1476ms) sat=N iclamp=N ageMs=44348",
+        "1772042505.757 [DRIVE] cmd=10 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=18 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.72m/s speed=0.00m/s mode=NORMAL pidOut=10.4% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.72 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1439ms) sat=N iclamp=N ageMs=44385",
+        "1772042505.789 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b100 ageUs=0 periodUs=0 ok=0 invState=3529 invJump=0 isr=3529 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}[DRIVE] cmd=11 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=16 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.79m/s speed=0.00m/s mode=NORMAL pidOut=11.5% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.79 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1402ms) sat=N iclamp=N ageMs=44422"
+      ],
+      "esp32_logs_after_hold": [
+        "1772042507.831 [DRIVE][PIDTRACE] tMs=48486 src=PI mode=NORMAL targetRawMps=0.800 targetMps=0.800 speedMps=0.586 speedFiltMps=0.608 errMps=0.192 p=1.915 i=2.377 d=0.000 pidUnsat=4.292 pidOutPct=39.280 pidSatPct=4.292 ffBasePct=34.988 ffDeltaPct=4.292 cmdPreSlewPct=39.280 ffActive=Y throttleRawPct=39.280 throttleFiltPct=39.280 pwmCmdPct=39.00 pwmDuty=108/255 pwmDutyPct=42.35 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042507.881 [PI][STATUS] driver=READY lastFrame=17ms verFlags=0x22 steer=0 speedCmd=0.80m/s brake=0 estop=N drive=Y ok=355 crcErr=0 malformed=0 verErr=0[DRIVE] cmd=40 (PI) duty=110/255 brakeA=30deg brakeB=120deg piAgeMs=16 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.80m/s speed=0.54m/s mode=NORMAL pidOut=39.6% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.22 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=46502",
+        "1772042507.885 [SPD][STATUS] source=hall driver=READY speed=1.87km/h 0.52m/s rpm=220.1 hall=0b010 ageUs=9289 periodUs=11358 ok=111 invState=7285 invJump=0 isr=7397 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042507.904 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.80m/s target=0.80m/s speedRaw=0.54m/s speedFilt=0.58m/s err=0.22m/s p=2.25 i=2.39 d=0.00 unsat=4.64 sat=4.64 ffBase=35.0% ffDelta=4.6% ffPre=39.6% ffAct=Y overErr=0.00 throttle=39.6% throttleRaw=39.6% throttleFilt=39.6% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042507.944 [DRIVE] cmd=39 (PI) duty=108/255 brakeA=30deg brakeB=120deg piAgeMs=6 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.80m/s speed=0.75m/s mode=NORMAL pidOut=38.9% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.15 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=46572",
+        "1772042508.042 [DRIVE][PIDTRACE] tMs=48691 src=PI mode=NORMAL targetRawMps=0.800 targetMps=0.800 speedMps=0.593 speedFiltMps=0.613 errMps=0.187 p=1.871 i=2.455 d=0.000 pidUnsat=4.326 pidOutPct=39.314 pidSatPct=4.326 ffBasePct=34.988 ffDeltaPct=4.326 cmdPreSlewPct=39.314 ffActive=Y throttleRawPct=39.314 throttleFiltPct=39.314 pwmCmdPct=39.00 pwmDuty=108/255 pwmDutyPct=42.35 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042508.076 [DRIVE] cmd=40 (PI) duty=110/255 brakeA=30deg brakeB=120deg piAgeMs=1 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.80m/s speed=0.55m/s mode=NORMAL pidOut=39.6% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.22 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=46707",
+        "1772042508.144 [DRIVE] cmd=39 (PI) duty=108/255 brakeA=30deg brakeB=120deg piAgeMs=8 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.80m/s speed=0.67m/s mode=NORMAL pidOut=39.4% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.19 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=46774"
+      ]
+    },
+    {
+      "step": "steer_30",
+      "hold_s": 1.5,
+      "snapshot": {
+        "ts": 1772042510.4620862,
+        "desired": {
+          "drive_enabled": true,
+          "estop": false,
+          "steer_pct": 30,
+          "speed_mps": 0.8,
+          "brake_pct": 0,
+          "max_speed_mps": 12.0
+        },
+        "telemetry": {
+          "status_flags": 25,
+          "ready": true,
+          "estop_active": false,
+          "failsafe_active": false,
+          "pi_fresh": true,
+          "control_source": "PI",
+          "overspeed_active": false,
+          "speed_mps": 0.56,
+          "steer_deg": 9.84,
+          "brake_applied_pct": 0,
+          "raw_speed_centi_mps": 56,
+          "raw_steer_centi_deg": 984,
+          "rx_monotonic_s": 2978.990363652
+        },
+        "stats": {
+          "tx_frames_ok": 486,
+          "tx_errors": 0,
+          "rx_frames_ok": 968,
+          "rx_crc_errors": 0,
+          "rx_parse_drops": 0
+        }
+      },
+      "esp32_logs_immediate": [
+        "1772042508.176 [SPD][STATUS] source=hall driver=READY speed=2.74km/h 0.76m/s rpm=323.5 hall=0b001 ageUs=4754 periodUs=7727 ok=139 invState=7285 invJump=0 isr=7425 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042508.177 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.80m/s target=0.80m/s speedRaw=0.67m/s speedFilt=0.61m/s err=0.19m/s p=1.90 i=2.50 d=0.00 unsat=4.40 sat=4.40 ffBase=35.0% ffDelta=4.4% ffPre=39.4% ffAct=Y overErr=0.00 throttle=39.4% throttleRaw=39.4% throttleFilt=39.4% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042508.194 [PI][STATUS] driver=READY lastFrame=17ms verFlags=0x22 steer=0 speedCmd=0.80m/s brake=0 estop=N drive=Y ok=371 crcErr=0 malformed=0 verErr=0",
+        "1772042508.213 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.80m/s target=0.80m/s speedRaw=0.65m/s speedFilt=0.63m/s err=0.17m/s p=1.72 i=2.51 d=0.00 unsat=4.23 sat=4.23 ffBase=35.0% ffDelta=4.2% ffPre=39.2% ffAct=Y overErr=0.00 throttle=39.2% throttleRaw=39.2% throttleFilt=39.2% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042508.242 [DRIVE][PIDTRACE] tMs=48895 src=PI mode=NORMAL targetRawMps=0.800 targetMps=0.800 speedMps=0.628 speedFiltMps=0.625 errMps=0.175 p=1.746 i=2.534 d=0.000 pidUnsat=4.280 pidOutPct=39.268 pidSatPct=4.280 ffBasePct=34.988 ffDeltaPct=4.280 cmdPreSlewPct=39.268 ffActive=Y throttleRawPct=39.268 throttleFiltPct=39.268 pwmCmdPct=39.00 pwmDuty=108/255 pwmDutyPct=42.35 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042508.247 [DRIVE] ciclo tardo 38.45ms",
+        "1772042508.344 [DRIVE] cmd=40 (PI) duty=110/255 brakeA=30deg brakeB=120deg piAgeMs=12 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.80m/s speed=0.53m/s mode=NORMAL pidOut=39.7% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.22 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=46978",
+        "1772042508.384 [DRIVE] cmd=39 (PI) duty=108/255 brakeA=30deg brakeB=120deg piAgeMs=9 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.80m/s speed=0.69m/s mode=NORMAL pidOut=39.3% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.17 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=47015",
+        "1772042508.405 [SPD][STATUS] source=hall driver=READY speed=2.06km/h 0.57m/s rpm=242.6 hall=0b010 ageUs=6459 periodUs=10304 ok=165 invState=7337 invJump=0 isr=7503 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042508.419 [DRIVE] cmd=40 (PI) duty=110/255 brakeA=30deg brakeB=120deg piAgeMs=1 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.80m/s speed=0.56m/s mode=NORMAL pidOut=39.6% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.20 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=47052",
+        "1772042508.439 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.80m/s target=0.80m/s speedRaw=0.69m/s speedFilt=0.63m/s err=0.17m/s p=1.69 i=2.59 d=0.00 unsat=4.28 sat=4.28 ffBase=35.0% ffDelta=4.3% ffPre=39.3% ffAct=Y overErr=0.00 throttle=39.3% throttleRaw=39.3% throttleFilt=39.3% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042508.486 [DRIVE][PIDTRACE] tMs=49113 src=PI mode=NORMAL targetRawMps=0.800 targetMps=0.800 speedMps=0.574 speedFiltMps=0.588 errMps=0.212 p=2.121 i=2.618 d=0.000 pidUnsat=4.739 pidOutPct=39.727 pidSatPct=4.739 ffBasePct=34.988 ffDeltaPct=4.739 cmdPreSlewPct=39.727 ffActive=Y throttleRawPct=39.727 throttleFiltPct=39.727 pwmCmdPct=40.00 pwmDuty=110/255 pwmDutyPct=43.14 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042508.533 [DRIVE] cmd=39 (PI) duty=108/255 brakeA=30deg brakeB=120deg piAgeMs=14 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.80m/s speed=0.65m/s mode=NORMAL pidOut=39.4% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.18 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=47160",
+        "1772042508.588 [DRIVE] cmd=40 (PI) duty=110/255 brakeA=30deg brakeB=120deg piAgeMs=11 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.80m/s speed=0.58m/s mode=NORMAL pidOut=39.6% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.20 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=47197"
+      ],
+      "esp32_logs_after_hold": [
+        "1772042510.233 [DRIVE][PIDTRACE] tMs=50881 src=PI mode=NORMAL targetRawMps=0.800 targetMps=0.800 speedMps=0.687 speedFiltMps=0.651 errMps=0.149 p=1.491 i=3.262 d=0.000 pidUnsat=4.754 pidOutPct=39.742 pidSatPct=4.754 ffBasePct=34.988 ffDeltaPct=4.754 cmdPreSlewPct=39.742 ffActive=Y throttleRawPct=39.742 throttleFiltPct=39.742 pwmCmdPct=40.00 pwmDuty=110/255 pwmDutyPct=43.14 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042510.243 [PI][STATUS] driver=READY lastFrame=0ms verFlags=0x22 steer=30 speedCmd=0.80m/s brake=0 estop=N drive=Y ok=474 crcErr=0 malformed=0 verErr=0",
+        "1772042510.256 [SPD][STATUS] source=hall driver=READY speed=2.39km/h 0.66m/s rpm=281.9 hall=0b001 ageUs=1691 periodUs=8869 ok=361 invState=9848 invJump=0 isr=10210 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042510.264 [DRIVE] ciclo tardo 31.06ms",
+        "1772042510.282 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.80m/s target=0.80m/s speedRaw=0.61m/s speedFilt=0.63m/s err=0.17m/s p=1.67 i=3.28 d=0.00 unsat=4.94 sat=4.94 ffBase=35.0% ffDelta=4.9% ffPre=39.9% ffAct=Y overErr=0.00 throttle=39.9% throttleRaw=39.9% throttleFilt=39.9% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042510.458 [DRIVE] cmd=41 (PI) duty=112/255 brakeA=30deg brakeB=120deg piAgeMs=0 piBrake=0 brake=0 src=PI targetRaw=0.80m/s target=0.80m/s speed=0.56m/s mode=NORMAL pidOut=40.5% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.22 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=49086"
+      ]
+    },
+    {
+      "step": "speed_1_60",
+      "hold_s": 2.0,
+      "snapshot": {
+        "ts": 1772042513.2624168,
+        "desired": {
+          "drive_enabled": true,
+          "estop": false,
+          "steer_pct": 30,
+          "speed_mps": 1.6,
+          "brake_pct": 0,
+          "max_speed_mps": 12.0
+        },
+        "telemetry": {
+          "status_flags": 25,
+          "ready": true,
+          "estop_active": false,
+          "failsafe_active": false,
+          "pi_fresh": true,
+          "control_source": "PI",
+          "overspeed_active": false,
+          "speed_mps": 1.34,
+          "steer_deg": 6.5,
+          "brake_applied_pct": 0,
+          "raw_speed_centi_mps": 134,
+          "raw_steer_centi_deg": 650,
+          "rx_monotonic_s": 2981.801813276
+        },
+        "stats": {
+          "tx_frames_ok": 626,
+          "tx_errors": 0,
+          "rx_frames_ok": 1250,
+          "rx_crc_errors": 0,
+          "rx_parse_drops": 0
+        }
+      },
+      "esp32_logs_immediate": [
+        "1772042510.465 [DRIVE][PIDTRACE] tMs=51108 src=PI mode=NORMAL targetRawMps=0.800 targetMps=0.800 speedMps=0.561 speedFiltMps=0.580 errMps=0.220 p=2.205 i=3.351 d=0.000 pidUnsat=5.555 pidOutPct=40.543 pidSatPct=5.555 ffBasePct=34.988 ffDeltaPct=5.555 cmdPreSlewPct=40.543 ffActive=Y throttleRawPct=40.543 throttleFiltPct=40.543 pwmCmdPct=41.00 pwmDuty=112/255 pwmDutyPct=43.92 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042510.481 [PI][STATUS] driver=READY lastFrame=2ms verFlags=0x22 steer=30 speedCmd=0.80m/s brake=0 estop=N drive=Y ok=486 crcErr=0 malformed=0 verErr=0",
+        "1772042510.534 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.80m/s target=0.80m/s speedRaw=0.56m/s speedFilt=0.58m/s err=0.22m/s p=2.20 i=3.35 d=0.00 unsat=5.56 sat=5.56 ffBase=35.0% ffDelta=5.6% ffPre=40.5% ffAct=Y overErr=0.00 throttle=40.5% throttleRaw=40.5% throttleFilt=40.5% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}[DRIVE] cmd=42 (PI) duty=114/255 brakeA=30deg brakeB=120deg piAgeMs=10 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=0.90m/s speed=0.59m/s mode=NORMAL pidOut=42.1% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.32 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=49137",
+        "1772042510.534 [SPD][STATUS] source=hall driver=READY speed=2.30km/h 0.64m/s rpm=271.1 hall=0b100 ageUs=1360 periodUs=9222 ok=389 invState=9848 invJump=0 isr=10238 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042510.540 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=1.60m/s target=0.90m/s speedRaw=0.59m/s speedFilt=0.59m/s err=0.32m/s p=3.16 i=3.38 d=0.00 unsat=6.55 sat=6.55 ffBase=35.6% ffDelta=6.5% ffPre=42.2% ffAct=Y overErr=0.00 throttle=42.1% throttleRaw=42.2% throttleFilt=42.1% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042510.543 [DRIVE] cmd=43 (PI) duty=116/255 brakeA=30deg brakeB=120deg piAgeMs=8 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=0.98m/s speed=0.73m/s mode=NORMAL pidOut=42.7% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.32 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=49175",
+        "1772042510.580 [DRIVE] cmd=44 (PI) duty=118/255 brakeA=30deg brakeB=120deg piAgeMs=7 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.05m/s speed=0.73m/s mode=NORMAL pidOut=43.7% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.37 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=49213",
+        "1772042510.654 [DRIVE] cmd=45 (PI) duty=120/255 brakeA=30deg brakeB=120deg piAgeMs=14 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.19m/s speed=0.86m/s mode=NORMAL pidOut=44.8% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.39 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=49280",
+        "1772042510.693 [DRIVE][PIDTRACE] tMs=51342 src=PI mode=NORMAL targetRawMps=1.600 targetMps=1.268 speedMps=1.107 speedFiltMps=0.944 errMps=0.324 p=3.245 i=3.513 d=0.000 pidUnsat=6.757 pidOutPct=44.663 pidSatPct=6.757 ffBasePct=37.906 ffDeltaPct=6.757 cmdPreSlewPct=44.663 ffActive=Y throttleRawPct=44.663 throttleFiltPct=44.663 pwmCmdPct=45.00 pwmDuty=120/255 pwmDutyPct=47.06 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042510.790 [SPD][STATUS] source=hall driver=READY speed=4.43km/h 1.23m/s rpm=522.6 hall=0b110 ageUs=2892 periodUs=4784 ok=430 invState=9848 invJump=0 isr=10279 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}[DRIVE] cmd=46 (PI) duty=122/255 brakeA=30deg brakeB=120deg piAgeMs=12 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.46m/s speed=1.23m/s mode=NORMAL pidOut=45.9% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.32 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=49418",
+        "1772042510.804 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=1.60m/s target=1.46m/s speedRaw=1.23m/s speedFilt=1.15m/s err=0.32m/s p=3.17 i=3.58 d=0.00 unsat=6.74 sat=6.74 ffBase=39.1% ffDelta=6.7% ffPre=45.9% ffAct=Y overErr=0.00 throttle=45.9% throttleRaw=45.9% throttleFilt=45.9% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042510.841 [DRIVE] cmd=47 (PI) duty=124/255 brakeA=30deg brakeB=120deg piAgeMs=10 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.54m/s speed=1.15m/s mode=NORMAL pidOut=47.0% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.39 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=49458",
+        "1772042510.866 [DRIVE] cmd=48 (PI) duty=126/255 brakeA=30deg brakeB=120deg piAgeMs=9 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.60m/s speed=1.19m/s mode=NORMAL pidOut=47.9% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.43 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=49497",
+        "1772042510.907 [DRIVE] cmd=47 (PI) duty=124/255 brakeA=30deg brakeB=120deg piAgeMs=8 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.60m/s speed=1.39m/s mode=NORMAL pidOut=46.9% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.33 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=49534",
+        "1772042510.908 [DRIVE][PIDTRACE] tMs=51556 src=PI mode=NORMAL targetRawMps=1.600 targetMps=1.600 speedMps=1.394 speedFiltMps=1.271 errMps=0.329 p=3.289 i=3.665 d=0.000 pidUnsat=6.953 pidOutPct=46.929 pidSatPct=6.953 ffBasePct=39.976 ffDeltaPct=6.953 cmdPreSlewPct=46.929 ffActive=Y throttleRawPct=46.929 throttleFiltPct=46.929 pwmCmdPct=47.00 pwmDuty=124/255 pwmDutyPct=48.63 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE"
+      ],
+      "esp32_logs_after_hold": [
+        "1772042512.933 [PI][STATUS] driver=READY lastFrame=13ms verFlags=0x22 steer=30 speedCmd=1.60m/s brake=0 estop=N drive=Y ok=608 crcErr=0 malformed=0 verErr=0",
+        "1772042513.008 [DRIVE] cmd=46 (PI) duty=122/255 brakeA=30deg brakeB=120deg piAgeMs=15 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.60m/s speed=1.48m/s mode=NORMAL pidOut=46.5% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.17 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=51641",
+        "1772042513.050 [DRIVE] cmd=47 (PI) duty=124/255 brakeA=30deg brakeB=120deg piAgeMs=13 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.60m/s speed=1.42m/s mode=NORMAL pidOut=46.5% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.18 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=51679",
+        "1772042513.094 [DRIVE][PIDTRACE] tMs=53738 src=PI mode=NORMAL targetRawMps=1.600 targetMps=1.600 speedMps=1.227 speedFiltMps=1.333 errMps=0.267 p=2.672 i=4.794 d=0.000 pidUnsat=7.465 pidOutPct=47.441 pidSatPct=7.465 ffBasePct=39.976 ffDeltaPct=7.465 cmdPreSlewPct=47.441 ffActive=Y throttleRawPct=47.441 throttleFiltPct=47.441 pwmCmdPct=47.00 pwmDuty=124/255 pwmDutyPct=48.63 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042513.124 [SPD][STATUS] source=hall driver=READY speed=4.77km/h 1.32m/s rpm=561.8 hall=0b101 ageUs=1002 periodUs=4450 ok=961 invState=18090 invJump=0 isr=19052 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042513.146 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=1.60m/s target=1.60m/s speedRaw=1.35m/s speedFilt=1.34m/s err=0.26m/s p=2.58 i=4.81 d=0.00 unsat=7.39 sat=7.39 ffBase=40.0% ffDelta=7.4% ffPre=47.4% ffAct=Y overErr=0.00 throttle=47.4% throttleRaw=47.4% throttleFilt=47.4% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042513.244 [DRIVE] cmd=48 (PI) duty=126/255 brakeA=30deg brakeB=120deg piAgeMs=9 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.60m/s speed=1.29m/s mode=NORMAL pidOut=47.5% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.27 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=51875"
+      ]
+    },
+    {
+      "step": "brake_40",
+      "hold_s": 2.0,
+      "snapshot": {
+        "ts": 1772042516.06276,
+        "desired": {
+          "drive_enabled": true,
+          "estop": false,
+          "steer_pct": 30,
+          "speed_mps": 1.6,
+          "brake_pct": 40,
+          "max_speed_mps": 12.0
+        },
+        "telemetry": {
+          "status_flags": 9,
+          "ready": true,
+          "estop_active": false,
+          "failsafe_active": false,
+          "pi_fresh": true,
+          "control_source": "NONE",
+          "overspeed_active": false,
+          "speed_mps": 0.0,
+          "steer_deg": 9.58,
+          "brake_applied_pct": 40,
+          "raw_speed_centi_mps": 0,
+          "raw_steer_centi_deg": 958,
+          "rx_monotonic_s": 2984.562766886
+        },
+        "stats": {
+          "tx_frames_ok": 766,
+          "tx_errors": 0,
+          "rx_frames_ok": 1526,
+          "rx_crc_errors": 0,
+          "rx_parse_drops": 0
+        }
+      },
+      "esp32_logs_immediate": [
+        "1772042513.300 [DRIVE] cmd=47 (PI) duty=124/255 brakeA=30deg brakeB=120deg piAgeMs=8 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.60m/s speed=1.37m/s mode=NORMAL pidOut=47.4% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.25 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=51914",
+        "1772042513.335 [DRIVE] cmd=0 (PI) duty=62/255 brakeA=58deg brakeB=108deg piAgeMs=6 piBrake=40 brake=40 ageMs=51954",
+        "1772042513.335 [DRIVE][EVENT] THROTTLE_INHIBIT reason=PI_BRAKE src=NONE",
+        "1772042513.335 [DRIVE] ciclo tardo 39.35ms",
+        "1772042513.350 [PI][STATUS] driver=READY lastFrame=3ms verFlags=0x22 steer=30 speedCmd=1.60m/s brake=40 estop=N drive=Y ok=629 crcErr=0 malformed=0 verErr=0",
+        "1772042513.363 [DRIVE] dt=43.51ms (objetivo 30.00ms)",
+        "1772042513.401 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042513.401 [SPD][STATUS] source=hall driver=READY speed=4.37km/h 1.21m/s rpm=515.3 hall=0b101 ageUs=1672 periodUs=4852 ok=1021 invState=18090 invJump=0 isr=19112 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042513.409 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042513.649 [SPD][STATUS] source=hall driver=READY speed=3.29km/h 0.91m/s rpm=388.1 hall=0b101 ageUs=5616 periodUs=6442 ok=1069 invState=18090 invJump=0 isr=19160 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042513.664 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}"
+      ],
+      "esp32_logs_after_hold": [
+        "1772042515.756 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b110 ageUs=1703672 periodUs=34092 ok=1103 invState=18090 invJump=0 isr=19194 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042515.757 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042515.767 [PI][STATUS] driver=READY lastFrame=9ms verFlags=0x22 steer=30 speedCmd=1.60m/s brake=40 estop=N drive=Y ok=750 crcErr=0 malformed=0 verErr=0",
+        "1772042515.990 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b110 ageUs=1963673 periodUs=34092 ok=1103 invState=18090 invJump=0 isr=19194 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042516.007 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}"
+      ]
+    },
+    {
+      "step": "brake_0",
+      "hold_s": 1.5,
+      "snapshot": {
+        "ts": 1772042518.363092,
+        "desired": {
+          "drive_enabled": true,
+          "estop": false,
+          "steer_pct": 30,
+          "speed_mps": 1.6,
+          "brake_pct": 0,
+          "max_speed_mps": 12.0
+        },
+        "telemetry": {
+          "status_flags": 25,
+          "ready": true,
+          "estop_active": false,
+          "failsafe_active": false,
+          "pi_fresh": true,
+          "control_source": "PI",
+          "overspeed_active": false,
+          "speed_mps": 1.5,
+          "steer_deg": 10.02,
+          "brake_applied_pct": 0,
+          "raw_speed_centi_mps": 150,
+          "raw_steer_centi_deg": 1002,
+          "rx_monotonic_s": 2986.871967776
+        },
+        "stats": {
+          "tx_frames_ok": 881,
+          "tx_errors": 0,
+          "rx_frames_ok": 1757,
+          "rx_crc_errors": 0,
+          "rx_parse_drops": 0
+        }
+      },
+      "esp32_logs_immediate": [
+        "1772042516.127 [DRIVE] cmd=1 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=9 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=0.06m/s speed=0.00m/s mode=NORMAL pidOut=0.6% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.06 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1769ms) sat=N iclamp=N ageMs=54755",
+        "1772042516.166 [DRIVE][EVENT] THROTTLE_INHIBIT reason=NONE src=PI",
+        "1772042516.166 [DRIVE][PIDTRACE] tMs=56777 src=PI mode=NORMAL targetRawMps=1.600 targetMps=0.060 speedMps=0.000 speedFiltMps=0.000 errMps=0.060 p=0.600 i=0.004 d=0.000 pidUnsat=0.604 pidOutPct=0.604 pidSatPct=0.604 ffBasePct=0.000 ffDeltaPct=0.604 cmdPreSlewPct=0.604 ffActive=N throttleRawPct=0.604 throttleFiltPct=0.604 pwmCmdPct=1.00 pwmDuty=62/255 pwmDutyPct=24.31 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=1769 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042516.166 [PI][STATUS] driver=READY lastFrame=1ms verFlags=0x22 steer=30 speedCmd=1.60m/s brake=0 estop=N drive=Y ok=770 crcErr=0 malformed=0 verErr=0",
+        "1772042516.180 [DRIVE] dt=57.21ms (objetivo 30.00ms)",
+        "1772042516.187 [DRIVE] cmd=2 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=5 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=0.17m/s speed=0.00m/s mode=NORMAL pidOut=2.3% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.17 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1712ms) sat=N iclamp=N ageMs=54812",
+        "1772042516.196 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=1.60m/s target=0.06m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.06m/s p=0.60 i=0.00 d=0.00 unsat=0.60 sat=0.60 ffBase=0.0% ffDelta=0.6% ffPre=0.6% ffAct=N overErr=0.00 throttle=0.6% throttleRaw=0.6% throttleFilt=0.6% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=1169 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042516.225 [DRIVE] cmd=4 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=13 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=0.27m/s speed=0.00m/s mode=NORMAL pidOut=3.7% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.27 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1666ms) sat=N iclamp=N ageMs=54859",
+        "1772042516.268 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b110 ageUs=2223932 periodUs=34092 ok=1103 invState=18090 invJump=0 isr=19194 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042516.268 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=1.60m/s target=0.27m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.27m/s p=2.68 i=0.05 d=0.00 unsat=2.73 sat=2.73 ffBase=31.7% ffDelta=2.7% ffPre=34.4% ffAct=Y overErr=0.00 throttle=3.7% throttleRaw=34.4% throttleFilt=3.7% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=1066 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}[DRIVE] cmd=5 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=4 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=0.35m/s speed=0.00m/s mode=NORMAL pidOut=4.9% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.35 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1627ms) sat=N iclamp=N ageMs=54898",
+        "1772042516.303 [DRIVE] cmd=6 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=9 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=0.42m/s speed=0.00m/s mode=NORMAL pidOut=6.0% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.42 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1589ms) sat=N iclamp=N ageMs=54935",
+        "1772042516.339 [DRIVE] cmd=7 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=7 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=0.50m/s speed=0.00m/s mode=NORMAL pidOut=7.1% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.50 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1552ms) sat=N iclamp=N ageMs=54973",
+        "1772042516.374 [DRIVE][PIDTRACE] tMs=56995 src=PI mode=NORMAL targetRawMps=1.600 targetMps=0.496 speedMps=0.000 speedFiltMps=0.000 errMps=0.496 p=4.957 i=0.144 d=0.000 pidUnsat=5.101 pidOutPct=7.139 pidSatPct=5.101 ffBasePct=33.091 ffDeltaPct=5.101 cmdPreSlewPct=38.192 ffActive=Y throttleRawPct=38.192 throttleFiltPct=7.139 pwmCmdPct=7.00 pwmDuty=62/255 pwmDutyPct=24.31 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=1552 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042516.374 [DRIVE] ciclo tardo 48.86ms",
+        "1772042516.396 [DRIVE] cmd=9 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=2 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=0.61m/s speed=0.00m/s mode=NORMAL pidOut=8.8% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.61 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1497ms) sat=N iclamp=N ageMs=55028",
+        "1772042516.434 [DRIVE] cmd=10 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=1 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=0.68m/s speed=0.00m/s mode=NORMAL pidOut=10.0% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.68 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1458ms) sat=N iclamp=N ageMs=55067",
+        "1772042516.474 [DRIVE] cmd=11 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=19 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=0.76m/s speed=0.00m/s mode=NORMAL pidOut=11.1% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.76 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1420ms) sat=N iclamp=N ageMs=55105",
+        "1772042516.509 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b110 ageUs=2483838 periodUs=34092 ok=1103 invState=18090 invJump=0 isr=19194 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}[DRIVE] cmd=12 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=16 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=0.83m/s speed=0.00m/s mode=NORMAL pidOut=12.2% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.83 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1382ms) sat=N iclamp=N ageMs=55142"
+      ],
+      "esp32_logs_after_hold": [
+        "1772042518.017 [DRIVE] cmd=46 (PI) duty=122/255 brakeA=30deg brakeB=120deg piAgeMs=2 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.60m/s speed=1.44m/s mode=NORMAL pidOut=46.3% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.24 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=56648",
+        "1772042518.035 [PI][STATUS] driver=READY lastFrame=19ms verFlags=0x22 steer=30 speedCmd=1.60m/s brake=0 estop=N drive=Y ok=863 crcErr=0 malformed=0 verErr=0",
+        "1772042518.067 [SPD][STATUS] source=hall driver=READY speed=4.29km/h 1.19m/s rpm=505.3 hall=0b010 ageUs=2117 periodUs=4948 ok=1210 invState=18090 invJump=0 isr=19301 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042518.112 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=1.60m/s target=1.60m/s speedRaw=1.36m/s speedFilt=1.36m/s err=0.24m/s p=2.36 i=3.93 d=0.00 unsat=6.29 sat=6.29 ffBase=40.0% ffDelta=6.3% ffPre=46.3% ffAct=Y overErr=0.00 throttle=46.3% throttleRaw=46.3% throttleFilt=46.3% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042518.114 [DRIVE] cmd=47 (PI) duty=124/255 brakeA=30deg brakeB=120deg piAgeMs=2 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.60m/s speed=1.20m/s mode=NORMAL pidOut=47.0% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.31 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=56748",
+        "1772042518.123 [DRIVE][PIDTRACE] tMs=58770 src=PI mode=NORMAL targetRawMps=1.600 targetMps=1.600 speedMps=1.204 speedFiltMps=1.292 errMps=0.308 p=3.079 i=3.966 d=0.000 pidUnsat=7.045 pidOutPct=47.021 pidSatPct=7.045 ffBasePct=39.976 ffDeltaPct=7.045 cmdPreSlewPct=47.021 ffActive=Y throttleRawPct=47.021 throttleFiltPct=47.021 pwmCmdPct=47.00 pwmDuty=124/255 pwmDutyPct=48.63 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042518.223 [DRIVE] cmd=46 (PI) duty=122/255 brakeA=30deg brakeB=120deg piAgeMs=6 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.60m/s speed=1.49m/s mode=NORMAL pidOut=46.4% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.24 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=56852",
+        "1772042518.317 [DRIVE] cmd=47 (PI) duty=124/255 brakeA=30deg brakeB=120deg piAgeMs=16 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.60m/s speed=1.28m/s mode=NORMAL pidOut=46.6% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.26 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=56922",
+        "1772042518.327 [SPD][STATUS] source=hall driver=READY speed=4.69km/h 1.30m/s rpm=553.5 hall=0b101 ageUs=3396 periodUs=4517 ok=1267 invState=18090 invJump=0 isr=19358 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}[DRIVE] cmd=46 (PI) duty=122/255 brakeA=30deg brakeB=120deg piAgeMs=15 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.60m/s speed=1.47m/s mode=NORMAL pidOut=46.1% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.20 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=56961",
+        "1772042518.340 [DRIVE][PIDTRACE] tMs=58983 src=PI mode=NORMAL targetRawMps=1.600 targetMps=1.600 speedMps=1.465 speedFiltMps=1.400 errMps=0.200 p=2.001 i=4.075 d=0.000 pidUnsat=6.076 pidOutPct=46.052 pidSatPct=6.076 ffBasePct=39.976 ffDeltaPct=6.076 cmdPreSlewPct=46.052 ffActive=Y throttleRawPct=46.052 throttleFiltPct=46.052 pwmCmdPct=46.00 pwmDuty=122/255 pwmDutyPct=47.84 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042518.359 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=1.60m/s target=1.60m/s speedRaw=1.47m/s speedFilt=1.40m/s err=0.20m/s p=2.00 i=4.08 d=0.00 unsat=6.08 sat=6.08 ffBase=40.0% ffDelta=6.1% ffPre=46.1% ffAct=Y overErr=0.00 throttle=46.1% throttleRaw=46.1% throttleFilt=46.1% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}"
+      ]
+    },
+    {
+      "step": "steer_-35",
+      "hold_s": 1.5,
+      "snapshot": {
+        "ts": 1772042520.663431,
+        "desired": {
+          "drive_enabled": true,
+          "estop": false,
+          "steer_pct": -35,
+          "speed_mps": 1.6,
+          "brake_pct": 0,
+          "max_speed_mps": 12.0
+        },
+        "telemetry": {
+          "status_flags": 25,
+          "ready": true,
+          "estop_active": false,
+          "failsafe_active": false,
+          "pi_fresh": true,
+          "control_source": "PI",
+          "overspeed_active": false,
+          "speed_mps": 1.56,
+          "steer_deg": -11.34,
+          "brake_applied_pct": 0,
+          "raw_speed_centi_mps": 156,
+          "raw_steer_centi_deg": -1134,
+          "rx_monotonic_s": 2989.181427785
+        },
+        "stats": {
+          "tx_frames_ok": 996,
+          "tx_errors": 0,
+          "rx_frames_ok": 1987,
+          "rx_crc_errors": 0,
+          "rx_parse_drops": 0
+        }
+      },
+      "esp32_logs_immediate": [
+        "1772042518.376 [DRIVE] dt=50.59ms (objetivo 30.00ms)",
+        "1772042518.419 [DRIVE] cmd=47 (PI) duty=124/255 brakeA=30deg brakeB=120deg piAgeMs=5 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.60m/s speed=1.25m/s mode=NORMAL pidOut=46.9% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.28 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=57012",
+        "1772042518.419 [DRIVE] ciclo tardo 44.98ms",
+        "1772042518.423 [PI][STATUS] driver=READY lastFrame=14ms verFlags=0x22 steer=-35 speedCmd=1.60m/s brake=0 estop=N drive=Y ok=882 crcErr=0 malformed=0 verErr=0",
+        "1772042518.431 [DRIVE] cmd=46 (PI) duty=122/255 brakeA=30deg brakeB=120deg piAgeMs=14 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.60m/s speed=1.43m/s mode=NORMAL pidOut=46.3% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.22 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=57064",
+        "1772042518.445 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=1.60m/s target=1.60m/s speedRaw=1.25m/s speedFilt=1.32m/s err=0.28m/s p=2.80 i=4.10 d=0.00 unsat=6.90 sat=6.90 ffBase=40.0% ffDelta=6.9% ffPre=46.9% ffAct=Y overErr=0.00 throttle=46.9% throttleRaw=46.9% throttleFilt=46.9% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042518.537 [DRIVE][PIDTRACE] tMs=59186 src=PI mode=NORMAL targetRawMps=1.600 targetMps=1.600 speedMps=1.384 speedFiltMps=1.393 errMps=0.207 p=2.068 i=4.166 d=0.000 pidUnsat=6.234 pidOutPct=46.210 pidSatPct=6.234 ffBasePct=39.976 ffDeltaPct=6.234 cmdPreSlewPct=46.210 ffActive=Y throttleRawPct=46.210 throttleFiltPct=46.210 pwmCmdPct=46.00 pwmDuty=122/255 pwmDutyPct=47.84 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042518.574 [DRIVE] cmd=47 (PI) duty=124/255 brakeA=30deg brakeB=120deg piAgeMs=17 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.60m/s speed=1.30m/s mode=NORMAL pidOut=46.7% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.25 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=57203",
+        "1772042518.588 [SPD][STATUS] source=hall driver=READY speed=5.25km/h 1.46m/s rpm=619.4 hall=0b001 ageUs=96 periodUs=4036 ok=1326 invState=22470 invJump=1 isr=23798 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042518.629 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=1.60m/s target=1.60m/s speedRaw=1.37m/s speedFilt=1.36m/s err=0.24m/s p=2.42 i=4.20 d=0.00 unsat=6.62 sat=6.62 ffBase=40.0% ffDelta=6.6% ffPre=46.6% ffAct=Y overErr=0.00 throttle=46.6% throttleRaw=46.6% throttleFilt=46.6% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042518.764 [DRIVE][PIDTRACE] tMs=59414 src=PI mode=NORMAL targetRawMps=1.600 targetMps=1.600 speedMps=1.335 speedFiltMps=1.348 errMps=0.252 p=2.520 i=4.283 d=0.000 pidUnsat=6.803 pidOutPct=46.779 pidSatPct=6.803 ffBasePct=39.976 ffDeltaPct=6.803 cmdPreSlewPct=46.779 ffActive=Y throttleRawPct=46.779 throttleFiltPct=46.779 pwmCmdPct=47.00 pwmDuty=124/255 pwmDutyPct=48.63 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE"
+      ],
+      "esp32_logs_after_hold": [
+        "1772042520.364 [PI][STATUS] driver=READY lastFrame=17ms verFlags=0x22 steer=-35 speedCmd=1.60m/s brake=0 estop=N drive=Y ok=979 crcErr=0 malformed=0 verErr=0",
+        "1772042520.407 [SPD][STATUS] source=hall driver=READY speed=4.86km/h 1.35m/s rpm=572.6 hall=0b010 ageUs=2732 periodUs=4366 ok=1742 invState=22470 invJump=1 isr=24214 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042520.425 [DRIVE] ciclo tardo 29.97ms",
+        "1772042520.466 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=1.60m/s target=1.60m/s speedRaw=1.33m/s speedFilt=1.38m/s err=0.22m/s p=2.19 i=5.06 d=0.00 unsat=7.24 sat=7.24 ffBase=40.0% ffDelta=7.2% ffPre=47.2% ffAct=Y overErr=0.00 throttle=47.2% throttleRaw=47.2% throttleFilt=47.2% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042520.492 [DRIVE][PIDTRACE] tMs=61148 src=PI mode=NORMAL targetRawMps=1.600 targetMps=1.600 speedMps=1.350 speedFiltMps=1.374 errMps=0.226 p=2.265 i=5.085 d=0.000 pidUnsat=7.349 pidOutPct=47.325 pidSatPct=7.349 ffBasePct=39.976 ffDeltaPct=7.349 cmdPreSlewPct=47.325 ffActive=Y throttleRawPct=47.325 throttleFiltPct=47.325 pwmCmdPct=47.00 pwmDuty=124/255 pwmDutyPct=48.63 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042520.534 [DRIVE] cmd=48 (PI) duty=126/255 brakeA=30deg brakeB=120deg piAgeMs=18 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.60m/s speed=1.32m/s mode=NORMAL pidOut=47.6% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.25 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=59164",
+        "1772042520.570 [DRIVE] cmd=47 (PI) duty=124/255 brakeA=30deg brakeB=120deg piAgeMs=14 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.60m/s speed=1.37m/s mode=NORMAL pidOut=47.5% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.24 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=59200",
+        "1772042520.607 [DRIVE] cmd=48 (PI) duty=126/255 brakeA=30deg brakeB=120deg piAgeMs=12 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.60m/s speed=1.33m/s mode=NORMAL pidOut=47.6% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.25 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=59238"
+      ]
+    },
+    {
+      "step": "speed_0_60",
+      "hold_s": 1.5,
+      "snapshot": {
+        "ts": 1772042522.9637678,
+        "desired": {
+          "drive_enabled": true,
+          "estop": false,
+          "steer_pct": -35,
+          "speed_mps": 0.6,
+          "brake_pct": 0,
+          "max_speed_mps": 12.0
+        },
+        "telemetry": {
+          "status_flags": 25,
+          "ready": true,
+          "estop_active": false,
+          "failsafe_active": false,
+          "pi_fresh": true,
+          "control_source": "PI",
+          "overspeed_active": false,
+          "speed_mps": 0.51,
+          "steer_deg": -11.95,
+          "brake_applied_pct": 0,
+          "raw_speed_centi_mps": 51,
+          "raw_steer_centi_deg": -1195,
+          "rx_monotonic_s": 2991.490733856
+        },
+        "stats": {
+          "tx_frames_ok": 1111,
+          "tx_errors": 0,
+          "rx_frames_ok": 2219,
+          "rx_crc_errors": 0,
+          "rx_parse_drops": 0
+        }
+      },
+      "esp32_logs_immediate": [
+        "1772042520.669 [DRIVE] cmd=47 (PI) duty=124/255 brakeA=30deg brakeB=120deg piAgeMs=9 piBrake=0 brake=0 src=PI targetRaw=1.60m/s target=1.60m/s speed=1.43m/s mode=NORMAL pidOut=47.3% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.21 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=59275",
+        "1772042520.669 [SPD][STATUS] source=hall driver=READY speed=5.04km/h 1.40m/s rpm=594.7 hall=0b100 ageUs=3589 periodUs=4204 ok=1804 invState=22470 invJump=1 isr=24276 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042520.693 [PI][STATUS] driver=READY lastFrame=11ms verFlags=0x22 steer=-35 speedCmd=1.60m/s brake=0 estop=N drive=Y ok=996 crcErr=0 malformed=0 verErr=0",
+        "1772042520.711 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=1.60m/s target=1.60m/s speedRaw=1.35m/s speedFilt=1.37m/s err=0.23m/s p=2.29 i=5.17 d=0.00 unsat=7.47 sat=7.47 ffBase=40.0% ffDelta=7.5% ffPre=47.4% ffAct=Y overErr=0.00 throttle=47.4% throttleRaw=47.4% throttleFilt=47.4% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}[DRIVE] cmd=46 (PI) duty=122/255 brakeA=30deg brakeB=120deg piAgeMs=11 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=1.54m/s speed=1.51m/s mode=NORMAL pidOut=46.1% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.11 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=59342",
+        "1772042520.722 [DRIVE][PIDTRACE] tMs=61364 src=PI mode=NORMAL targetRawMps=0.600 targetMps=1.540 speedMps=1.510 speedFiltMps=1.426 errMps=0.113 p=1.132 i=5.180 d=0.000 pidUnsat=6.312 pidOutPct=46.084 pidSatPct=6.312 ffBasePct=39.599 ffDeltaPct=6.312 cmdPreSlewPct=45.911 ffActive=Y throttleRawPct=45.911 throttleFiltPct=46.084 pwmCmdPct=46.00 pwmDuty=122/255 pwmDutyPct=47.84 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042520.739 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.60m/s target=1.54m/s speedRaw=1.51m/s speedFilt=1.43m/s err=0.11m/s p=1.13 i=5.18 d=0.00 unsat=6.31 sat=6.31 ffBase=39.6% ffDelta=6.3% ffPre=45.9% ffAct=Y overErr=0.00 throttle=46.1% throttleRaw=45.9% throttleFilt=46.1% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042520.775 [DRIVE] dt=48.52ms (objetivo 30.00ms)",
+        "1772042520.775 [DRIVE] cmd=45 (PI) duty=120/255 brakeA=30deg brakeB=120deg piAgeMs=5 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=1.44m/s speed=1.28m/s mode=NORMAL pidOut=45.1% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.09 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=59391",
+        "1772042520.877 [DRIVE] cmd=43 (PI) duty=116/255 brakeA=30deg brakeB=120deg piAgeMs=9 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=1.23m/s speed=1.42m/s mode=OVERSPEED pidOut=43.2% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=-0.03 over=0.03 hold=Y(200ms) fb=Y fs=N ovs=Y launch=N(0ms) sat=N iclamp=Y ageMs=59495",
+        "1772042520.877 [DRIVE][EVENT] OVERSPEED_ENTER src=PI",
+        "1772042520.914 [DRIVE] cmd=41 (PI) duty=112/255 brakeA=30deg brakeB=120deg piAgeMs=14 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=1.14m/s speed=1.20m/s mode=OVERSPEED pidOut=41.2% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=-0.09 over=0.09 hold=Y(155ms) fb=Y fs=N ovs=Y launch=N(1800ms) sat=N iclamp=Y ageMs=59540",
+        "1772042520.932 [SPD][STATUS] source=hall driver=READY speed=3.62km/h 1.01m/s rpm=427.2 hall=0b011 ageUs=990 periodUs=5852 ok=1861 invState=22470 invJump=1 isr=24333 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042520.945 [DRIVE] cmd=39 (PI) duty=108/255 brakeA=30deg brakeB=120deg piAgeMs=14 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=1.06m/s speed=0.97m/s mode=OVERSPEED pidOut=39.4% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=-0.04 over=0.04 hold=Y(115ms) fb=Y fs=N ovs=Y launch=N(1800ms) sat=N iclamp=Y ageMs=59580",
+        "1772042520.979 [DRIVE][PIDTRACE] tMs=61602 src=PI mode=OVERSPEED targetRawMps=0.600 targetMps=1.064 speedMps=0.967 speedFiltMps=1.109 errMps=-0.045 p=0.000 i=0.000 d=0.000 pidUnsat=0.000 pidOutPct=39.393 pidSatPct=0.000 ffBasePct=0.000 ffDeltaPct=0.000 cmdPreSlewPct=0.000 ffActive=N throttleRawPct=0.000 throttleFiltPct=39.393 pwmCmdPct=39.00 pwmDuty=108/255 pwmDutyPct=42.35 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=1800 sat=N throttleSaturated=N iclamp=Y integratorClamped=Y fb=Y fs=N ovs=Y estop=N inhibit=NONE",
+        "1772042520.993 [DRIVE] cmd=0 (PI) duty=62/255 brakeA=31deg brakeB=120deg piAgeMs=17 piBrake=0 brake=2 src=PI targetRaw=0.60m/s target=0.98m/s speed=1.14m/s mode=OVERSPEED pidOut=0.0% autoBrakeRaw=3.5% autoBrakeFilt=1.5% autoBrake=1.5% err=-0.15 over=0.15 hold=Y(71ms) fb=Y fs=N ovs=Y launch=N(1800ms) sat=N iclamp=Y ageMs=59624",
+        "1772042520.997 [DRIVE][EVENT] THROTTLE_INHIBIT reason=OVERSPEED src=PI",
+        "1772042521.012 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=Y mode=OVERSPEED} targetRaw=0.60m/s target=0.98m/s speedRaw=1.14m/s speedFilt=1.12m/s err=-0.15m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.15 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=1.5% brakeRaw=3.5% brakeFilt=1.5% sat=N iclamp=Y launch=N launchMs=0 hold=Y holdMs=71 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042521.034 [DRIVE] cmd=0 (PI) duty=62/255 brakeA=32deg brakeB=120deg piAgeMs=2 piBrake=0 brake=3 src=PI targetRaw=0.60m/s target=0.89m/s speed=0.94m/s mode=OVERSPEED pidOut=0.0% autoBrakeRaw=3.5% autoBrakeFilt=3.1% autoBrake=3.1% err=-0.14 over=0.14 hold=Y(27ms) fb=Y fs=N ovs=Y launch=N(1800ms) sat=N iclamp=Y ageMs=59668",
+        "1772042521.078 [DRIVE] cmd=0 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=19 piBrake=0 brake=1 src=PI targetRaw=0.60m/s target=0.81m/s speed=0.81m/s mode=NORMAL pidOut=0.0% autoBrakeRaw=0.0% autoBrakeFilt=1.0% autoBrake=1.0% err=-0.12 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1762ms) sat=N iclamp=N ageMs=59705",
+        "1772042521.111 [DRIVE] cmd=0 (PI) duty=62/255 brakeA=31deg brakeB=120deg piAgeMs=16 piBrake=0 brake=2 src=PI targetRaw=0.60m/s target=0.74m/s speed=0.87m/s mode=OVERSPEED pidOut=0.0% autoBrakeRaw=3.9% autoBrakeFilt=2.3% autoBrake=2.3% err=-0.16 over=0.16 hold=Y(200ms) fb=Y fs=N ovs=Y launch=N(1762ms) sat=N iclamp=Y ageMs=59742"
+      ],
+      "esp32_logs_after_hold": [
+        "1772042522.617 [DRIVE] cmd=39 (PI) duty=108/255 brakeA=30deg brakeB=120deg piAgeMs=12 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=0.60m/s speed=0.17m/s mode=NORMAL pidOut=39.2% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.52 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(493ms) sat=N iclamp=N ageMs=61240",
+        "1772042522.644 [DRIVE] cmd=40 (PI) duty=110/255 brakeA=30deg brakeB=120deg piAgeMs=11 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=0.60m/s speed=0.14m/s mode=NORMAL pidOut=40.0% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.49 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(456ms) sat=N iclamp=N ageMs=61277",
+        "1772042522.658 [PI][STATUS] driver=READY lastFrame=3ms verFlags=0x22 steer=-35 speedCmd=0.60m/s brake=0 estop=N drive=Y ok=1095 crcErr=0 malformed=0 verErr=0",
+        "1772042522.682 [DRIVE][PIDTRACE] tMs=63337 src=PI mode=NORMAL targetRawMps=0.600 targetMps=0.600 speedMps=0.145 speedFiltMps=0.127 errMps=0.473 p=4.732 i=1.410 d=0.000 pidUnsat=6.143 pidOutPct=39.884 pidSatPct=6.143 ffBasePct=33.741 ffDeltaPct=6.143 cmdPreSlewPct=39.884 ffActive=Y throttleRawPct=39.884 throttleFiltPct=39.884 pwmCmdPct=40.00 pwmDuty=110/255 pwmDutyPct=43.14 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=418 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042522.769 [SPD][STATUS] source=hall driver=READY speed=0.89km/h 0.25m/s rpm=104.7 hall=0b110 ageUs=8647 periodUs=23869 ok=1923 invState=22472 invJump=1 isr=24397 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042522.779 [DRIVE] cmd=39 (PI) duty=108/255 brakeA=30deg brakeB=120deg piAgeMs=2 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=0.60m/s speed=0.26m/s mode=NORMAL pidOut=39.4% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.42 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(321ms) sat=N iclamp=N ageMs=61412",
+        "1772042522.832 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.60m/s target=0.60m/s speedRaw=0.35m/s speedFilt=0.26m/s err=0.34m/s p=3.44 i=1.52 d=0.00 unsat=4.96 sat=4.96 ffBase=33.7% ffDelta=5.0% ffPre=38.7% ffAct=Y overErr=0.00 throttle=38.7% throttleRaw=38.7% throttleFilt=38.7% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042522.844 [DRIVE] cmd=38 (PI) duty=106/255 brakeA=30deg brakeB=120deg piAgeMs=12 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=0.60m/s speed=0.35m/s mode=NORMAL pidOut=38.4% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.31 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(254ms) sat=N iclamp=N ageMs=61479",
+        "1772042522.883 [DRIVE][PIDTRACE] tMs=63538 src=PI mode=NORMAL targetRawMps=0.600 targetMps=0.600 speedMps=0.415 speedFiltMps=0.348 errMps=0.252 p=2.524 i=1.561 d=0.000 pidUnsat=4.085 pidOutPct=37.826 pidSatPct=4.085 ffBasePct=33.741 ffDeltaPct=4.085 cmdPreSlewPct=37.826 ffActive=Y throttleRawPct=37.826 throttleFiltPct=37.826 pwmCmdPct=38.00 pwmDuty=106/255 pwmDutyPct=41.57 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=217 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042522.924 [DRIVE] cmd=37 (PI) duty=104/255 brakeA=30deg brakeB=120deg piAgeMs=8 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=0.60m/s speed=0.46m/s mode=NORMAL pidOut=37.3% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.20 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(179ms) sat=N iclamp=N ageMs=61554"
+      ]
+    },
+    {
+      "step": "estop_on",
+      "hold_s": 2.0,
+      "snapshot": {
+        "ts": 1772042525.7640884,
+        "desired": {
+          "drive_enabled": true,
+          "estop": true,
+          "steer_pct": -35,
+          "speed_mps": 0.6,
+          "brake_pct": 0,
+          "max_speed_mps": 12.0
+        },
+        "telemetry": {
+          "status_flags": 11,
+          "ready": true,
+          "estop_active": true,
+          "failsafe_active": false,
+          "pi_fresh": true,
+          "control_source": "NONE",
+          "overspeed_active": false,
+          "speed_mps": 0.0,
+          "steer_deg": -11.95,
+          "brake_applied_pct": 100,
+          "raw_speed_centi_mps": 0,
+          "raw_steer_centi_deg": -1195,
+          "rx_monotonic_s": 2994.301837512
+        },
+        "stats": {
+          "tx_frames_ok": 1251,
+          "tx_errors": 0,
+          "rx_frames_ok": 2500,
+          "rx_crc_errors": 0,
+          "rx_parse_drops": 0
+        }
+      },
+      "esp32_logs_immediate": [
+        "1772042523.027 [PI][STATUS] driver=READY lastFrame=15ms verFlags=0x22 steer=-35 speedCmd=0.60m/s brake=0 estop=N drive=Y ok=1111 crcErr=0 malformed=0 verErr=0",
+        "1772042523.027 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.60m/s target=0.60m/s speedRaw=0.50m/s speedFilt=0.47m/s err=0.13m/s p=1.30 i=1.60 d=0.00 unsat=2.89 sat=2.89 ffBase=33.7% ffDelta=2.9% ffPre=36.6% ffAct=Y overErr=0.00 throttle=36.6% throttleRaw=36.6% throttleFilt=36.6% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042523.027 [DRIVE] cmd=0 (PI) duty=62/255 brakeA=100deg brakeB=90deg piAgeMs=5 piBrake=100 brake=100 ageMs=61652",
+        "1772042523.027 [DRIVE][EVENT] THROTTLE_INHIBIT reason=ESTOP src=NONE",
+        "1772042523.037 [SPD][STATUS] source=hall driver=READY speed=1.82km/h 0.50m/s rpm=214.3 hall=0b100 ageUs=12481 periodUs=11667 ok=1942 invState=22472 invJump=1 isr=24416 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042523.093 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042523.287 [SPD][STATUS] source=hall driver=READY speed=0.61km/h 0.17m/s rpm=72.1 hall=0b101 ageUs=9848 periodUs=34651 ok=1955 invState=22472 invJump=1 isr=24429 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042523.350 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}"
+      ],
+      "esp32_logs_after_hold": [
+        "1772042525.432 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042525.450 [PI][STATUS] driver=READY lastFrame=14ms verFlags=0x23 steer=-35 speedCmd=0.60m/s brake=0 estop=Y drive=Y ok=1234 crcErr=0 malformed=0 verErr=0",
+        "1772042525.506 [DRIVE] ciclo tardo 29.86ms",
+        "1772042525.631 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b101 ageUs=2349900 periodUs=34651 ok=1955 invState=22472 invJump=1 isr=24429 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042525.692 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}"
+      ]
+    },
+    {
+      "step": "estop_off",
+      "hold_s": 1.5,
+      "snapshot": {
+        "ts": 1772042528.0644066,
+        "desired": {
+          "drive_enabled": true,
+          "estop": false,
+          "steer_pct": -35,
+          "speed_mps": 0.6,
+          "brake_pct": 0,
+          "max_speed_mps": 12.0
+        },
+        "telemetry": {
+          "status_flags": 25,
+          "ready": true,
+          "estop_active": false,
+          "failsafe_active": false,
+          "pi_fresh": true,
+          "control_source": "PI",
+          "overspeed_active": false,
+          "speed_mps": 0.29,
+          "steer_deg": -11.95,
+          "brake_applied_pct": 0,
+          "raw_speed_centi_mps": 29,
+          "raw_steer_centi_deg": -1195,
+          "rx_monotonic_s": 2996.560765286
+        },
+        "stats": {
+          "tx_frames_ok": 1366,
+          "tx_errors": 0,
+          "rx_frames_ok": 2726,
+          "rx_crc_errors": 0,
+          "rx_parse_drops": 0
+        }
+      },
+      "esp32_logs_immediate": [
+        "1772042525.814 [DRIVE] cmd=1 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=0 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=0.06m/s speed=0.00m/s mode=NORMAL pidOut=0.6% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.06 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1770ms) sat=N iclamp=N ageMs=64446",
+        "1772042525.830 [DRIVE][EVENT] THROTTLE_INHIBIT reason=NONE src=PI",
+        "1772042525.837 [DRIVE][PIDTRACE] tMs=66468 src=PI mode=NORMAL targetRawMps=0.600 targetMps=0.060 speedMps=0.000 speedFiltMps=0.000 errMps=0.060 p=0.597 i=0.004 d=0.000 pidUnsat=0.601 pidOutPct=0.601 pidSatPct=0.601 ffBasePct=0.000 ffDeltaPct=0.601 cmdPreSlewPct=0.601 ffActive=N throttleRawPct=0.601 throttleFiltPct=0.601 pwmCmdPct=1.00 pwmDuty=62/255 pwmDutyPct=24.31 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=1770 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042525.857 [PI][STATUS] driver=READY lastFrame=17ms verFlags=0x22 steer=-35 speedCmd=0.60m/s brake=0 estop=N drive=Y ok=1254 crcErr=0 malformed=0 verErr=0",
+        "1772042525.894 [DRIVE] dt=51.81ms (objetivo 30.00ms)",
+        "1772042525.894 [DRIVE] cmd=2 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=11 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=0.16m/s speed=0.00m/s mode=NORMAL pidOut=2.2% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.16 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1718ms) sat=N iclamp=N ageMs=64498",
+        "1772042525.899 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.60m/s target=0.16m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.16m/s p=1.63 i=0.02 d=0.00 unsat=1.65 sat=1.65 ffBase=31.0% ffDelta=1.7% ffPre=32.7% ffAct=Y overErr=0.00 throttle=2.2% throttleRaw=32.7% throttleFilt=2.2% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=1118 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042525.914 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b101 ageUs=2628132 periodUs=34651 ok=1955 invState=22472 invJump=1 isr=24429 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}[DRIVE] cmd=4 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=14 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=0.26m/s speed=0.00m/s mode=NORMAL pidOut=3.5% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.26 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1671ms) sat=N iclamp=N ageMs=64544",
+        "1772042525.964 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.60m/s target=0.26m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.26m/s p=2.56 i=0.04 d=0.00 unsat=2.61 sat=2.61 ffBase=31.6% ffDelta=2.6% ffPre=34.2% ffAct=Y overErr=0.00 throttle=3.5% throttleRaw=34.2% throttleFilt=3.5% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=1071 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}[DRIVE] cmd=5 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=16 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=0.33m/s speed=0.00m/s mode=NORMAL pidOut=4.7% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.33 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1634ms) sat=N iclamp=N ageMs=64582",
+        "1772042525.994 [DRIVE] cmd=6 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=13 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=0.40m/s speed=0.00m/s mode=NORMAL pidOut=5.8% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.40 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1597ms) sat=N iclamp=N ageMs=64619",
+        "1772042526.021 [DRIVE] cmd=7 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=10 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=0.48m/s speed=0.00m/s mode=NORMAL pidOut=6.9% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.48 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1560ms) sat=N iclamp=N ageMs=64656",
+        "1772042526.031 [DRIVE][PIDTRACE] tMs=66678 src=PI mode=NORMAL targetRawMps=0.600 targetMps=0.480 speedMps=0.000 speedFiltMps=0.000 errMps=0.480 p=4.800 i=0.135 d=0.000 pidUnsat=4.935 pidOutPct=6.905 pidSatPct=4.935 ffBasePct=32.993 ffDeltaPct=4.935 cmdPreSlewPct=37.927 ffActive=Y throttleRawPct=37.927 throttleFiltPct=6.905 pwmCmdPct=7.00 pwmDuty=62/255 pwmDutyPct=24.31 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=1560 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042526.096 [DRIVE] cmd=8 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=14 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=0.57m/s speed=0.00m/s mode=NORMAL pidOut=8.2% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.57 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1515ms) sat=N iclamp=N ageMs=64700",
+        "1772042526.104 [DRIVE] cmd=9 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=12 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=0.60m/s speed=0.00m/s mode=NORMAL pidOut=9.4% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.60 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1478ms) sat=N iclamp=N ageMs=64738",
+        "1772042526.149 [DRIVE] cmd=10 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=10 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=0.60m/s speed=0.00m/s mode=NORMAL pidOut=10.5% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.60 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1440ms) sat=N iclamp=N ageMs=64776",
+        "1772042526.167 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b101 ageUs=2891850 periodUs=34651 ok=1955 invState=22472 invJump=1 isr=24429 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042526.201 [DRIVE] cmd=12 (PI) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=6 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=0.60m/s speed=0.00m/s mode=NORMAL pidOut=11.6% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.60 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(1403ms) sat=N iclamp=N ageMs=64813",
+        "1772042526.201 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.60m/s target=0.60m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.60m/s p=6.00 i=0.32 d=0.00 unsat=6.32 sat=6.32 ffBase=33.7% ffDelta=6.3% ffPre=40.1% ffAct=Y overErr=0.00 throttle=11.6% throttleRaw=40.1% throttleFilt=11.6% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=803 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}"
+      ],
+      "esp32_logs_after_hold": [
+        "1772042527.734 [SPD][STATUS] source=hall driver=READY speed=1.65km/h 0.46m/s rpm=194.3 hall=0b101 ageUs=1264 periodUs=12864 ok=1997 invState=22472 invJump=1 isr=24471 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042527.737 [DRIVE] cmd=37 (PI) duty=104/255 brakeA=30deg brakeB=120deg piAgeMs=2 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=0.60m/s speed=0.51m/s mode=NORMAL pidOut=37.1% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.16 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=66371",
+        "1772042527.750 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.60m/s target=0.60m/s speedRaw=0.47m/s speedFilt=0.39m/s err=0.21m/s p=2.05 i=1.72 d=0.00 unsat=3.77 sat=3.77 ffBase=33.7% ffDelta=3.8% ffPre=37.5% ffAct=Y overErr=0.00 throttle=37.5% throttleRaw=37.5% throttleFilt=37.5% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042527.775 [DRIVE][PIDTRACE] tMs=68431 src=PI mode=NORMAL targetRawMps=0.600 targetMps=0.600 speedMps=0.346 speedFiltMps=0.399 errMps=0.201 p=2.011 i=1.748 d=0.000 pidUnsat=3.759 pidOutPct=37.500 pidSatPct=3.759 ffBasePct=33.741 ffDeltaPct=3.759 cmdPreSlewPct=37.500 ffActive=Y throttleRawPct=37.500 throttleFiltPct=37.500 pwmCmdPct=37.00 pwmDuty=104/255 pwmDutyPct=40.78 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042527.837 [PI][STATUS] driver=READY lastFrame=15ms verFlags=0x22 steer=-35 speedCmd=0.60m/s brake=0 estop=N drive=Y ok=1352 crcErr=0 malformed=0 verErr=0",
+        "1772042527.837 [DRIVE] cmd=38 (PI) duty=106/255 brakeA=30deg brakeB=120deg piAgeMs=21 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=0.60m/s speed=0.40m/s mode=NORMAL pidOut=37.5% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.20 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=66447",
+        "1772042527.859 [DRIVE] cmd=37 (PI) duty=104/255 brakeA=30deg brakeB=120deg piAgeMs=4 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=0.60m/s speed=0.47m/s mode=NORMAL pidOut=37.2% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.16 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=66490",
+        "1772042528.000 [SPD][STATUS] source=hall driver=READY speed=1.18km/h 0.33m/s rpm=139.2 hall=0b101 ageUs=14025 periodUs=17958 ok=2015 invState=22472 invJump=1 isr=24489 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}[DRIVE] cmd=38 (PI) duty=106/255 brakeA=30deg brakeB=120deg piAgeMs=12 piBrake=0 brake=0 src=PI targetRaw=0.60m/s target=0.60m/s speed=0.33m/s mode=NORMAL pidOut=37.8% autoBrakeRaw=0.0% autoBrakeFilt=0.0% autoBrake=0.0% err=0.22 over=0.00 hold=N(0ms) fb=Y fs=N ovs=N launch=N(0ms) sat=N iclamp=N ageMs=66618",
+        "1772042528.000 [DRIVE][PIDTRACE] tMs=68640 src=PI mode=NORMAL targetRawMps=0.600 targetMps=0.600 speedMps=0.328 speedFiltMps=0.378 errMps=0.222 p=2.223 i=1.824 d=0.000 pidUnsat=4.047 pidOutPct=37.788 pidSatPct=4.047 ffBasePct=33.741 ffDeltaPct=4.047 cmdPreSlewPct=37.788 ffActive=Y throttleRawPct=37.788 throttleFiltPct=37.788 pwmCmdPct=38.00 pwmDuty=106/255 pwmDutyPct=41.57 autoBrakeRawPct=0.00 autoBrakeFiltPct=0.00 brakeAppliedPct=0.00 brakeA_pct=0.00 brakeB_pct=0.00 launch=N launchAssistActive=N launchMs=0 sat=N throttleSaturated=N iclamp=N integratorClamped=N fb=Y fs=N ovs=N estop=N inhibit=NONE",
+        "1772042528.044 [SPID] state{init=Y en=Y fb=Y failsafe=N overspeed=N mode=NORMAL} targetRaw=0.60m/s target=0.60m/s speedRaw=0.33m/s speedFilt=0.38m/s err=0.22m/s p=2.22 i=1.82 d=0.00 unsat=4.05 sat=4.05 ffBase=33.7% ffDelta=4.0% ffPre=37.8% ffAct=Y overErr=0.00 throttle=37.8% throttleRaw=37.8% throttleFilt=37.8% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042528.044 [DRIVE] dt=49.31ms (objetivo 30.00ms)"
+      ]
+    },
+    {
+      "step": "drive_off",
+      "hold_s": 1.5,
+      "snapshot": {
+        "ts": 1772042530.3647194,
+        "desired": {
+          "drive_enabled": false,
+          "estop": false,
+          "steer_pct": -35,
+          "speed_mps": 0.6,
+          "brake_pct": 0,
+          "max_speed_mps": 12.0
+        },
+        "telemetry": {
+          "status_flags": 9,
+          "ready": true,
+          "estop_active": false,
+          "failsafe_active": false,
+          "pi_fresh": true,
+          "control_source": "NONE",
+          "overspeed_active": false,
+          "speed_mps": 0.0,
+          "steer_deg": -12.04,
+          "brake_applied_pct": 0,
+          "raw_speed_centi_mps": 0,
+          "raw_steer_centi_deg": -1204,
+          "rx_monotonic_s": 2998.86983156
+        },
+        "stats": {
+          "tx_frames_ok": 1481,
+          "tx_errors": 0,
+          "rx_frames_ok": 2956,
+          "rx_crc_errors": 0,
+          "rx_parse_drops": 0
+        }
+      },
+      "esp32_logs_immediate": [
+        "1772042528.096 [PI][STATUS] driver=READY lastFrame=18ms verFlags=0x22 steer=-35 speedCmd=0.60m/s brake=0 estop=N drive=Y ok=1366 crcErr=0 malformed=0 verErr=0",
+        "1772042528.102 [DRIVE] cmd=0 (RC) duty=62/255 brakeA=30deg brakeB=120deg piAgeMs=2 piBrake=0 brake=0 ageMs=66734",
+        "1772042528.147 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042528.251 [SPD][STATUS] source=hall driver=READY speed=0.79km/h 0.22m/s rpm=93.3 hall=0b110 ageUs=4919 periodUs=26806 ok=2031 invState=22472 invJump=1 isr=24505 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042528.268 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042528.512 [SPD][STATUS] source=hall driver=READY speed=0.65km/h 0.18m/s rpm=76.4 hall=0b101 ageUs=152046 periodUs=32743 ok=2033 invState=22472 invJump=1 isr=24507 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}"
+      ],
+      "esp32_logs_after_hold": [
+        "1772042530.093 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b101 ageUs=1712017 periodUs=32743 ok=2033 invState=22472 invJump=1 isr=24507 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042530.093 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042530.104 [PI][STATUS] driver=READY lastFrame=4ms verFlags=0x20 steer=-35 speedCmd=0.60m/s brake=0 estop=N drive=N ok=1467 crcErr=0 malformed=0 verErr=0",
+        "1772042530.149 [DRIVE] sin datos frescos del RC (>50ms); usando 0",
+        "1772042530.330 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b101 ageUs=1971906 periodUs=32743 ok=2033 invState=22472 invJump=1 isr=24507 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042530.347 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}"
+      ]
+    },
+    {
+      "step": "safe_reset",
+      "hold_s": 1.0,
+      "snapshot": {
+        "ts": 1772042532.165057,
+        "desired": {
+          "drive_enabled": false,
+          "estop": false,
+          "steer_pct": 0,
+          "speed_mps": 0.0,
+          "brake_pct": 0,
+          "max_speed_mps": 12.0
+        },
+        "telemetry": {
+          "status_flags": 9,
+          "ready": true,
+          "estop_active": false,
+          "failsafe_active": false,
+          "pi_fresh": true,
+          "control_source": "NONE",
+          "overspeed_active": false,
+          "speed_mps": 0.0,
+          "steer_deg": 0.88,
+          "brake_applied_pct": 0,
+          "raw_speed_centi_mps": 0,
+          "raw_steer_centi_deg": 88,
+          "rx_monotonic_s": 3000.677032622
+        },
+        "stats": {
+          "tx_frames_ok": 1571,
+          "tx_errors": 0,
+          "rx_frames_ok": 3137,
+          "rx_crc_errors": 0,
+          "rx_parse_drops": 0
+        }
+      },
+      "esp32_logs_immediate": [
+        "1772042530.400 [PI][STATUS] driver=READY lastFrame=17ms verFlags=0x20 steer=-35 speedCmd=0.60m/s brake=0 estop=N drive=N ok=1481 crcErr=0 malformed=0 verErr=0",
+        "1772042530.439 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042530.604 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b101 ageUs=2234009 periodUs=32743 ok=2033 invState=25037 invJump=1 isr=27072 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042530.606 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}[DRIVE] ciclo tardo 30.10ms",
+        "1772042530.704 [DRIVE] sin datos frescos del RC (>50ms); usando 0"
+      ],
+      "esp32_logs_after_hold": [
+        "1772042531.892 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b101 ageUs=3531914 periodUs=32743 ok=2033 invState=25037 invJump=1 isr=27072 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042531.936 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+        "1772042531.936 [PI][STATUS] driver=READY lastFrame=7ms verFlags=0x20 steer=0 speedCmd=0.00m/s brake=0 estop=N drive=N ok=1558 crcErr=0 malformed=0 verErr=0",
+        "1772042532.147 [SPD][STATUS] source=hall driver=READY speed=0.00km/h 0.00m/s rpm=0.0 hall=0b101 ageUs=3792205 periodUs=32743 ok=2033 invState=25037 invJump=1 isr=27072 cfg{pins=26/27/14 low=Y poles=8 red=10.00 wheelM=0.450}",
+        "1772042532.165 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}"
+      ]
+    }
+  ],
+  "final_snapshot": {
+    "ts": 1772042533.3155608,
+    "desired": {
+      "drive_enabled": false,
+      "estop": false,
+      "steer_pct": 0,
+      "speed_mps": 0.0,
+      "brake_pct": 0,
+      "max_speed_mps": 12.0
+    },
+    "telemetry": {
+      "status_flags": 9,
+      "ready": true,
+      "estop_active": false,
+      "failsafe_active": false,
+      "pi_fresh": true,
+      "control_source": "NONE",
+      "overspeed_active": false,
+      "speed_mps": 0.0,
+      "steer_deg": 0.88,
+      "brake_applied_pct": 0,
+      "raw_speed_centi_mps": 0,
+      "raw_steer_centi_deg": 88,
+      "rx_monotonic_s": 3001.831532741
+    },
+    "stats": {
+      "tx_frames_ok": 1628,
+      "tx_errors": 0,
+      "rx_frames_ok": 3253,
+      "rx_crc_errors": 0,
+      "rx_parse_drops": 0
+    }
+  },
+  "cleanup_logs": [
+    "1772042532.192 [SPD][STREAM] OFF",
+    "1772042532.243 [DRIVE] sin datos frescos del RC (>50ms); usando 0",
+    "1772042532.448 [SPID] state{init=Y en=Y fb=N failsafe=N overspeed=N mode=NORMAL} targetRaw=0.00m/s target=0.00m/s speedRaw=0.00m/s speedFilt=0.00m/s err=0.00m/s p=0.00 i=0.00 d=0.00 unsat=0.00 sat=0.00 ffBase=0.0% ffDelta=0.0% ffPre=0.0% ffAct=N overErr=0.00 throttle=0.0% throttleRaw=0.0% throttleFilt=0.0% brake=0.0% brakeRaw=0.0% brakeFilt=0.0% sat=N iclamp=N launch=N launchMs=0 hold=N holdMs=0 tune{kp=10.000 ki=2.000 kd=0.000} cfg{max=4.17m/s ramp=2.00m/s2 ilim=100.00 db=0.050m/s tmin=90.0% thsup=30.0 thsdown=45.0 minspd=0.35m/s lwin=1200ms ff{en=Y b0=30.0 bmax=56.0 du=38.0 dd=45.0 min=0.10m/s} flgr=1800ms iunw=0.35 dfhz=3.00 cap=30.0% hys=0.30m/s brsu=35.0 brsd=55.0 brh=200ms brdb=3.0%}",
+    "1772042532.451 [SPID][STREAM] OFF",
+    "1772042532.488 [DRIVE][LOG][PID] OFF",
+    "1772042532.653 [DRIVE] ciclo tardo 30.11ms",
+    "1772042532.655 [DRIVE][LOG] OFF",
+    "1772042532.873 [PI][STATUS] driver=READY lastFrame=15ms verFlags=0x20 steer=0 speedCmd=0.00m/s brake=0 estop=N drive=N ok=1605 crcErr=0 malformed=0 verErr=0"
+  ]
+}

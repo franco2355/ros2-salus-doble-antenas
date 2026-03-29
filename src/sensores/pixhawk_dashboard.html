@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
+    <title>MAVROS Telemetry</title>
+    <style>
+      :root {
+        --bg: #f2f6fb;
+        --panel: #ffffff;
+        --panel-2: #f8fbff;
+        --text: #12202f;
+        --muted: #5a6f86;
+        --accent: #0f7ac9;
+        --warn: #b96000;
+        --ok: #0a7f4f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "IBM Plex Sans", "Segoe UI", "SF Pro Text", sans-serif;
+        background: radial-gradient(circle at 18% 12%, #ffffff, #eaf1f8 48%, #dde8f4 100%);
+        color: var(--text);
+      }
+
+      header {
+        padding: 24px 28px 16px 28px;
+        border-bottom: 1px solid #cfdceb;
+        display: flex;
+        align-items: baseline;
+        gap: 18px;
+      }
+
+      header h1 {
+        margin: 0;
+        font-size: 22px;
+        letter-spacing: 0.5px;
+      }
+
+      header .status {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 18px;
+        padding: 18px 28px 28px 28px;
+      }
+
+      .card {
+        background: linear-gradient(160deg, var(--panel), var(--panel-2));
+        border: 1px solid #d3e0ef;
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 10px 24px rgba(17, 60, 106, 0.09);
+      }
+
+      .card h2 {
+        margin: 0 0 10px 0;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--muted);
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 6px 0;
+        border-bottom: 1px dashed rgba(18, 32, 47, 0.14);
+      }
+
+      .row:last-child {
+        border-bottom: none;
+      }
+
+      .label {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .value {
+        min-width: 14ch;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum" 1;
+      }
+
+      .units {
+        color: var(--muted);
+        font-size: 11px;
+        margin-left: 6px;
+      }
+
+      .tag {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        background: rgba(15, 122, 201, 0.14);
+        color: var(--accent);
+        border: 1px solid rgba(15, 122, 201, 0.22);
+      }
+
+      .warn {
+        color: var(--warn);
+      }
+
+      .ok {
+        color: var(--ok);
+      }
+
+      footer {
+        padding: 8px 28px 24px 28px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>MAVROS Telemetry</h1>
+      <div class="status">
+        Data age: <span id="age">--</span> s
+      </div>
+      <div class="tag" id="conn">waiting</div>
+    </header>
+
+    <section class="grid">
+      <div class="card">
+        <h2>IMU (EKF)</h2>
+        <div class="row"><div class="label">q.w</div><div class="value" id="imu-qw">--</div></div>
+        <div class="row"><div class="label">q.x</div><div class="value" id="imu-qx">--</div></div>
+        <div class="row"><div class="label">q.y</div><div class="value" id="imu-qy">--</div></div>
+        <div class="row"><div class="label">q.z</div><div class="value" id="imu-qz">--</div></div>
+        <div class="row"><div class="label">yaw ENU</div><div class="value" id="imu-yaw-rad">-- <span class="units">rad</span></div></div>
+        <div class="row"><div class="label">yaw ENU</div><div class="value" id="imu-yaw-deg">-- <span class="units">deg</span></div></div>
+        <div class="row"><div class="label">ang.x</div><div class="value" id="imu-gx">--</div></div>
+        <div class="row"><div class="label">ang.y</div><div class="value" id="imu-gy">--</div></div>
+        <div class="row"><div class="label">ang.z</div><div class="value" id="imu-gz">--</div></div>
+      </div>
+
+      <div class="card">
+        <h2>GPS</h2>
+        <div class="row"><div class="label">lat</div><div class="value" id="gps-lat">--</div></div>
+        <div class="row"><div class="label">lon</div><div class="value" id="gps-lon">--</div></div>
+        <div class="row"><div class="label">alt</div><div class="value" id="gps-alt">-- <span class="units">m</span></div></div>
+        <div class="row"><div class="label">status</div><div class="value" id="gps-status">--</div></div>
+      </div>
+
+      <div class="card">
+        <h2>Velocity</h2>
+        <div class="row"><div class="label">vx</div><div class="value" id="vel-x">-- <span class="units">m/s</span></div></div>
+        <div class="row"><div class="label">vy</div><div class="value" id="vel-y">-- <span class="units">m/s</span></div></div>
+        <div class="row"><div class="label">vz</div><div class="value" id="vel-z">-- <span class="units">m/s</span></div></div>
+        <div class="row"><div class="label">yaw rate</div><div class="value" id="vel-yaw">-- <span class="units">rad/s</span></div></div>
+      </div>
+
+      <div class="card">
+        <h2>Odometry (EKF)</h2>
+        <div class="row"><div class="label">x</div><div class="value" id="odom-x">-- <span class="units">m</span></div></div>
+        <div class="row"><div class="label">y</div><div class="value" id="odom-y">-- <span class="units">m</span></div></div>
+        <div class="row"><div class="label">z</div><div class="value" id="odom-z">-- <span class="units">m</span></div></div>
+        <div class="row"><div class="label">q.w</div><div class="value" id="odom-qw">--</div></div>
+        <div class="row"><div class="label">q.x</div><div class="value" id="odom-qx">--</div></div>
+        <div class="row"><div class="label">q.y</div><div class="value" id="odom-qy">--</div></div>
+        <div class="row"><div class="label">q.z</div><div class="value" id="odom-qz">--</div></div>
+        <div class="row"><div class="label">yaw ENU</div><div class="value" id="odom-yaw-rad">-- <span class="units">rad</span></div></div>
+        <div class="row"><div class="label">yaw ENU</div><div class="value" id="odom-yaw-deg">-- <span class="units">deg</span></div></div>
+      </div>
+
+      <div class="card">
+        <h2>Yaw Diagnostics</h2>
+        <div class="row"><div class="label">Δyaw (IMU - Odom)</div><div class="value" id="yaw-delta-deg">-- <span class="units">deg</span></div></div>
+        <div class="row"><div class="label">ENU convention</div><div class="value">0°=E, 90°=N</div></div>
+      </div>
+
+      <div class="card">
+        <h2>Topic Bindings</h2>
+        <div class="row"><div class="label">IMU</div><div class="value" id="topic-imu">--</div></div>
+        <div class="row"><div class="label">GPS</div><div class="value" id="topic-gps">--</div></div>
+        <div class="row"><div class="label">Velocity</div><div class="value" id="topic-velocity">--</div></div>
+        <div class="row"><div class="label">Odom</div><div class="value" id="topic-odom">--</div></div>
+      </div>
+    </section>
+
+    <footer>
+      Endpoint: <span class="tag">/data</span>
+    </footer>
+
+    <script>
+      const el = (id) => document.getElementById(id);
+      const lastStamp = { value: null };
+      let ws = null;
+      let wsConnected = false;
+
+      function fmt(value, digits = 3) {
+        if (value === null || value === undefined) return "--";
+        if (Number.isFinite(value)) return value.toFixed(digits);
+        return String(value);
+      }
+
+      function updateAge() {
+        if (!lastStamp.value) {
+          el("age").textContent = "--";
+          return;
+        }
+        const now = Date.now() / 1000;
+        el("age").textContent = (now - lastStamp.value).toFixed(2);
+      }
+
+      function updateConnection(ok) {
+        const conn = el("conn");
+        conn.textContent = ok ? "live" : "waiting";
+        conn.className = "tag " + (ok ? "ok" : "warn");
+      }
+
+      async function poll() {
+        try {
+          const res = await fetch("/data", { cache: "no-store" });
+          const data = await res.json();
+          updateConnection(true);
+          applyData(data);
+        } catch (err) {
+          updateConnection(false);
+        } finally {
+          updateAge();
+        }
+      }
+
+      function applyData(data) {
+        if (data.imu) {
+          el("imu-qw").textContent = fmt(data.imu.orientation.w, 4);
+          el("imu-qx").textContent = fmt(data.imu.orientation.x, 4);
+          el("imu-qy").textContent = fmt(data.imu.orientation.y, 4);
+          el("imu-qz").textContent = fmt(data.imu.orientation.z, 4);
+          el("imu-yaw-rad").innerHTML = fmt(data.imu.yaw_enu_rad, 4) + ' <span class="units">rad</span>';
+          el("imu-yaw-deg").innerHTML = fmt(data.imu.yaw_enu_deg, 2) + ' <span class="units">deg</span>';
+          el("imu-gx").textContent = fmt(data.imu.angular_velocity.x, 4);
+          el("imu-gy").textContent = fmt(data.imu.angular_velocity.y, 4);
+          el("imu-gz").textContent = fmt(data.imu.angular_velocity.z, 4);
+          lastStamp.value = data.imu.stamp || lastStamp.value;
+        }
+
+        if (data.gps) {
+          el("gps-lat").textContent = fmt(data.gps.latitude, 6);
+          el("gps-lon").textContent = fmt(data.gps.longitude, 6);
+          el("gps-alt").innerHTML = fmt(data.gps.altitude, 2) + ' <span class="units">m</span>';
+          el("gps-status").textContent = data.gps.status;
+          lastStamp.value = data.gps.stamp || lastStamp.value;
+        }
+
+        if (data.velocity) {
+          el("vel-x").innerHTML = fmt(data.velocity.linear.x, 3) + ' <span class="units">m/s</span>';
+          el("vel-y").innerHTML = fmt(data.velocity.linear.y, 3) + ' <span class="units">m/s</span>';
+          el("vel-z").innerHTML = fmt(data.velocity.linear.z, 3) + ' <span class="units">m/s</span>';
+          el("vel-yaw").innerHTML = fmt(data.velocity.angular.z, 3) + ' <span class="units">rad/s</span>';
+          lastStamp.value = data.velocity.stamp || lastStamp.value;
+        }
+
+        if (data.odom) {
+          el("odom-x").innerHTML = fmt(data.odom.position.x, 3) + ' <span class="units">m</span>';
+          el("odom-y").innerHTML = fmt(data.odom.position.y, 3) + ' <span class="units">m</span>';
+          el("odom-z").innerHTML = fmt(data.odom.position.z, 3) + ' <span class="units">m</span>';
+          el("odom-qw").textContent = fmt(data.odom.orientation.w, 4);
+          el("odom-qx").textContent = fmt(data.odom.orientation.x, 4);
+          el("odom-qy").textContent = fmt(data.odom.orientation.y, 4);
+          el("odom-qz").textContent = fmt(data.odom.orientation.z, 4);
+          el("odom-yaw-rad").innerHTML = fmt(data.odom.yaw_enu_rad, 4) + ' <span class="units">rad</span>';
+          el("odom-yaw-deg").innerHTML = fmt(data.odom.yaw_enu_deg, 2) + ' <span class="units">deg</span>';
+          lastStamp.value = data.odom.stamp || lastStamp.value;
+        }
+
+        if (data.diagnostics) {
+          el("yaw-delta-deg").innerHTML = fmt(data.diagnostics.yaw_delta_deg, 2) + ' <span class="units">deg</span>';
+        }
+
+        if (data.topics) {
+          el("topic-imu").textContent = data.topics.imu || "--";
+          el("topic-gps").textContent = data.topics.gps || "--";
+          el("topic-velocity").textContent = data.topics.velocity || "--";
+          el("topic-odom").textContent = data.topics.odom || "--";
+        }
+      }
+
+      function connectWs() {
+        const host = window.location.hostname || "localhost";
+        const httpPort = window.location.port ? parseInt(window.location.port, 10) : 8000;
+        const wsPort = httpPort + 1;
+        const wsUrl = `ws://${host}:${wsPort}/ws`;
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+          wsConnected = true;
+          updateConnection(true);
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            applyData(data);
+            updateConnection(true);
+            updateAge();
+          } catch (err) {
+            updateConnection(false);
+          }
+        };
+
+        ws.onclose = () => {
+          wsConnected = false;
+          updateConnection(false);
+          setTimeout(connectWs, 1000);
+        };
+
+        ws.onerror = () => {
+          wsConnected = false;
+          updateConnection(false);
+          ws.close();
+        };
+      }
+
+      updateConnection(false);
+      connectWs();
+      setInterval(() => {
+        if (!wsConnected) {
+          poll();
+        } else {
+          updateAge();
+        }
+      }, 250);
+    </script>
+  </body>
+</html>

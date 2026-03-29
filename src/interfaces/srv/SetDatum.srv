@@ -1,0 +1,10 @@
+float64[] coords
+---
+bool ok
+string error
+string status_message
+bool already_set_before
+bool used_current_gps
+bool gps_is_rtk
+float64 applied_lat
+float64 applied_lon

@@ -1,0 +1,5 @@
+---
+bool ok
+string error
+string last_command
+bool zoom_in
