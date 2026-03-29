@@ -5,8 +5,8 @@ services:
       args:
         USER_UID: ${UID:-1000}
         USER_GID: ${GID:-1000}
-    image: ros2-humble-perception-ws
-    container_name: ros2
+    image: ros2-humble-perception-ws-salus
+    container_name: ros2_salus
     network_mode: host
     privileged: true
     restart: unless-stopped
@@ -28,13 +28,14 @@ services:
       - DISPLAY=${DISPLAY}
       - XAUTHORITY=/home/ros/.Xauthority
       - QT_X11_NO_MITSHM=1
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
       - TURTLEBOT3_MODEL=waffle
       - GZ_SIM_RESOURCE_PATH=/opt/ros/humble/share:/home/ros/ws/install:/home/ros/ws/src
       - IGN_GAZEBO_RESOURCE_PATH=/opt/ros/humble/share:/home/ros/ws/install:/home/ros/ws/src
 
   netdata:
     image: netdata/netdata:stable
-    container_name: netdata
+    container_name: netdata_salus
     pid: host
     network_mode: host
     restart: unless-stopped

@@ -57,6 +57,7 @@ Todos los paquetes bajo `src/` viven dentro de este mismo repositorio git.
 ```bash
 docker compose up -d --build
 ```
+   Este workspace fija `CycloneDDS` por default (`RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`) para evitar timeouts de servicios y acciones observados con Fast DDS en la stack de navegación.
 2. Compilar el workspace o paquetes puntuales:
 ```bash
 ./tools/compile-ros.sh
