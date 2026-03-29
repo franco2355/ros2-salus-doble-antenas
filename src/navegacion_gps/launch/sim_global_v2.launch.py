@@ -197,6 +197,8 @@ def generate_launch_description():
                         "serial_tx_hz": 50.0,
                         "max_reverse_mps": 1.30,
                         "max_abs_angular_z": 0.4,
+                        "wheelbase_m": 0.94,
+                        "steering_limit_rad": 0.5235987756,
                         "vx_deadband_mps": ParameterValue(
                             vx_deadband_mps, value_type=float
                         ),

@@ -80,6 +80,7 @@ class NavCommandServerNode(Node):
         self.declare_parameter("get_state_service", "/nav_command_server/get_state")
         self.declare_parameter("follow_waypoints_action", "follow_waypoints")
         self.declare_parameter("navigate_through_poses_action", "navigate_through_poses")
+        self.declare_parameter("loop_segment_size", 2)
 
         self.fromll_service = str(self.get_parameter("fromll_service").value)
         self.fromll_service_fallback = str(
@@ -157,6 +158,7 @@ class NavCommandServerNode(Node):
         self.navigate_through_poses_action = str(
             self.get_parameter("navigate_through_poses_action").value
         )
+        self.loop_segment_size = max(2, int(self.get_parameter("loop_segment_size").value))
 
         self._lock = threading.Lock()
         self._current_goal_handle = None
@@ -174,7 +176,7 @@ class NavCommandServerNode(Node):
         self._last_cmd_vel_safe_monotonic: Optional[float] = None
         self._loop_waypoint_poses: List[PoseStamped] = []
         self._loop_original_poses: List[PoseStamped] = []
-        self._loop_restart_poses: List[PoseStamped] = []
+        self._loop_segment_start_index = 0
         self._loop_enabled = False
         self._last_nav_result_status = int(GoalStatus.STATUS_UNKNOWN)
         self._last_nav_result_text = "idle"
@@ -1000,7 +1002,7 @@ class NavCommandServerNode(Node):
     def _clear_loop_config_locked(self) -> None:
         self._loop_waypoint_poses = []
         self._loop_original_poses = []
-        self._loop_restart_poses = []
+        self._loop_segment_start_index = 0
         self._loop_enabled = False
 
     def _build_pose_from_ll(self, lat: float, lon: float, yaw_deg: float) -> Optional[PoseStamped]:
@@ -1033,14 +1035,35 @@ class NavCommandServerNode(Node):
         return poses, ""
 
     @staticmethod
-    def _build_loop_restart_poses(poses: Sequence[PoseStamped]) -> List[PoseStamped]:
+    def _build_loop_segment_poses(
+        poses: Sequence[PoseStamped],
+        start_index: int,
+        window_size: int = 2,
+    ) -> List[PoseStamped]:
         poses_list = list(poses)
         if len(poses_list) <= 1:
             return poses_list
-        return poses_list[1:] + [poses_list[0]]
+        total = len(poses_list)
+        start = int(start_index) % total
+        segment_count = min(total, max(2, int(window_size)))
+        return [poses_list[(start + offset) % total] for offset in range(segment_count)]
+
+    @staticmethod
+    def _next_loop_segment_start_index(
+        poses: Sequence[PoseStamped],
+        current_start_index: int,
+    ) -> int:
+        total = len(list(poses))
+        if total <= 1:
+            return 0
+        return (int(current_start_index) + 1) % total
 
     def _send_follow_waypoints_goal(
-        self, poses: Sequence[PoseStamped], loop_enabled: bool, reason: str
+        self,
+        poses: Sequence[PoseStamped],
+        loop_enabled: bool,
+        reason: str,
+        details: Optional[Dict[str, Any]] = None,
     ) -> Tuple[bool, str]:
         poses_list = list(poses)
         if not poses_list:
@@ -1112,13 +1135,18 @@ class NavCommandServerNode(Node):
                 "waypoints": len(poses_list),
                 "loop": bool(loop_enabled and (len(poses_list) > 1)),
                 "reason": reason,
+                **dict(details or {}),
             },
         )
         self._publish_telemetry(force=True)
         return True, "goal accepted"
 
     def _send_navigate_through_poses_goal(
-        self, poses: Sequence[PoseStamped], loop_enabled: bool, reason: str
+        self,
+        poses: Sequence[PoseStamped],
+        loop_enabled: bool,
+        reason: str,
+        details: Optional[Dict[str, Any]] = None,
     ) -> Tuple[bool, str]:
         poses_list = list(poses)
         if not poses_list:
@@ -1190,13 +1218,18 @@ class NavCommandServerNode(Node):
                 "waypoints": len(poses_list),
                 "loop": bool(loop_enabled and (len(poses_list) > 1)),
                 "reason": reason,
+                **dict(details or {}),
             },
         )
         self._publish_telemetry(force=True)
         return True, "goal accepted"
 
     def _send_nav_goal_for_poses(
-        self, poses: Sequence[PoseStamped], loop_enabled: bool, reason: str
+        self,
+        poses: Sequence[PoseStamped],
+        loop_enabled: bool,
+        reason: str,
+        details: Optional[Dict[str, Any]] = None,
     ) -> Tuple[bool, str]:
         poses_list = list(poses)
         if len(poses_list) > 1:
@@ -1204,11 +1237,13 @@ class NavCommandServerNode(Node):
                 poses=poses_list,
                 loop_enabled=loop_enabled,
                 reason=reason,
+                details=details,
             )
         return self._send_follow_waypoints_goal(
             poses=poses_list,
             loop_enabled=loop_enabled,
             reason=reason,
+            details=details,
         )
 
     def send_nav2_goals(
@@ -1240,12 +1275,22 @@ class NavCommandServerNode(Node):
         poses, err = self._convert_waypoints_to_poses(waypoints)
         if poses is None:
             return False, err
-        ok, err = self._send_nav_goal_for_poses(
-            poses=poses,
-            loop_enabled=loop_enabled,
-            reason="set_goal_service",
-        )
-        if (not ok) or (not loop_enabled) or (len(poses) <= 1):
+        if loop_enabled and (len(poses) > 1):
+            loop_segment_poses = self._build_loop_segment_poses(
+                poses=poses,
+                start_index=0,
+                window_size=self.loop_segment_size,
+            )
+            ok, err = self._send_nav_goal_for_poses(
+                poses=loop_segment_poses,
+                loop_enabled=True,
+                reason="set_goal_service",
+                details={
+                    "loop_total_waypoints": len(poses),
+                    "loop_segment_start_index": 0,
+                    "loop_segment_size": len(loop_segment_poses),
+                },
+            )
             if not ok:
                 with self._lock:
                     self._is_navigating = False
@@ -1258,18 +1303,36 @@ class NavCommandServerNode(Node):
                         f"set goal failed: {err}",
                         increment_event=True,
                     )
+                return ok, err
+
+            with self._lock:
+                self._loop_original_poses = list(poses)
+                self._loop_waypoint_poses = list(loop_segment_poses)
+                self._loop_segment_start_index = 0
+                self._loop_enabled = True
+            self.get_logger().info(
+                "Loop segments configured "
+                f"(total={len(self._loop_original_poses)}, segment={len(loop_segment_poses)})"
+            )
             return ok, err
 
-        loop_restart_poses = self._build_loop_restart_poses(poses)
-        with self._lock:
-            self._loop_original_poses = list(poses)
-            self._loop_restart_poses = loop_restart_poses
-            self._loop_waypoint_poses = list(loop_restart_poses)
-            self._loop_enabled = True
-        self.get_logger().info(
-            "Loop paths configured "
-            f"(original={len(self._loop_original_poses)}, restart={len(loop_restart_poses)})"
+        ok, err = self._send_nav_goal_for_poses(
+            poses=poses,
+            loop_enabled=loop_enabled,
+            reason="set_goal_service",
         )
+        if not ok:
+            with self._lock:
+                self._is_navigating = False
+                self._auto_mode = "idle"
+                self._active_action = "idle"
+                self._set_failure_locked("GOAL_REJECTED", "nav_command_server")
+                NavCommandServerNode._set_nav_result_locked(
+                    self,
+                    int(GoalStatus.STATUS_ABORTED),
+                    f"set goal failed: {err}",
+                    increment_event=True,
+                )
         return ok, err
 
     def _on_nav_action_result_done(self, action_name: str, future: Any) -> None:
@@ -1286,6 +1349,7 @@ class NavCommandServerNode(Node):
 
         restart_goal_poses: Optional[List[PoseStamped]] = None
         restart_reason = ""
+        restart_details: Optional[Dict[str, Any]] = None
         force_brake = False
         with self._lock:
             auto_mode = str(self._auto_mode)
@@ -1297,10 +1361,22 @@ class NavCommandServerNode(Node):
                 and self._loop_enabled
                 and (not manual_enabled)
                 and len(self._loop_original_poses) > 1
-                and len(self._loop_restart_poses) > 1
             ):
-                restart_goal_poses = list(self._loop_restart_poses)
-                restart_reason = "loop_restart_rotated"
+                next_segment_start_index = self._next_loop_segment_start_index(
+                    self._loop_original_poses,
+                    self._loop_segment_start_index,
+                )
+                restart_goal_poses = self._build_loop_segment_poses(
+                    self._loop_original_poses,
+                    start_index=next_segment_start_index,
+                    window_size=self.loop_segment_size,
+                )
+                restart_reason = "loop_segment_advance"
+                restart_details = {
+                    "loop_total_waypoints": len(self._loop_original_poses),
+                    "loop_segment_start_index": next_segment_start_index,
+                    "loop_segment_size": len(restart_goal_poses),
+                }
             else:
                 self._is_navigating = False
                 self._auto_mode = "idle"
@@ -1325,15 +1401,21 @@ class NavCommandServerNode(Node):
                 poses=restart_goal_poses,
                 loop_enabled=True,
                 reason=restart_reason,
+                details=restart_details,
             )
             with self._lock:
                 if ok and self._loop_enabled and (not self._manual_enabled):
+                    self._loop_waypoint_poses = list(restart_goal_poses)
+                    if restart_details is not None:
+                        self._loop_segment_start_index = int(
+                            restart_details.get("loop_segment_start_index", 0)
+                        )
                     self._is_navigating = True
                     self._auto_mode = "loop"
                     NavCommandServerNode._set_nav_result_locked(
                         self,
                         int(GoalStatus.STATUS_EXECUTING),
-                        f"{action_name}: loop restart active",
+                        f"{action_name}: loop segment active",
                         increment_event=True,
                     )
                 else:

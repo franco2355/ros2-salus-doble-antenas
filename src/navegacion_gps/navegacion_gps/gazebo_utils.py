@@ -36,16 +36,21 @@ def _fallback_command_from_cmd_vel(
     vx_deadband_mps: float,
     vx_min_effective_mps: float,
     max_abs_angular_z: float,
+    wheelbase_m: float,
+    steering_limit_rad: float,
     invert_steer: bool,
     auto_drive_enabled: bool,
     reverse_brake_pct: int,
 ):
+    del max_abs_angular_z
     del reverse_brake_pct
 
     max_speed = max(0.0, float(max_speed_mps))
     max_reverse = max(0.0, float(max_reverse_mps))
     deadband = max(0.0, float(vx_deadband_mps))
     min_effective = min(max(float(vx_min_effective_mps), 0.0), max_speed)
+    wheelbase = max(1.0e-6, abs(float(wheelbase_m)))
+    steering_limit = max(1.0e-6, abs(float(steering_limit_rad)))
 
     linear = float(linear_x)
     steer_angular = float(angular_z)
@@ -63,9 +68,18 @@ def _fallback_command_from_cmd_vel(
         reverse_speed = min(max(abs(linear), 0.0), max_reverse)
         speed = 0.0 if reverse_speed < deadband else -reverse_speed
 
-    angular_scale = max(0.01, abs(float(max_abs_angular_z)))
-    steer_ratio = min(max(steer_angular / angular_scale, -1.0), 1.0)
-    steer_pct = int(round(steer_ratio * 100.0))
+    reference_speed = linear
+    if abs(reference_speed) <= max(1.0e-6, deadband):
+        if abs(steer_angular) <= 1.0e-6:
+            reference_speed = 0.0
+        else:
+            reference_speed = max(min_effective, 0.1)
+    if abs(reference_speed) <= 1.0e-6:
+        steer_pct = 0
+    else:
+        steer_angle_rad = math.atan(wheelbase * steer_angular / reference_speed)
+        steer_angle_rad = max(-steering_limit, min(steering_limit, steer_angle_rad))
+        steer_pct = int(round((steer_angle_rad / steering_limit) * 100.0))
     if bool(invert_steer):
         steer_pct = -steer_pct
 
@@ -606,6 +620,8 @@ class GazeboUtilsNode(Node):
             vx_deadband_mps=self.vx_deadband_mps,
             vx_min_effective_mps=self.vx_min_effective_mps,
             max_abs_angular_z=self.max_abs_angular_z,
+            wheelbase_m=0.94,
+            steering_limit_rad=self.sim_max_steering_angle_rad,
             invert_steer=self.invert_steer_from_cmd_vel,
             auto_drive_enabled=self.auto_drive_enabled,
             reverse_brake_pct=self.reverse_brake_pct,

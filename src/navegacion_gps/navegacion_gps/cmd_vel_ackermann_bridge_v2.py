@@ -37,6 +37,8 @@ class CmdVelAckermannBridgeV2Node(Node):
         self.declare_parameter("vx_deadband_mps", 0.01)
         self.declare_parameter("vx_min_effective_mps", 0.5)
         self.declare_parameter("max_abs_angular_z", 0.4)
+        self.declare_parameter("wheelbase_m", 0.94)
+        self.declare_parameter("steering_limit_rad", 0.5235987756)
         self.declare_parameter("invert_steer_from_cmd_vel", False)
         self.declare_parameter("auto_drive_enabled", True)
         self.declare_parameter("reverse_brake_pct", 20)
@@ -59,6 +61,10 @@ class CmdVelAckermannBridgeV2Node(Node):
         )
         self._max_abs_angular_z = float(
             self.get_parameter("max_abs_angular_z").value
+        )
+        self._wheelbase_m = max(1.0e-6, float(self.get_parameter("wheelbase_m").value))
+        self._steering_limit_rad = abs(
+            float(self.get_parameter("steering_limit_rad").value)
         )
         self._invert_steer_from_cmd_vel = bool(
             self.get_parameter("invert_steer_from_cmd_vel").value
@@ -122,6 +128,8 @@ class CmdVelAckermannBridgeV2Node(Node):
             vx_deadband_mps=self._vx_deadband_mps,
             vx_min_effective_mps=self._vx_min_effective_mps,
             max_abs_angular_z=self._max_abs_angular_z,
+            wheelbase_m=self._wheelbase_m,
+            steering_limit_rad=self._steering_limit_rad,
             invert_steer=self._invert_steer_from_cmd_vel,
             auto_drive_enabled=self._auto_drive_enabled,
             reverse_brake_pct=self._reverse_brake_pct,

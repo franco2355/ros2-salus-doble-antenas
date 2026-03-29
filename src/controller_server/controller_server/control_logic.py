@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 
@@ -14,6 +15,17 @@ class DesiredCommand:
     speed_mps: float = 0.0
     steer_pct: int = 0
     brake_pct: int = 0
+    requested_linear_x_mps: float = 0.0
+    requested_angular_z_rps: float = 0.0
+    steering_reference_speed_mps: float = 0.0
+    requested_curvature_inv_m: float = 0.0
+    applied_curvature_inv_m: float = 0.0
+    requested_steer_rad: float = 0.0
+    applied_steer_rad: float = 0.0
+    steer_saturated: bool = False
+    used_steering_speed_fallback: bool = False
+    speed_limited: bool = False
+    min_speed_enforced: bool = False
 
 
 @dataclass(slots=True)
@@ -33,6 +45,50 @@ def safe_command() -> DesiredCommand:
     )
 
 
+def _compute_ackermann_steer_command(
+    *,
+    linear_x: float,
+    angular_z: float,
+    vx_deadband_mps: float,
+    vx_min_effective_mps: float,
+    wheelbase_m: float,
+    steering_limit_rad: float,
+) -> tuple[int, float, float, float, float, float, bool, bool]:
+    wheelbase = max(1.0e-6, abs(float(wheelbase_m)))
+    steering_limit = max(1.0e-6, abs(float(steering_limit_rad)))
+    deadband = max(0.0, float(vx_deadband_mps))
+    min_effective = max(0.0, float(vx_min_effective_mps))
+    requested_linear = float(linear_x)
+    requested_angular = float(angular_z)
+
+    used_speed_fallback = False
+    reference_speed = requested_linear
+    if abs(reference_speed) <= max(1.0e-6, deadband):
+        if abs(requested_angular) <= 1.0e-6:
+            return (0, 0.0, 0.0, 0.0, 0.0, 0.0, False, False)
+        reference_speed = max(min_effective, 0.1)
+        used_speed_fallback = True
+
+    requested_curvature = requested_angular / reference_speed
+    requested_steer_rad = math.atan(wheelbase * requested_curvature)
+    applied_steer_rad = clamp(requested_steer_rad, -steering_limit, steering_limit)
+    applied_curvature = math.tan(applied_steer_rad) / wheelbase
+    steer_saturated = abs(requested_steer_rad - applied_steer_rad) > 1.0e-6
+    steer_pct = int(round((applied_steer_rad / steering_limit) * 100.0))
+    steer_pct = int(clamp(float(steer_pct), -100.0, 100.0))
+
+    return (
+        steer_pct,
+        reference_speed,
+        requested_curvature,
+        applied_curvature,
+        requested_steer_rad,
+        applied_steer_rad,
+        steer_saturated,
+        used_speed_fallback,
+    )
+
+
 def command_from_cmd_vel(
     linear_x: float,
     angular_z: float,
@@ -42,6 +98,8 @@ def command_from_cmd_vel(
     vx_deadband_mps: float,
     vx_min_effective_mps: float,
     max_abs_angular_z: float,
+    wheelbase_m: float,
+    steering_limit_rad: float,
     invert_steer: bool,
     auto_drive_enabled: bool,
     reverse_brake_pct: int,
@@ -52,28 +110,45 @@ def command_from_cmd_vel(
     min_effective = clamp(float(vx_min_effective_mps), 0.0, max_speed)
 
     linear = float(linear_x)
-    steer_angular = float(angular_z)
+    angular = float(angular_z)
+    _ = float(max_abs_angular_z)
     speed = 0.0
+    speed_limited = False
+    min_speed_enforced = False
     if linear > 0.0:
         requested_speed = clamp(linear, 0.0, max_speed)
+        speed_limited = abs(requested_speed - linear) > 1.0e-6
         speed = requested_speed
         if speed < deadband:
             speed = 0.0
         elif speed < min_effective:
-            if requested_speed > 1.0e-6:
-                steer_angular *= min_effective / requested_speed
             speed = min_effective
+            min_speed_enforced = requested_speed > 1.0e-6
     elif linear < 0.0:
         reverse_speed = clamp(abs(linear), 0.0, max_reverse)
+        speed_limited = abs(reverse_speed - abs(linear)) > 1.0e-6
         if reverse_speed < deadband:
             speed = 0.0
         else:
             speed = -reverse_speed
 
-    steer = 0
-    angular_scale = max(0.01, abs(float(max_abs_angular_z)))
-    steer_ratio = clamp(steer_angular / angular_scale, -1.0, 1.0)
-    steer = int(round(steer_ratio * 100.0))
+    (
+        steer,
+        steering_reference_speed_mps,
+        requested_curvature,
+        applied_curvature,
+        requested_steer_rad,
+        applied_steer_rad,
+        steer_saturated,
+        used_steering_speed_fallback,
+    ) = _compute_ackermann_steer_command(
+        linear_x=linear,
+        angular_z=angular,
+        vx_deadband_mps=deadband,
+        vx_min_effective_mps=min_effective,
+        wheelbase_m=wheelbase_m,
+        steering_limit_rad=steering_limit_rad,
+    )
     if bool(invert_steer):
         steer = -steer
 
@@ -89,6 +164,17 @@ def command_from_cmd_vel(
         speed_mps=speed,
         steer_pct=steer,
         brake_pct=brake,
+        requested_linear_x_mps=linear,
+        requested_angular_z_rps=angular,
+        steering_reference_speed_mps=steering_reference_speed_mps,
+        requested_curvature_inv_m=requested_curvature,
+        applied_curvature_inv_m=applied_curvature,
+        requested_steer_rad=requested_steer_rad,
+        applied_steer_rad=applied_steer_rad,
+        steer_saturated=steer_saturated,
+        used_steering_speed_fallback=used_steering_speed_fallback,
+        speed_limited=speed_limited,
+        min_speed_enforced=min_speed_enforced,
     )
 
 

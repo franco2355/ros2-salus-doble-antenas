@@ -6,25 +6,33 @@ from action_msgs.msg import GoalStatus
 from navegacion_gps.nav_command_server import NavCommandServerNode
 
 
-def test_build_loop_restart_poses_for_many_items():
+def test_build_loop_segment_poses_for_many_items() -> None:
     poses = [1, 2, 3, 4]
-    restarted = NavCommandServerNode._build_loop_restart_poses(poses)
-    assert restarted == [2, 3, 4, 1]
+    assert NavCommandServerNode._build_loop_segment_poses(poses, 0) == [1, 2]
+    assert NavCommandServerNode._build_loop_segment_poses(poses, 1) == [2, 3]
+    assert NavCommandServerNode._build_loop_segment_poses(poses, 3) == [4, 1]
 
 
-def test_build_loop_restart_poses_for_two_items():
+def test_build_loop_segment_poses_for_two_items() -> None:
     poses = [10, 20]
-    restarted = NavCommandServerNode._build_loop_restart_poses(poses)
-    assert restarted == [20, 10]
+    assert NavCommandServerNode._build_loop_segment_poses(poses, 0) == [10, 20]
+    assert NavCommandServerNode._build_loop_segment_poses(poses, 1) == [20, 10]
 
 
-def test_build_loop_restart_poses_for_zero_or_one():
-    assert NavCommandServerNode._build_loop_restart_poses([]) == []
-    assert NavCommandServerNode._build_loop_restart_poses([7]) == [7]
+def test_build_loop_segment_poses_for_zero_or_one() -> None:
+    assert NavCommandServerNode._build_loop_segment_poses([], 0) == []
+    assert NavCommandServerNode._build_loop_segment_poses([7], 0) == [7]
+
+
+def test_next_loop_segment_start_index_wraps() -> None:
+    poses = [1, 2, 3]
+    assert NavCommandServerNode._next_loop_segment_start_index(poses, 0) == 1
+    assert NavCommandServerNode._next_loop_segment_start_index(poses, 1) == 2
+    assert NavCommandServerNode._next_loop_segment_start_index(poses, 2) == 0
 
 
 class _FakeLogger:
-    def __init__(self):
+    def __init__(self) -> None:
         self.info_msgs = []
         self.warn_msgs = []
         self.error_msgs = []
@@ -54,6 +62,10 @@ class _FakeResultFuture:
 
 class _FakeLoopNode:
     _diag_level_value = staticmethod(NavCommandServerNode._diag_level_value)
+    _build_loop_segment_poses = staticmethod(NavCommandServerNode._build_loop_segment_poses)
+    _next_loop_segment_start_index = staticmethod(
+        NavCommandServerNode._next_loop_segment_start_index
+    )
 
     def __init__(self):
         self._lock = threading.Lock()
@@ -61,7 +73,8 @@ class _FakeLoopNode:
         self._loop_enabled = True
         self._loop_waypoint_poses = [1, 2]
         self._loop_original_poses = [1, 2, 3]
-        self._loop_restart_poses = [2, 3, 1]
+        self._loop_segment_start_index = 0
+        self.loop_segment_size = 2
         self._manual_enabled = False
         self._is_navigating = True
         self._auto_mode = "loop"
@@ -77,8 +90,15 @@ class _FakeLoopNode:
         self.events = []
         self.logger = _FakeLogger()
 
-    def _send_nav_goal_for_poses(self, poses, loop_enabled, reason):
-        self.sent_calls.append((list(poses), bool(loop_enabled), str(reason)))
+    def _send_nav_goal_for_poses(self, poses, loop_enabled, reason, details=None):
+        self.sent_calls.append(
+            (
+                list(poses),
+                bool(loop_enabled),
+                str(reason),
+                dict(details or {}),
+            )
+        )
         return bool(self._send_ok), str(self._send_err)
 
     def _publish_telemetry(self, force=False):
@@ -87,7 +107,7 @@ class _FakeLoopNode:
     def _clear_loop_config_locked(self) -> None:
         self._loop_waypoint_poses = []
         self._loop_original_poses = []
-        self._loop_restart_poses = []
+        self._loop_segment_start_index = 0
         self._loop_enabled = False
 
     def _publish_brake_sequence(self, brake_pct: int) -> None:
@@ -120,7 +140,7 @@ class _FakeLoopNode:
         return self.logger
 
 
-def test_result_callback_restarts_with_rotated_path_on_each_success():
+def test_result_callback_advances_to_next_loop_segment_on_success() -> None:
     node = _FakeLoopNode()
 
     NavCommandServerNode._on_nav_action_result_done(
@@ -128,22 +148,41 @@ def test_result_callback_restarts_with_rotated_path_on_each_success():
         "NavigateThroughPoses",
         _FakeResultFuture(GoalStatus.STATUS_SUCCEEDED),
     )
-    assert node.sent_calls[0] == ([2, 3, 1], True, "loop_restart_rotated")
+
+    poses, loop_enabled, reason, details = node.sent_calls[0]
+    assert poses == [2, 3]
+    assert loop_enabled is True
+    assert reason == "loop_segment_advance"
+    assert details["loop_segment_start_index"] == 1
+    assert details["loop_segment_size"] == 2
+    assert details["loop_total_waypoints"] == 3
+    assert node._loop_segment_start_index == 1
+    assert node._loop_waypoint_poses == [2, 3]
     assert node._is_navigating is True
     assert node._auto_mode == "loop"
 
-    node._current_goal_handle = object()
+
+def test_result_callback_wraps_to_first_waypoint_after_last_segment() -> None:
+    node = _FakeLoopNode()
+    node._loop_waypoint_poses = [3, 1]
+    node._loop_segment_start_index = 2
+
     NavCommandServerNode._on_nav_action_result_done(
         node,
         "NavigateThroughPoses",
         _FakeResultFuture(GoalStatus.STATUS_SUCCEEDED),
     )
-    assert node.sent_calls[1] == ([2, 3, 1], True, "loop_restart_rotated")
-    assert node._is_navigating is True
-    assert node._auto_mode == "loop"
+
+    poses, loop_enabled, reason, details = node.sent_calls[0]
+    assert poses == [1, 2]
+    assert loop_enabled is True
+    assert reason == "loop_segment_advance"
+    assert details["loop_segment_start_index"] == 0
+    assert node._loop_segment_start_index == 0
+    assert node._loop_waypoint_poses == [1, 2]
 
 
-def test_result_callback_stops_loop_when_status_not_succeeded():
+def test_result_callback_stops_loop_when_status_not_succeeded() -> None:
     node = _FakeLoopNode()
 
     NavCommandServerNode._on_nav_action_result_done(
@@ -158,7 +197,7 @@ def test_result_callback_stops_loop_when_status_not_succeeded():
     assert node._loop_enabled is False
 
 
-def test_result_callback_stops_loop_when_restart_send_fails():
+def test_result_callback_stops_loop_when_segment_send_fails() -> None:
     node = _FakeLoopNode()
     node._send_ok = False
     node._send_err = "goal rejected by NavigateThroughPoses"
@@ -168,22 +207,23 @@ def test_result_callback_stops_loop_when_restart_send_fails():
         "NavigateThroughPoses",
         _FakeResultFuture(GoalStatus.STATUS_SUCCEEDED),
     )
+
     assert len(node.sent_calls) == 1
     assert node._loop_enabled is False
     assert node._loop_original_poses == []
-    assert node._loop_restart_poses == []
+    assert node._loop_waypoint_poses == []
     assert node.brake_calls == [100]
     assert node._is_navigating is False
     assert node._auto_mode == "idle"
     assert any("Loop restart failed" in msg for msg in node.logger.warn_msgs)
 
 
-def test_result_callback_point_to_point_stops_on_success():
+def test_result_callback_point_to_point_stops_on_success() -> None:
     node = _FakeLoopNode()
     node._loop_enabled = False
     node._auto_mode = "point_to_point"
     node._loop_original_poses = []
-    node._loop_restart_poses = []
+    node._loop_waypoint_poses = []
 
     NavCommandServerNode._on_nav_action_result_done(
         node,
@@ -196,13 +236,13 @@ def test_result_callback_point_to_point_stops_on_success():
     assert node._auto_mode == "idle"
 
 
-def test_result_callback_point_to_point_manual_mode_does_not_brake():
+def test_result_callback_point_to_point_manual_mode_does_not_brake() -> None:
     node = _FakeLoopNode()
     node._loop_enabled = False
     node._auto_mode = "point_to_point"
     node._manual_enabled = True
     node._loop_original_poses = []
-    node._loop_restart_poses = []
+    node._loop_waypoint_poses = []
 
     NavCommandServerNode._on_nav_action_result_done(
         node,

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import time
 from dataclasses import asdict
 
@@ -33,6 +34,8 @@ class ControllerServerNode(Node):
         self.declare_parameter("max_abs_angular_z", 0.4)
         self.declare_parameter("vx_deadband_mps", 0.10)
         self.declare_parameter("vx_min_effective_mps", 0.75)
+        self.declare_parameter("wheelbase_m", 0.94)
+        self.declare_parameter("steering_limit_rad", 0.5235987756)
         self.declare_parameter("reverse_brake_pct", 20)
         self.declare_parameter("invert_steer_from_cmd_vel", False)
         self.declare_parameter("auto_drive_enabled", True)
@@ -84,6 +87,15 @@ class ControllerServerNode(Node):
                 f"using max_speed_mps={self._max_speed_mps:.3f} as effective minimum"
             )
             self._vx_min_effective_mps = self._max_speed_mps
+        self._wheelbase_m = max(1.0e-6, float(self.get_parameter("wheelbase_m").value))
+        self._steering_limit_rad = abs(
+            float(self.get_parameter("steering_limit_rad").value)
+        )
+        if self._steering_limit_rad < 1.0e-6:
+            self.get_logger().warn(
+                "Invalid steering_limit_rad; using default 0.5235987756 rad"
+            )
+            self._steering_limit_rad = 0.5235987756
         self._reverse_brake_pct = int(self.get_parameter("reverse_brake_pct").value)
         self._invert_steer_from_cmd_vel = bool(
             self.get_parameter("invert_steer_from_cmd_vel").value
@@ -128,6 +140,7 @@ class ControllerServerNode(Node):
         self._auto_cmd = safe_command()
         self._auto_stamp_s = 0.0
         self._last_source = "init"
+        self._last_steer_saturated = False
 
         self._client = create_transport_backend(
             node=self,
@@ -178,18 +191,34 @@ class ControllerServerNode(Node):
             vx_deadband_mps=self._vx_deadband_mps,
             vx_min_effective_mps=self._vx_min_effective_mps,
             max_abs_angular_z=self._max_abs_angular_z,
+            wheelbase_m=self._wheelbase_m,
+            steering_limit_rad=self._steering_limit_rad,
             invert_steer=self._invert_steer_from_cmd_vel,
             auto_drive_enabled=self._auto_drive_enabled,
             reverse_brake_pct=self._reverse_brake_pct,
         )
         self._auto_cmd = cmd
         self._auto_stamp_s = time.monotonic()
+        if cmd.steer_saturated and (not self._last_steer_saturated):
+            self.get_logger().warning(
+                "Ackermann steer saturated "
+                f"(linear_x={cmd.requested_linear_x_mps:.3f} m/s, "
+                f"angular_z={cmd.requested_angular_z_rps:.3f} rad/s, "
+                f"requested_curvature={cmd.requested_curvature_inv_m:.3f} 1/m, "
+                f"requested_steer={math.degrees(cmd.requested_steer_rad):.2f} deg, "
+                f"limit={math.degrees(self._steering_limit_rad):.2f} deg)"
+            )
+        elif (not cmd.steer_saturated) and self._last_steer_saturated:
+            self.get_logger().info("Ackermann steer saturation cleared")
+        self._last_steer_saturated = bool(cmd.steer_saturated)
         self.get_logger().info(
             "cmd_vel_final rx "
             f"linear_x={msg.twist.linear.x:.3f} angular_z={msg.twist.angular.z:.3f} "
             f"brake_pct={int(msg.brake_pct)} -> "
             f"drive={int(cmd.drive_enabled)} estop={int(cmd.estop)} "
-            f"speed_mps={cmd.speed_mps:.3f} steer_pct={cmd.steer_pct} brake_pct={cmd.brake_pct}"
+            f"speed_mps={cmd.speed_mps:.3f} steer_pct={cmd.steer_pct} "
+            f"steer_deg={math.degrees(cmd.applied_steer_rad):.2f} "
+            f"curvature={cmd.applied_curvature_inv_m:.3f} brake_pct={cmd.brake_pct}"
         )
 
     def _apply_to_controller(self, cmd: DesiredCommand) -> None:
@@ -243,6 +272,11 @@ class ControllerServerNode(Node):
             "source": self._last_source,
             "telemetry": telemetry.as_dict() if telemetry is not None else None,
             "stats": asdict(stats),
+            "requested_auto_command": asdict(self._auto_cmd),
+            "ackermann_limits": {
+                "wheelbase_m": self._wheelbase_m,
+                "steering_limit_deg": math.degrees(self._steering_limit_rad),
+            },
             "timestamp": time.time(),
         }
         msg = String()
