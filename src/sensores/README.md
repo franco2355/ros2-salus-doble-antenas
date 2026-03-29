@@ -1,6 +1,15 @@
 # sensores
 
+Estado: actual
+Alcance: integración ROS 2 con Pixhawk, MAVROS, RS16 y herramientas web auxiliares
+Fuente de verdad: `launch/`, `setup.py` y nodos bajo `sensores/`
+
 Paquete ROS 2 para integración con Pixhawk, dashboard web y utilidades auxiliares de cámara. Mantiene dos caminos de telemetría: el driver propio `pixhawk_driver` y un launch alternativo basado en MAVROS.
+
+## Documentación relacionada
+- Índice general: [docs/INDEX.md](/home/leo/codigo/ROS2_SALUS/docs/INDEX.md)
+- Matriz de launches: [docs/launch-matrix.md](/home/leo/codigo/ROS2_SALUS/docs/launch-matrix.md)
+- Arquitectura runtime: [docs/runtime-architecture.md](/home/leo/codigo/ROS2_SALUS/docs/runtime-architecture.md)
 
 ## Ejecutables reales
 - `pixhawk_driver`

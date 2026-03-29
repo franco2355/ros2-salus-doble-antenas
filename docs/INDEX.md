@@ -1,0 +1,48 @@
+# Documentación de ROS2_SALUS
+
+Estado: actual
+Alcance: índice y clasificación de la documentación del monorepo
+Fuente de verdad: launches, scripts, nodos y tests del checkout actual
+
+## Cómo leer este repo
+- Empezar por [README.md](/home/leo/codigo/ROS2_SALUS/README.md) para contexto general.
+- Usar [docs/launch-matrix.md](/home/leo/codigo/ROS2_SALUS/docs/launch-matrix.md) para decidir qué perfil ejecutar.
+- Usar [docs/runtime-architecture.md](/home/leo/codigo/ROS2_SALUS/docs/runtime-architecture.md) para entender el wiring runtime.
+
+## Documentación vigente
+- Raíz del monorepo:
+  - [README.md](/home/leo/codigo/ROS2_SALUS/README.md)
+  - [docs/launch-matrix.md](/home/leo/codigo/ROS2_SALUS/docs/launch-matrix.md)
+  - [docs/runtime-architecture.md](/home/leo/codigo/ROS2_SALUS/docs/runtime-architecture.md)
+- Paquetes:
+  - [src/interfaces/README.md](/home/leo/codigo/ROS2_SALUS/src/interfaces/README.md)
+  - [src/controller_server/README.md](/home/leo/codigo/ROS2_SALUS/src/controller_server/README.md)
+  - [src/map_tools/README.md](/home/leo/codigo/ROS2_SALUS/src/map_tools/README.md)
+  - [src/navegacion_gps/README.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/README.md)
+  - [src/sensores/README.md](/home/leo/codigo/ROS2_SALUS/src/sensores/README.md)
+
+## Documentación V2 vigente
+- Navegación local V2:
+  - [src/navegacion_gps/LOCAL_NAV_V2.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/LOCAL_NAV_V2.md)
+  - [src/navegacion_gps/SIM_LOCAL_V2_FIDELITY.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/SIM_LOCAL_V2_FIDELITY.md)
+  - [src/navegacion_gps/REAL_LOCAL_V2_CHECKLIST.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/REAL_LOCAL_V2_CHECKLIST.md)
+- Navegación global V2:
+  - [src/navegacion_gps/REAL_GLOBAL_V2_CHECKLIST.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/REAL_GLOBAL_V2_CHECKLIST.md)
+
+## Legacy vigente
+- Mainline de navegación:
+  - [src/navegacion_gps/README.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/README.md)
+  - `simulacion.launch.py`
+  - `real.launch.py`
+  - `rviz_real.launch.py`
+- Compatibilidad MAVROS legacy:
+  - [src/sensores/README.md](/home/leo/codigo/ROS2_SALUS/src/sensores/README.md)
+
+## Histórica o de transición
+- Índice de históricos y third-party:
+  - [docs/archive/README.md](/home/leo/codigo/ROS2_SALUS/docs/archive/README.md)
+
+## Regla de mantenimiento
+- Cada documento nuevo o actualizado debe indicar `Estado`, `Alcance` y `Fuente de verdad`.
+- Los README de paquete deben explicar operación y contratos públicos, no historial de branches.
+- Los documentos de diseño o experimentación deben quedar clasificados como `histórico`, `transición` o `archivo`.

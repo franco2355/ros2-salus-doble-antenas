@@ -1,6 +1,10 @@
 # controller_server
 
-Paquete ROS 2 para el puente entre el backend de navegación y el protocolo UART v2 del actuador.
+Estado: actual
+Alcance: puente ROS entre navegación y actuador real/simulado
+Fuente de verdad: `controller_server_node.py`, `launch/controller_server.launch.py`
+
+Paquete ROS 2 para traducir `/cmd_vel_final` al backend de actuación del vehículo. El mismo nodo soporta UART real y backend `sim_gazebo`.
 
 ## Ejecutable real
 - `controller_server_node`
@@ -14,16 +18,20 @@ Paquete ROS 2 para el puente entre el backend de navegación y el protocolo UART
 ### Publicaciones
 - `/controller/status` (`std_msgs/msg/String`, payload JSON)
 - `/controller/telemetry` (`std_msgs/msg/String`, payload JSON)
+- `/controller/drive_telemetry` (`interfaces/msg/DriveTelemetry`)
 
-## Flujo
-- `nav_command_server` publica `/cmd_vel_final`.
-- `controller_server_node` traduce `CmdVelFinal` a comandos UART periódicos.
-- La telemetría de retorno se reexpone como JSON para monitoreo y debugging.
+## Backends
+- `transport_backend:=uart`
+  - uso real sobre `/dev/serial0`
+- `transport_backend:=sim_gazebo`
+  - usado por `sim_local_v2` y `sim_global_v2`
+  - publica `/cmd_vel_gazebo` y sintetiza `DriveTelemetry` desde estado de simulación
 
 ## Parámetros principales
-- `serial_port` (default `/dev/serial0`)
-- `serial_baud` (default `115200`)
-- `serial_tx_hz` (default `50.0`)
+- `serial_port`
+- `serial_baud`
+- `serial_tx_hz`
+- `transport_backend`
 - `max_speed_mps`
 - `max_reverse_mps`
 - `control_hz`
@@ -42,29 +50,26 @@ Paquete ROS 2 para el puente entre el backend de navegación y el protocolo UART
 ros2 launch controller_server controller_server.launch.py
 ```
 
-Con helpers del workspace:
+Helper del workspace:
 ```bash
 ./tools/launch_controller.sh
 ```
 
-## Publicar un comando manual de prueba
+## Comando manual de prueba
 ```bash
 ros2 topic pub --once /cmd_vel_final interfaces/msg/CmdVelFinal \
 "{twist: {linear: {x: 0.4, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.1}}, brake_pct: 0}"
 ```
 
 ## Validación
-Tests de lógica:
 ```bash
 python3 -m pytest -q src/controller_server/test/test_control_logic.py
-```
-
-Dentro del contenedor:
-```bash
 ./tools/compile-ros.sh controller_server
 ./tools/exec.sh "source /opt/ros/humble/setup.bash && source /ros2_ws/install/setup.bash && ros2 launch controller_server controller_server.launch.py --show-args"
 ```
 
-## Nota sobre el módulo UART
-La implementación de protocolo y transporte vive en `controller_server/rpy_esp32_comms/`.
-Ese código conserva tests y utilidades propias del protocolo UART v2. No es un sustituto del nodo ROS; es la librería usada por el nodo.
+## Documentación específica UART
+- [controller/controller/README.md](/home/leo/codigo/ROS2_SALUS/src/controller_server/controller_server/controller/README.md)
+- [controller/controller/COMUNICACIONES_UART_V2.md](/home/leo/codigo/ROS2_SALUS/src/controller_server/controller_server/controller/COMUNICACIONES_UART_V2.md)
+
+Esos documentos describen el cliente/protocolo UART usado por el nodo y su operación en Raspberry. Se mantienen como documentación específica de ese entorno.

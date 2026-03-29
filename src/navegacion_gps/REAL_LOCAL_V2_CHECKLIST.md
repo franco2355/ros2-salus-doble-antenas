@@ -6,7 +6,7 @@
 - Confirmar acceso a `/dev/ttyACM0` y `/dev/serial0`.
 - Confirmar que el robot tenga espacio libre para prueba.
 - Para la primera validacion, preferir ruedas levantadas.
-- Confirmar que el deploy en el robot corresponda a la branch `feature/sim-nav-v2-ackermann`.
+- Confirmar que el deploy en el robot corresponda al checkout actual que se quiere validar.
 
 ## Arranque Basico
 Lanzar:
