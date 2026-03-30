@@ -57,6 +57,7 @@ class GpsCourseHeadingEstimator:
         max_fix_age_s: float = 0.5,
         history_window_s: float = 12.0,
         invalid_hold_s: float = 0.0,
+        max_sample_dt_s: Optional[float] = None,
     ) -> None:
         self.min_distance_m = max(0.01, float(min_distance_m))
         self.min_speed_mps = max(0.0, float(min_speed_mps))
@@ -65,6 +66,11 @@ class GpsCourseHeadingEstimator:
         self.max_fix_age_s = max(0.01, float(max_fix_age_s))
         self.history_window_s = max(self.max_fix_age_s, float(history_window_s))
         self.invalid_hold_s = max(0.0, float(invalid_hold_s))
+        self.max_sample_dt_s = (
+            float(max_sample_dt_s)
+            if max_sample_dt_s is not None and float(max_sample_dt_s) > 0.0
+            else None
+        )
         self._fixes: Deque[GpsFixSample] = deque()
         self._last_valid_estimate: Optional[CourseHeadingEstimate] = None
         self._last_valid_now_s: Optional[float] = None
@@ -162,9 +168,15 @@ class GpsCourseHeadingEstimator:
 
         candidate: Optional[GpsFixSample] = None
         candidate_distance_m = 0.0
-        for sample in self._fixes:
+        for sample in reversed(self._fixes):
             if sample.stamp_s >= latest.stamp_s:
                 continue
+            sample_dt_s = float(max(0.0, latest.stamp_s - sample.stamp_s))
+            if (
+                self.max_sample_dt_s is not None
+                and sample_dt_s > self.max_sample_dt_s
+            ):
+                break
             north_m, east_m = ll_delta_to_north_east_m(
                 lat=latest.lat,
                 lon=latest.lon,

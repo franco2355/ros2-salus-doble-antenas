@@ -348,6 +348,14 @@ class NavBenchmarkRunnerNode(Node):
         nav_telemetry = self.nav_telemetry
 
         map_base_xy = (float(map_base_x), float(map_base_y))
+        odom_local_yaw_deg = float(
+            yaw_deg_from_quaternion_xyzw(
+                self.odom_local.pose.pose.orientation.x,
+                self.odom_local.pose.pose.orientation.y,
+                self.odom_local.pose.pose.orientation.z,
+                self.odom_local.pose.pose.orientation.w,
+            )
+        )
         odom_global_xy = (
             float(self.odom_global.pose.pose.position.x),
             float(self.odom_global.pose.pose.position.y),
@@ -377,6 +385,15 @@ class NavBenchmarkRunnerNode(Node):
                 "progress_m": float(line_progress_m(map_base_xy, line_start_xy, line_end_xy)),
                 "goal_distance_m": float(distance_xy(map_base_xy, goal_map_xy)),
             },
+            "odom_local": {
+                "x": float(self.odom_local.pose.pose.position.x),
+                "y": float(self.odom_local.pose.pose.position.y),
+                "yaw_deg": odom_local_yaw_deg,
+                "vx_mps": float(self.odom_local.twist.twist.linear.x),
+                "vy_mps": float(self.odom_local.twist.twist.linear.y),
+                "yaw_rate_rps": float(self.odom_local.twist.twist.angular.z),
+                "stamp_s": _stamp_to_seconds(self.odom_local.header.stamp),
+            },
             "odom_gps": {
                 "x_odom": float(self.odom_gps.pose.pose.position.x),
                 "y_odom": float(self.odom_gps.pose.pose.position.y),
@@ -400,6 +417,7 @@ class NavBenchmarkRunnerNode(Node):
                 "vx_mps": float(self.odom_global.twist.twist.linear.x),
                 "vy_mps": float(self.odom_global.twist.twist.linear.y),
                 "yaw_rate_rps": float(self.odom_global.twist.twist.angular.z),
+                "stamp_s": _stamp_to_seconds(self.odom_global.header.stamp),
                 "lateral_error_m": float(
                     line_lateral_error_m(odom_global_xy, line_start_xy, line_end_xy)
                 ),
@@ -437,6 +455,8 @@ class NavBenchmarkRunnerNode(Node):
                 "speed_mps": course_debug.get("speed_mps"),
                 "steer_deg": course_debug.get("steer_deg"),
                 "yaw_rate_rps": course_debug.get("yaw_rate_rps"),
+                "latest_fix_age_s": course_debug.get("latest_fix_age_s"),
+                "sample_dt_s": course_debug.get("sample_dt_s"),
             },
         }
 
@@ -457,6 +477,7 @@ def _build_run_summary(
     all_samples = list(pre_samples) + list(run_samples) + list(post_samples)
     map_odom_yaws = [float(sample["map_odom"]["yaw_deg"]) for sample in all_samples]
     map_base_yaws = [float(sample["map_base"]["yaw_deg"]) for sample in all_samples]
+    odom_local_yaws = [float(sample["odom_local"]["yaw_deg"]) for sample in all_samples]
     map_base_lateral = [float(sample["map_base"]["lateral_error_m"]) for sample in run_samples]
     odom_global_lateral = [
         float(sample["odom_global"]["lateral_error_m"]) for sample in run_samples
@@ -532,6 +553,13 @@ def _build_run_summary(
                 **summarize_angle(map_base_yaws),
                 "jumps": summarize_angle_jumps(
                     map_base_yaws,
+                    jump_threshold_deg=jump_threshold_deg,
+                ),
+            },
+            "odom_local_yaw": {
+                **summarize_angle(odom_local_yaws),
+                "jumps": summarize_angle_jumps(
+                    odom_local_yaws,
                     jump_threshold_deg=jump_threshold_deg,
                 ),
             },
@@ -733,24 +761,36 @@ def main() -> None:
             sample_period_s = 1.0 / max(1.0, float(scenario.sample_hz))
             scenario_start_mono = time.time()
 
+            def _append_snapshot(phase_name: str, collector: list[dict[str, Any]]) -> None:
+                snapshot = node.sample_snapshot(
+                    phase=phase_name,
+                    t_rel_s=time.time() - scenario_start_mono,
+                    line_start_xy=start_map_xy,
+                    line_end_xy=line_end_xy,
+                    goal_map_xy=goal_map_xy,
+                )
+                if snapshot is not None:
+                    collector.append(snapshot)
+
             def _sample_phase(
                 phase_name: str,
                 duration_s: float,
                 collector: list[dict[str, Any]],
             ) -> None:
-                end = time.time() + max(0.0, float(duration_s))
+                duration_s = max(0.0, float(duration_s))
+                if duration_s <= 0.0:
+                    return
+                end = time.time() + duration_s
+                next_sample_at = time.time()
                 while time.time() < end:
-                    rclpy.spin_once(node, timeout_sec=0.05)
-                    snapshot = node.sample_snapshot(
-                        phase=phase_name,
-                        t_rel_s=time.time() - scenario_start_mono,
-                        line_start_xy=start_map_xy,
-                        line_end_xy=line_end_xy,
-                        goal_map_xy=goal_map_xy,
-                    )
-                    if snapshot is not None:
-                        collector.append(snapshot)
-                    time.sleep(sample_period_s)
+                    now = time.time()
+                    timeout_sec = min(0.02, max(0.0, next_sample_at - now))
+                    rclpy.spin_once(node, timeout_sec=timeout_sec)
+                    now = time.time()
+                    while now >= next_sample_at and next_sample_at < end:
+                        _append_snapshot(phase_name, collector)
+                        next_sample_at += sample_period_s
+                _append_snapshot(phase_name, collector)
 
             _sample_phase("pre_idle", float(scenario.pre_idle_s), pre_samples)
 
@@ -776,22 +816,21 @@ def main() -> None:
                     )
 
                 run_end = time.time() + float(scenario.run_timeout_s)
+                next_sample_at = time.time()
                 while time.time() < run_end:
-                    rclpy.spin_once(node, timeout_sec=0.05)
-                    snapshot = node.sample_snapshot(
-                        phase="run",
-                        t_rel_s=time.time() - scenario_start_mono,
-                        line_start_xy=start_map_xy,
-                        line_end_xy=line_end_xy,
-                        goal_map_xy=goal_map_xy,
-                    )
-                    if snapshot is not None:
-                        run_samples.append(snapshot)
+                    now = time.time()
+                    timeout_sec = min(0.02, max(0.0, next_sample_at - now))
+                    rclpy.spin_once(node, timeout_sec=timeout_sec)
+                    now = time.time()
+                    while now >= next_sample_at:
+                        _append_snapshot("run", run_samples)
+                        next_sample_at += sample_period_s
                     latest_terminal = node.latest_terminal_event_since(event_start_index)
                     if latest_terminal is not None:
                         terminal_event = latest_terminal
                         break
-                    time.sleep(sample_period_s)
+                if not terminal_event:
+                    _append_snapshot("run", run_samples)
 
                 if not terminal_event:
                     timed_out = True

@@ -62,6 +62,9 @@ def generate_launch_description():
     gps_course_heading_invalid_hold_s = LaunchConfiguration(
         "gps_course_heading_invalid_hold_s"
     )
+    gps_course_heading_max_sample_dt_s = LaunchConfiguration(
+        "gps_course_heading_max_sample_dt_s"
+    )
     gps_course_heading_publish_hz = LaunchConfiguration("gps_course_heading_publish_hz")
     gps_course_heading_yaw_variance_rad2 = LaunchConfiguration(
         "gps_course_heading_yaw_variance_rad2"
@@ -142,6 +145,10 @@ def generate_launch_description():
             # demasiado brusco. Mantenemos el ultimo yaw valido por una ventana
             # corta y con menor confianza para suavizar esa transicion.
             DeclareLaunchArgument("gps_course_heading_invalid_hold_s", default_value="0.8"),
+            # Limita cuan viejo puede ser el segmento GPS usado para inferir
+            # el heading. En curvas largas, usar una cuerda demasiado antigua
+            # reinyecta un yaw que ya no representa la tangente actual.
+            DeclareLaunchArgument("gps_course_heading_max_sample_dt_s", default_value="2.5"),
             DeclareLaunchArgument("gps_course_heading_publish_hz", default_value="10.0"),
             DeclareLaunchArgument("gps_course_heading_yaw_variance_rad2", default_value="0.05"),
             DeclareLaunchArgument(
@@ -295,6 +302,9 @@ def generate_launch_description():
                         ),
                         "invalid_hold_s": ParameterValue(
                             gps_course_heading_invalid_hold_s, value_type=float
+                        ),
+                        "max_sample_dt_s": ParameterValue(
+                            gps_course_heading_max_sample_dt_s, value_type=float
                         ),
                         "publish_hz": ParameterValue(
                             gps_course_heading_publish_hz, value_type=float

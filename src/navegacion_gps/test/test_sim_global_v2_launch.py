@@ -43,6 +43,9 @@ def test_sim_global_v2_launch_reuses_current_sim_stack_without_rviz() -> None:
     gps_heading_hold_arg = (
         'DeclareLaunchArgument("gps_course_heading_invalid_hold_s", default_value="0.8")'
     )
+    gps_heading_max_sample_dt_arg = (
+        'DeclareLaunchArgument("gps_course_heading_max_sample_dt_s", default_value="2.5")'
+    )
     gps_heading_publish_arg = (
         'DeclareLaunchArgument("gps_course_heading_publish_hz", default_value="10.0")'
     )
@@ -79,6 +82,7 @@ def test_sim_global_v2_launch_reuses_current_sim_stack_without_rviz() -> None:
     assert gps_heading_steer_arg in launch_contents
     assert gps_heading_yaw_rate_arg in launch_contents
     assert gps_heading_hold_arg in launch_contents
+    assert gps_heading_max_sample_dt_arg in launch_contents
     assert gps_heading_publish_arg in launch_contents
     assert gps_heading_variance_arg in launch_contents
     assert gps_heading_hold_variance_arg in launch_contents
@@ -92,6 +96,7 @@ def test_sim_global_v2_launch_reuses_current_sim_stack_without_rviz() -> None:
     assert '"enable_gps_course_heading": enable_gps_course_heading' in launch_contents
     assert '"gps_course_heading_topic": "/gps/course_heading"' in launch_contents
     assert '"invalid_hold_s": ParameterValue(' in launch_contents
+    assert '"max_sample_dt_s": ParameterValue(' in launch_contents
     assert '"publish_hz": ParameterValue(' in launch_contents
     assert '"hold_yaw_variance_multiplier": ParameterValue(' in launch_contents
     assert 'DeclareLaunchArgument("launch_web_app", default_value="True")' in launch_contents

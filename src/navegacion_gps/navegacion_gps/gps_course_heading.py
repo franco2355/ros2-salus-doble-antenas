@@ -44,6 +44,7 @@ class GpsCourseHeadingNode(Node):
         self.declare_parameter("max_abs_yaw_rate_rps", 0.12)
         self.declare_parameter("max_fix_age_s", 0.5)
         self.declare_parameter("invalid_hold_s", 0.0)
+        self.declare_parameter("max_sample_dt_s", 0.0)
         self.declare_parameter("publish_hz", 5.0)
         self.declare_parameter("yaw_variance_rad2", 0.20)
         self.declare_parameter("hold_yaw_variance_multiplier", 4.0)
@@ -71,6 +72,7 @@ class GpsCourseHeadingNode(Node):
             ),
             max_fix_age_s=float(self.get_parameter("max_fix_age_s").value),
             invalid_hold_s=float(self.get_parameter("invalid_hold_s").value),
+            max_sample_dt_s=float(self.get_parameter("max_sample_dt_s").value),
         )
 
         self._last_fix_stamp_s: Optional[float] = None
