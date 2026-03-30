@@ -29,7 +29,23 @@ def test_real_global_v2_launch_reuses_real_stack_with_global_navigation() -> Non
     assert 'DeclareLaunchArgument("use_rviz", default_value="False")' in launch_contents
     assert 'DeclareLaunchArgument("rviz_config", default_value=default_rviz)' in launch_contents
     assert "rviz_global_v2.rviz" in launch_contents
-    assert 'executable="gps_course_heading"' not in launch_contents
+    assert 'DeclareLaunchArgument("enable_rtk", default_value="False")' in launch_contents
+    assert 'DeclareLaunchArgument("enable_gps_course_heading", default_value="False")' in launch_contents
+    assert 'DeclareLaunchArgument("gps_course_heading_min_distance_m", default_value="2.0")' in launch_contents
+    assert 'DeclareLaunchArgument("gps_course_heading_min_speed_mps", default_value="0.8")' in launch_contents
+    assert 'DeclareLaunchArgument("gps_course_heading_max_abs_steer_deg", default_value="3.0")' in launch_contents
+    assert 'default_value="0.05"' in launch_contents
+    assert 'DeclareLaunchArgument("gps_course_heading_publish_hz", default_value="5.0")' in launch_contents
+    assert 'DeclareLaunchArgument("gps_course_heading_require_rtk", default_value="True")' in launch_contents
+    assert 'default_value="RTK_FIXED,RTK_FIX"' in launch_contents
+    assert '"enable_rtk": enable_rtk' in launch_contents
+    assert 'executable="gps_course_heading"' in launch_contents
+    assert 'condition=IfCondition(enable_gps_course_heading)' in launch_contents
+    assert '"rtk_status_topic": "/gps/rtk_status"' in launch_contents
+    assert '"require_rtk": ParameterValue(' in launch_contents
+    assert '"allowed_rtk_statuses": gps_course_heading_allowed_rtk_statuses' in launch_contents
+    assert '"enable_gps_course_heading": enable_gps_course_heading' in launch_contents
+    assert '"gps_course_heading_topic": "/gps/course_heading"' in launch_contents
 
 
 def test_localization_global_v2_launch_supports_datum_overrides() -> None:

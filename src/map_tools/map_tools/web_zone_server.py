@@ -22,7 +22,8 @@ from nav_msgs.msg import Odometry
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
-from sensor_msgs.msg import NavSatFix
+from sensor_msgs.msg import NavSatFix, NavSatStatus
+from std_msgs.msg import String
 from std_srvs.srv import Trigger
 
 from interfaces.msg import CmdVelFinal, NavEvent, NavTelemetry
@@ -105,6 +106,7 @@ class WebZoneServerNode(Node):
         self.declare_parameter("ws_port", 8766)
         self.declare_parameter("map_frame", "map")
         self.declare_parameter("gps_topic", "/gps/fix")
+        self.declare_parameter("gps_status_topic", "/gps/rtk_status")
         self.declare_parameter("odom_topic", "/odometry/local")
         self.declare_parameter("gps_broadcast_hz", 1.0)
         self.declare_parameter("request_timeout_s", 5.0)
@@ -137,6 +139,7 @@ class WebZoneServerNode(Node):
         self.ws_port = int(self.get_parameter("ws_port").value)
         self.map_frame = str(self.get_parameter("map_frame").value)
         self.gps_topic = str(self.get_parameter("gps_topic").value)
+        self.gps_status_topic = str(self.get_parameter("gps_status_topic").value)
         self.odom_topic = str(self.get_parameter("odom_topic").value)
         self.gps_broadcast_hz = float(self.get_parameter("gps_broadcast_hz").value)
         self.request_timeout_s = max(0.5, float(self.get_parameter("request_timeout_s").value))
@@ -189,6 +192,12 @@ class WebZoneServerNode(Node):
         self._last_robot_pose: Optional[Dict[str, float]] = None
         self._last_robot_heading_deg: Optional[float] = None
         self._last_gps_broadcast_monotonic: Optional[float] = None
+        self._gps_status_payload = self._build_gps_status_payload(
+            raw="",
+            source="unavailable",
+            available=False,
+        )
+        self._last_explicit_gps_status_monotonic: Optional[float] = None
 
         self._zones: List[Dict[str, Any]] = []
         self._zones_geojson: Dict[str, Any] = {"type": "FeatureCollection", "features": []}
@@ -230,6 +239,9 @@ class WebZoneServerNode(Node):
 
         self._gps_sub = self.create_subscription(
             NavSatFix, self.gps_topic, self._on_gps_fix, qos_profile_sensor_data
+        )
+        self._gps_status_sub = self.create_subscription(
+            String, self.gps_status_topic, self._on_gps_status, 10
         )
         self._odom_sub = self.create_subscription(
             Odometry, self.odom_topic, self._on_odometry, 10
@@ -278,6 +290,7 @@ class WebZoneServerNode(Node):
             f"camera_pan={self.camera_pan_service}, camera_zoom_toggle={self.camera_zoom_toggle_service}, "
             f"camera_status={self.camera_status_service}, "
             f"teleop_topic={self.teleop_cmd_topic}, gps_topic={self.gps_topic}, "
+            f"gps_status_topic={self.gps_status_topic}, "
             f"odom_topic={self.odom_topic})"
         )
         self.get_logger().info(f"Waypoints file path: {self.waypoints_file}")
@@ -319,6 +332,7 @@ class WebZoneServerNode(Node):
                 "mask_ready": bool(self._mask_ready),
                 "mask_source": str(self._mask_source),
                 "robot_pose": self._last_robot_pose,
+                "gps_status": dict(self._gps_status_payload),
                 "cmd_vel_safe": dict(self._cmd_vel_safe),
                 "manual_control": dict(self._manual_control),
                 "goal_active": bool(self._goal_active),
@@ -352,6 +366,82 @@ class WebZoneServerNode(Node):
             "alerts": alerts,
             "recent_events": recent_events,
         }
+
+    @staticmethod
+    def _normalize_gps_status_text(status_text: Any) -> str:
+        text = str(status_text or "").strip().lower()
+        for old, new in (("-", "_"), (" ", "_")):
+            text = text.replace(old, new)
+        return "_".join(part for part in text.split("_") if part)
+
+    @classmethod
+    def _gps_status_label_and_level(cls, normalized_status: str) -> Tuple[str, str]:
+        if not normalized_status:
+            return "Unavailable", "bad"
+        if "rtk_fixed" in normalized_status:
+            return "RTK FIXED", "good"
+        if "rtk_float" in normalized_status:
+            return "RTK FLOAT", "warn"
+        if normalized_status in {"3d_fix", "gps_only", "fix"}:
+            return "3D FIX", "warn"
+        if normalized_status in {"rtk_fix", "gbas_fix", "sbas_fix"}:
+            return "RTK FIX", "good"
+        if normalized_status in {"no_fix", "gps_no_fix"}:
+            return "NO FIX", "bad"
+        if normalized_status == "rtcm_stale":
+            return "RTCM STALE", "bad"
+        if normalized_status == "rtcm_ok":
+            return "RTCM OK", "warn"
+        if normalized_status == "waiting_for_gps":
+            return "WAITING GPS", "bad"
+        if normalized_status == "waiting_for_mavros_gps_rtk":
+            return "WAITING RTK LINK", "warn"
+        return normalized_status.replace("_", " ").upper(), "warn"
+
+    @classmethod
+    def _build_gps_status_payload(
+        cls,
+        *,
+        raw: Any,
+        source: str,
+        available: bool = True,
+    ) -> Dict[str, Any]:
+        normalized = cls._normalize_gps_status_text(raw)
+        label, level = cls._gps_status_label_and_level(normalized)
+        return {
+            "available": bool(available),
+            "raw": str(raw or ""),
+            "normalized": normalized,
+            "label": label,
+            "level": level,
+            "source": str(source),
+        }
+
+    @classmethod
+    def _build_gps_status_payload_from_navsat(cls, status_value: Any) -> Dict[str, Any]:
+        try:
+            status_code = int(status_value)
+        except (TypeError, ValueError):
+            status_code = int(NavSatStatus.STATUS_NO_FIX)
+        if status_code >= int(NavSatStatus.STATUS_GBAS_FIX):
+            raw = "RTK_FIX"
+        elif status_code == int(NavSatStatus.STATUS_SBAS_FIX):
+            raw = "SBAS_FIX"
+        elif status_code == int(NavSatStatus.STATUS_FIX):
+            raw = "3D_FIX"
+        else:
+            raw = "NO_FIX"
+        return cls._build_gps_status_payload(raw=raw, source="gps_fix", available=True)
+
+    @staticmethod
+    def _gps_status_payload_changed(
+        previous: Dict[str, Any],
+        current: Dict[str, Any],
+    ) -> bool:
+        for key in ("available", "raw", "normalized", "label", "level", "source"):
+            if previous.get(key) != current.get(key):
+                return True
+        return False
 
     @staticmethod
     def _rosbag_topics_for_profile(profile: str) -> Optional[Tuple[str, ...]]:
@@ -658,6 +748,23 @@ class WebZoneServerNode(Node):
         if not np.isfinite(msg.latitude) or not np.isfinite(msg.longitude):
             return
 
+        gps_status_payload = self._build_gps_status_payload_from_navsat(msg.status.status)
+        gps_status_broadcast = None
+        now = time.monotonic()
+        with self._lock:
+            explicit_status_fresh = (
+                self._last_explicit_gps_status_monotonic is not None
+                and (now - self._last_explicit_gps_status_monotonic) <= 3.0
+            )
+            if not explicit_status_fresh and self._gps_status_payload_changed(
+                self._gps_status_payload, gps_status_payload
+            ):
+                self._gps_status_payload = gps_status_payload
+                gps_status_broadcast = {
+                    "op": "gps_status",
+                    "gps_status": dict(self._gps_status_payload),
+                }
+
         with self._lock:
             heading_deg = self._last_robot_heading_deg
         pose = self._build_robot_pose(
@@ -670,8 +777,9 @@ class WebZoneServerNode(Node):
             last_sent = self._last_gps_broadcast_monotonic
 
         min_interval = 1.0 / max(0.1, float(self.gps_broadcast_hz))
-        now = time.monotonic()
         if last_sent is not None and (now - last_sent) < min_interval:
+            if gps_status_broadcast is not None:
+                asyncio.run_coroutine_threadsafe(self._broadcast(gps_status_broadcast), self._loop)
             return
 
         with self._lock:
@@ -679,6 +787,27 @@ class WebZoneServerNode(Node):
 
         payload = {"op": "robot_pose", "pose": pose}
         asyncio.run_coroutine_threadsafe(self._broadcast(payload), self._loop)
+        if gps_status_broadcast is not None:
+            asyncio.run_coroutine_threadsafe(self._broadcast(gps_status_broadcast), self._loop)
+
+    def _on_gps_status(self, msg: String) -> None:
+        payload = self._build_gps_status_payload(raw=msg.data, source="rtk_status", available=True)
+        should_broadcast = False
+        with self._lock:
+            self._last_explicit_gps_status_monotonic = time.monotonic()
+            if self._gps_status_payload_changed(self._gps_status_payload, payload):
+                self._gps_status_payload = payload
+                should_broadcast = True
+        if should_broadcast:
+            asyncio.run_coroutine_threadsafe(
+                self._broadcast(
+                    {
+                        "op": "gps_status",
+                        "gps_status": dict(payload),
+                    }
+                ),
+                self._loop,
+            )
 
     def _yaw_deg_from_quaternion(
         self, x: float, y: float, z: float, w: float

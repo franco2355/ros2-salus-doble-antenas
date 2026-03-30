@@ -75,6 +75,7 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration("use_sim_time")
     wheelbase_m = LaunchConfiguration("wheelbase_m")
     invert_measured_steer_sign = LaunchConfiguration("invert_measured_steer_sign")
+    enable_rtk = LaunchConfiguration("enable_rtk")
     lidar_config_path = LaunchConfiguration("lidar_config_path")
     fcu_url = LaunchConfiguration("fcu_url")
     use_cyclone_dds = LaunchConfiguration("use_cyclone_dds")
@@ -97,6 +98,28 @@ def generate_launch_description():
     twist_covariance_vx = LaunchConfiguration("twist_covariance_vx")
     twist_covariance_vy = LaunchConfiguration("twist_covariance_vy")
     twist_covariance_yaw_rate = LaunchConfiguration("twist_covariance_yaw_rate")
+    enable_gps_course_heading = LaunchConfiguration("enable_gps_course_heading")
+    gps_course_heading_min_distance_m = LaunchConfiguration(
+        "gps_course_heading_min_distance_m"
+    )
+    gps_course_heading_min_speed_mps = LaunchConfiguration("gps_course_heading_min_speed_mps")
+    gps_course_heading_max_abs_steer_deg = LaunchConfiguration(
+        "gps_course_heading_max_abs_steer_deg"
+    )
+    gps_course_heading_max_abs_yaw_rate_rps = LaunchConfiguration(
+        "gps_course_heading_max_abs_yaw_rate_rps"
+    )
+    gps_course_heading_publish_hz = LaunchConfiguration("gps_course_heading_publish_hz")
+    gps_course_heading_yaw_variance_rad2 = LaunchConfiguration(
+        "gps_course_heading_yaw_variance_rad2"
+    )
+    gps_course_heading_require_rtk = LaunchConfiguration("gps_course_heading_require_rtk")
+    gps_course_heading_allowed_rtk_statuses = LaunchConfiguration(
+        "gps_course_heading_allowed_rtk_statuses"
+    )
+    gps_course_heading_rtk_status_max_age_s = LaunchConfiguration(
+        "gps_course_heading_rtk_status_max_age_s"
+    )
     datum_lat = LaunchConfiguration("datum_lat")
     datum_lon = LaunchConfiguration("datum_lon")
     datum_yaw_deg = LaunchConfiguration("datum_yaw_deg")
@@ -105,6 +128,7 @@ def generate_launch_description():
         [
             DeclareLaunchArgument("use_sim_time", default_value="False"),
             DeclareLaunchArgument("wheelbase_m", default_value="0.94"),
+            DeclareLaunchArgument("enable_rtk", default_value="False"),
             DeclareLaunchArgument(
                 "invert_measured_steer_sign",
                 default_value="True",
@@ -144,6 +168,28 @@ def generate_launch_description():
             DeclareLaunchArgument("twist_covariance_vx", default_value="0.05"),
             DeclareLaunchArgument("twist_covariance_vy", default_value="0.01"),
             DeclareLaunchArgument("twist_covariance_yaw_rate", default_value="0.1"),
+            DeclareLaunchArgument("enable_gps_course_heading", default_value="False"),
+            DeclareLaunchArgument("gps_course_heading_min_distance_m", default_value="2.0"),
+            DeclareLaunchArgument("gps_course_heading_min_speed_mps", default_value="0.8"),
+            DeclareLaunchArgument("gps_course_heading_max_abs_steer_deg", default_value="3.0"),
+            DeclareLaunchArgument(
+                "gps_course_heading_max_abs_yaw_rate_rps",
+                default_value="0.05",
+            ),
+            DeclareLaunchArgument("gps_course_heading_publish_hz", default_value="5.0"),
+            DeclareLaunchArgument(
+                "gps_course_heading_yaw_variance_rad2",
+                default_value="0.05",
+            ),
+            DeclareLaunchArgument("gps_course_heading_require_rtk", default_value="True"),
+            DeclareLaunchArgument(
+                "gps_course_heading_allowed_rtk_statuses",
+                default_value="RTK_FIXED,RTK_FIX",
+            ),
+            DeclareLaunchArgument(
+                "gps_course_heading_rtk_status_max_age_s",
+                default_value="2.5",
+            ),
             DeclareLaunchArgument("datum_lat", default_value="-31.4858037"),
             DeclareLaunchArgument("datum_lon", default_value="-64.2410570"),
             # Convencion fija operativa para `global v2`: por default el robot
@@ -157,6 +203,7 @@ def generate_launch_description():
                 launch_arguments={
                     "launch_web": "false",
                     "launch_legacy_compat": "false",
+                    "enable_rtk": enable_rtk,
                     "fcu_url": fcu_url,
                 }.items(),
             ),
@@ -203,6 +250,50 @@ def generate_launch_description():
                         ),
                         "invert_steer_from_cmd_vel": ParameterValue(
                             invert_steer_from_cmd_vel, value_type=bool
+                        ),
+                    }
+                ],
+            ),
+            Node(
+                package="navegacion_gps",
+                executable="gps_course_heading",
+                name="gps_course_heading",
+                output="screen",
+                condition=IfCondition(enable_gps_course_heading),
+                parameters=[
+                    {
+                        "use_sim_time": ParameterValue(use_sim_time, value_type=bool),
+                        "gps_topic": "/gps/fix",
+                        "odom_topic": "/odometry/local",
+                        "drive_telemetry_topic": "/controller/drive_telemetry",
+                        "output_topic": "/gps/course_heading",
+                        "debug_topic": "/gps/course_heading/debug",
+                        "base_frame": "base_footprint",
+                        "min_distance_m": ParameterValue(
+                            gps_course_heading_min_distance_m, value_type=float
+                        ),
+                        "min_speed_mps": ParameterValue(
+                            gps_course_heading_min_speed_mps, value_type=float
+                        ),
+                        "max_abs_steer_deg": ParameterValue(
+                            gps_course_heading_max_abs_steer_deg, value_type=float
+                        ),
+                        "max_abs_yaw_rate_rps": ParameterValue(
+                            gps_course_heading_max_abs_yaw_rate_rps, value_type=float
+                        ),
+                        "publish_hz": ParameterValue(
+                            gps_course_heading_publish_hz, value_type=float
+                        ),
+                        "yaw_variance_rad2": ParameterValue(
+                            gps_course_heading_yaw_variance_rad2, value_type=float
+                        ),
+                        "rtk_status_topic": "/gps/rtk_status",
+                        "require_rtk": ParameterValue(
+                            gps_course_heading_require_rtk, value_type=bool
+                        ),
+                        "allowed_rtk_statuses": gps_course_heading_allowed_rtk_statuses,
+                        "rtk_status_max_age_s": ParameterValue(
+                            gps_course_heading_rtk_status_max_age_s, value_type=float
                         ),
                     }
                 ],
@@ -266,6 +357,8 @@ def generate_launch_description():
                     "twist_covariance_vy": twist_covariance_vy,
                     "twist_covariance_yaw_rate": twist_covariance_yaw_rate,
                     "global_localization_params_file": global_localization_params_file,
+                    "enable_gps_course_heading": enable_gps_course_heading,
+                    "gps_course_heading_topic": "/gps/course_heading",
                     "datum_setter": "false",
                     "datum_lat": datum_lat,
                     "datum_lon": datum_lon,

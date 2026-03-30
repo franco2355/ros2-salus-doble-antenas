@@ -1083,6 +1083,7 @@
             <div id="waypointStatus" class="status">Waypoints: 0</div>
             <div id="cmdVelSafeStatus" class="status">cmd_vel_safe: n/a</div>
             <div id="manualStatus" class="status">Manual: OFF · keys=- · vx_cmd=0.00 · wz_cmd=0.00</div>
+            <div id="gpsFixStatus" class="status">gps: unavailable</div>
             <div id="cameraStatus" class="status">camera: n/a</div>
           </div>
           <div class="telemetry-feed-grid">
@@ -1283,6 +1284,7 @@
         last_error: '',
         available_profiles: ['core', 'full_nav2']
       },
+      gpsStatus: { available: false, raw: '', normalized: '', label: 'Unavailable', level: 'bad', source: 'unavailable' },
       cameraStatus: { ok: false, error: 'camera status unavailable', last_command: 'none', zoom_in: false },
       cameraStreamConnected: false,
       cameraStreamPending: 'idle',
@@ -3197,6 +3199,30 @@
       }
     }
 
+    function updateGpsStatusUi(payload) {
+      const el = document.getElementById('gpsFixStatus');
+      if (!el) return;
+      const status = payload && typeof payload === 'object' ? payload : {};
+      state.gpsStatus = {
+        available: status.available === true,
+        raw: String(status.raw || ''),
+        normalized: String(status.normalized || ''),
+        label: String(status.label || 'Unavailable'),
+        level: String(status.level || 'bad'),
+        source: String(status.source || 'unavailable')
+      };
+
+      el.textContent = `gps: ${state.gpsStatus.label}`;
+      el.className = 'status';
+      if (state.gpsStatus.level === 'good') {
+        el.classList.add('good');
+      } else if (state.gpsStatus.level === 'warn') {
+        el.classList.add('warn');
+      } else {
+        el.classList.add('bad');
+      }
+    }
+
     function updateNavTelemetry(payload) {
       if (payload && Array.isArray(payload.alerts)) {
         setAlerts(payload.alerts);
@@ -3651,6 +3677,7 @@
         state.lastZones = zones;
         renderMapFromZones(zones);
         updateRobotPose(msg.robot_pose || null);
+        updateGpsStatusUi(msg.gps_status || null);
         renderZoneList({ zones });
         const maskSource = msg.mask_source || 'map';
         const maskReady = msg.mask_ready === true;
@@ -3675,6 +3702,11 @@
 
       if (msg.op === 'robot_pose') {
         updateRobotPose(msg.pose || null);
+        return;
+      }
+
+      if (msg.op === 'gps_status') {
+        updateGpsStatusUi(msg.gps_status || null);
         return;
       }
 
@@ -4752,6 +4784,7 @@
     applyConnectionPreset(state.connectionPreset, { saveCurrent: false });
     updateManualSliderLabels();
     renderManualStatus();
+    updateGpsStatusUi(state.gpsStatus);
     updateCameraStatusUi(state.cameraStatus);
     renderAlerts();
     renderRecentEvents();

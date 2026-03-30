@@ -13,6 +13,11 @@ class _FakeNode:
     _diag_level_value = staticmethod(WebZoneServerNode._diag_level_value)
     _should_surface_diagnostic = WebZoneServerNode._should_surface_diagnostic
     _rosbag_topics_for_profile = staticmethod(WebZoneServerNode._rosbag_topics_for_profile)
+    _normalize_gps_status_text = staticmethod(WebZoneServerNode._normalize_gps_status_text)
+    _build_gps_status_payload = staticmethod(WebZoneServerNode._build_gps_status_payload)
+    _build_gps_status_payload_from_navsat = staticmethod(
+        WebZoneServerNode._build_gps_status_payload_from_navsat
+    )
 
 
 class _FakeStatus:
@@ -58,3 +63,30 @@ def test_rosbag_topics_for_profile_matches_declared_profiles():
     assert "/diagnostics" in topics
     assert "/nav_command_server/events" in topics
     assert _FakeNode._rosbag_topics_for_profile("missing") is None
+
+
+def test_normalize_gps_status_text_handles_common_variants():
+    assert _FakeNode._normalize_gps_status_text("RTK_FIXED") == "rtk_fixed"
+    assert _FakeNode._normalize_gps_status_text("3D-FIX") == "3d_fix"
+    assert _FakeNode._normalize_gps_status_text(" waiting for gps ") == "waiting_for_gps"
+
+
+def test_build_gps_status_payload_maps_quality_to_label_and_level():
+    payload = _FakeNode._build_gps_status_payload(
+        raw="RTK_FLOAT",
+        source="rtk_status",
+        available=True,
+    )
+
+    assert payload["label"] == "RTK FLOAT"
+    assert payload["level"] == "warn"
+    assert payload["normalized"] == "rtk_float"
+    assert payload["source"] == "rtk_status"
+
+
+def test_build_gps_status_payload_from_navsat_falls_back_to_3d_fix():
+    payload = _FakeNode._build_gps_status_payload_from_navsat(0)
+
+    assert payload["label"] == "3D FIX"
+    assert payload["level"] == "warn"
+    assert payload["source"] == "gps_fix"
