@@ -38,12 +38,16 @@ Confirmar publicacion en:
 
 - `/odometry/local`
 - `/odometry/gps`
+- `/gps/odometry_map`
+- `/gps/course_heading`
 - `/odometry/global`
 
 Confirmar que:
 
+- `/gps/odometry_map` sale en frame `map` y sigue al sitio operativo esperado
 - `map -> odom` aparece y evoluciona sin saltos absurdos
 - `fromLL` devuelve puntos coherentes con el mapa operativo
+- `/gps/course_heading` aparece solo cuando el avance GPS es valido y ayuda a cerrar el yaw global
 - un goal LL cae en la zona correcta de `map`
 
 ## Cadena de Navegacion

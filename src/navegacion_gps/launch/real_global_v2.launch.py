@@ -130,6 +130,15 @@ def generate_launch_description():
         "gps_course_heading_rtk_status_max_age_s"
     )
     gps_rtk_status_topic = LaunchConfiguration("gps_rtk_status_topic")
+    enable_map_gps_absolute_measurement = LaunchConfiguration(
+        "enable_map_gps_absolute_measurement"
+    )
+    map_gps_absolute_topic = LaunchConfiguration("map_gps_absolute_topic")
+    map_gps_pose_covariance_xy = LaunchConfiguration("map_gps_pose_covariance_xy")
+    map_gps_fromll_service = LaunchConfiguration("map_gps_fromll_service")
+    map_gps_fromll_service_fallback = LaunchConfiguration("map_gps_fromll_service_fallback")
+    map_gps_fromll_wait_timeout_s = LaunchConfiguration("map_gps_fromll_wait_timeout_s")
+    navsat_use_odometry_yaw = LaunchConfiguration("navsat_use_odometry_yaw")
     datum_lat = LaunchConfiguration("datum_lat")
     datum_lon = LaunchConfiguration("datum_lon")
     datum_yaw_deg = LaunchConfiguration("datum_yaw_deg")
@@ -192,7 +201,26 @@ def generate_launch_description():
             DeclareLaunchArgument("twist_covariance_vx", default_value="0.05"),
             DeclareLaunchArgument("twist_covariance_vy", default_value="0.01"),
             DeclareLaunchArgument("twist_covariance_yaw_rate", default_value="0.1"),
-            DeclareLaunchArgument("enable_gps_course_heading", default_value="False"),
+            DeclareLaunchArgument(
+                "enable_map_gps_absolute_measurement",
+                default_value="True",
+            ),
+            DeclareLaunchArgument(
+                "map_gps_absolute_topic",
+                default_value="/gps/odometry_map",
+            ),
+            DeclareLaunchArgument("map_gps_pose_covariance_xy", default_value="0.05"),
+            DeclareLaunchArgument(
+                "map_gps_fromll_service",
+                default_value="/fromLL",
+            ),
+            DeclareLaunchArgument(
+                "map_gps_fromll_service_fallback",
+                default_value="/navsat_transform/fromLL",
+            ),
+            DeclareLaunchArgument("map_gps_fromll_wait_timeout_s", default_value="0.2"),
+            DeclareLaunchArgument("navsat_use_odometry_yaw", default_value="false"),
+            DeclareLaunchArgument("enable_gps_course_heading", default_value="True"),
             DeclareLaunchArgument("gps_course_heading_min_distance_m", default_value="2.0"),
             DeclareLaunchArgument("gps_course_heading_min_speed_mps", default_value="0.8"),
             DeclareLaunchArgument("gps_course_heading_max_abs_steer_deg", default_value="3.0"),
@@ -411,6 +439,13 @@ def generate_launch_description():
                     "twist_covariance_vx": twist_covariance_vx,
                     "twist_covariance_vy": twist_covariance_vy,
                     "twist_covariance_yaw_rate": twist_covariance_yaw_rate,
+                    "enable_map_gps_absolute_measurement": enable_map_gps_absolute_measurement,
+                    "map_gps_absolute_topic": map_gps_absolute_topic,
+                    "map_gps_pose_covariance_xy": map_gps_pose_covariance_xy,
+                    "map_gps_fromll_service": map_gps_fromll_service,
+                    "map_gps_fromll_service_fallback": map_gps_fromll_service_fallback,
+                    "map_gps_fromll_wait_timeout_s": map_gps_fromll_wait_timeout_s,
+                    "navsat_use_odometry_yaw": navsat_use_odometry_yaw,
                     "global_localization_params_file": global_localization_params_file,
                     "enable_gps_course_heading": enable_gps_course_heading,
                     "gps_course_heading_topic": "/gps/course_heading",

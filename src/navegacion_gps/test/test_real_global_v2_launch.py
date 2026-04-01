@@ -10,6 +10,21 @@ def _read(relative_path: str) -> str:
 
 def test_real_global_v2_launch_reuses_real_stack_with_global_navigation() -> None:
     launch_contents = _read("launch/real_global_v2.launch.py")
+    map_gps_enable_arg = (
+        'DeclareLaunchArgument(\n                "enable_map_gps_absolute_measurement",'
+    )
+    map_gps_topic_arg = (
+        'DeclareLaunchArgument(\n                "map_gps_absolute_topic",'
+    )
+    map_gps_cov_arg = (
+        'DeclareLaunchArgument("map_gps_pose_covariance_xy", default_value="0.05")'
+    )
+    map_gps_fromll_arg = (
+        'DeclareLaunchArgument(\n                "map_gps_fromll_service",'
+    )
+    map_gps_param_ref = (
+        '"enable_map_gps_absolute_measurement": enable_map_gps_absolute_measurement'
+    )
 
     assert "mavros.launch.py" in launch_contents
     assert "rs16.launch.py" in launch_contents
@@ -30,7 +45,19 @@ def test_real_global_v2_launch_reuses_real_stack_with_global_navigation() -> Non
     assert 'DeclareLaunchArgument("rviz_config", default_value=default_rviz)' in launch_contents
     assert "rviz_global_v2.rviz" in launch_contents
     assert 'DeclareLaunchArgument("enable_rtk", default_value="True")' in launch_contents
-    assert 'DeclareLaunchArgument("enable_gps_course_heading", default_value="False")' in launch_contents
+    assert map_gps_enable_arg in launch_contents
+    assert map_gps_topic_arg in launch_contents
+    assert map_gps_cov_arg in launch_contents
+    assert map_gps_fromll_arg in launch_contents
+    assert map_gps_param_ref in launch_contents
+    assert '"map_gps_absolute_topic": map_gps_absolute_topic' in launch_contents
+    assert '"map_gps_pose_covariance_xy": map_gps_pose_covariance_xy' in launch_contents
+    assert '"map_gps_fromll_service": map_gps_fromll_service' in launch_contents
+    assert '"map_gps_fromll_service_fallback": map_gps_fromll_service_fallback' in launch_contents
+    assert '"map_gps_fromll_wait_timeout_s": map_gps_fromll_wait_timeout_s' in launch_contents
+    assert 'DeclareLaunchArgument("navsat_use_odometry_yaw", default_value="false")' in launch_contents
+    assert '"navsat_use_odometry_yaw": navsat_use_odometry_yaw' in launch_contents
+    assert 'DeclareLaunchArgument("enable_gps_course_heading", default_value="True")' in launch_contents
     assert 'DeclareLaunchArgument("gps_course_heading_min_distance_m", default_value="2.0")' in launch_contents
     assert 'DeclareLaunchArgument("gps_course_heading_min_speed_mps", default_value="0.8")' in launch_contents
     assert 'DeclareLaunchArgument("gps_course_heading_max_abs_steer_deg", default_value="3.0")' in launch_contents

@@ -40,6 +40,7 @@ Fuente de verdad: `src/**/launch/*.launch.py` y `tools/*.sh`
 
 ## Nota sim vs real
 - Los cambios en `sim_global_v2` que dependan de `joint_states` o `odom_raw` pertenecen a simulación y no pasan solos a `real_global_v2`.
+- `real_global_v2` ahora comparte con `sim_global_v2` el anclaje global en `map`: GPS geográfico -> `fromLL` -> `/gps/odometry_map`, además de soporte para `/gps/course_heading`.
 - En `real_global_v2`, la fuente de steering que debe mantenerse estable es `/controller/drive_telemetry.steer_deg_measured`.
 - Si el robot mide el ángulo en la barra central de dirección, ese dato es el que debe alimentar la odometría Ackermann real.
 - En `sim_global_v2`, el gating del heading GPS ahora tiene knobs propios:

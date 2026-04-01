@@ -42,6 +42,7 @@ La V2 local usa odometría Ackermann derivada de `DriveTelemetry`, EKF local en 
 - `ros2 launch navegacion_gps rviz_real_global_v2.launch.py`
 
 La V2 global agrega la capa `map -> odom` sobre la base local Ackermann, con `navsat_transform`, EKF global, datum configurable y goals LL en `map`.
+En los perfiles globales actuales, la corrección absoluta del EKF de `map` entra como `/gps/odometry_map` en frame `map` obtenido vía `fromLL`, y el heading global puede asistir al filtro mediante `/gps/course_heading`.
 
 ## Nodos propios más relevantes
 - `zones_manager`
@@ -61,6 +62,7 @@ La V2 global agrega la capa `map -> odom` sobre la base local Ackermann, con `na
 - Localización:
   - `/odometry/local`
   - `/odometry/gps`
+  - `/gps/odometry_map`
   - `/odometry/global`
 - Observabilidad:
   - `/nav_command_server/telemetry`
