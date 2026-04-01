@@ -14,3 +14,4 @@
 
 # Generated runtime configs
 /src/navegacion_gps/config/block_loop_benchmark.yaml
+/src/navegacion_gps/config/saved_waypoints.yaml
