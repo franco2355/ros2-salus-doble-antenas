@@ -39,6 +39,7 @@ class RtkBridgeNode(Node):
         self.declare_parameter("rtcm_topic", "/rtcm")
         self.declare_parameter("send_rtcm_topic", "/mavros_node/send_rtcm")
         self.declare_parameter("gps_topic", "/global_position/raw/fix")
+        self.declare_parameter("status_topic", "/gps/rtk_status")
         self.declare_parameter("rtk_baseline_topic", "/mavros_node/rtk_baseline")
         self.declare_parameter("diagnostics_period_s", 1.0)
         self.declare_parameter("rtcm_stale_timeout_s", 5.0)
@@ -50,6 +51,7 @@ class RtkBridgeNode(Node):
         self.rtcm_topic = str(self.get_parameter("rtcm_topic").value)
         self.send_rtcm_topic = str(self.get_parameter("send_rtcm_topic").value)
         self.gps_topic = str(self.get_parameter("gps_topic").value)
+        self.status_topic = str(self.get_parameter("status_topic").value)
         self.rtk_baseline_topic = str(self.get_parameter("rtk_baseline_topic").value)
         self._diagnostics_period_s = float(
             self.get_parameter("diagnostics_period_s").value
@@ -62,7 +64,7 @@ class RtkBridgeNode(Node):
         )
 
         self._rtcm_pub = self.create_publisher(RTCM, self.send_rtcm_topic, 10)
-        self._status_pub = self.create_publisher(String, "/gps/rtk_status", 2)
+        self._status_pub = self.create_publisher(String, self.status_topic, 2)
         self._rtcm_age_pub = self.create_publisher(Float32, "/gps/rtcm_age_s", 2)
         self._rtcm_count_pub = self.create_publisher(Int32, "/gps/rtcm_received_count", 2)
 
@@ -99,6 +101,7 @@ class RtkBridgeNode(Node):
             "RTK bridge active: "
             f"{self.rtcm_topic} + TCP({self.rtcm_tcp_host}:{self.rtcm_tcp_port}) -> "
             f"{self.send_rtcm_topic} | GPS diagnostics from {self.gps_topic} "
+            f"| status topic {self.status_topic} "
             f"| baseline topic {self.rtk_baseline_topic}"
         )
 

@@ -11,7 +11,7 @@ from launch.actions import (
 )
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 
@@ -129,9 +129,21 @@ def generate_launch_description():
     gps_course_heading_rtk_status_max_age_s = LaunchConfiguration(
         "gps_course_heading_rtk_status_max_age_s"
     )
+    gps_rtk_status_topic = LaunchConfiguration("gps_rtk_status_topic")
     datum_lat = LaunchConfiguration("datum_lat")
     datum_lon = LaunchConfiguration("datum_lon")
     datum_yaw_deg = LaunchConfiguration("datum_yaw_deg")
+    effective_enable_rtk = PythonExpression(
+        [
+            "'true' if ('",
+            enable_rtk,
+            "'.lower() == 'true' or ('",
+            enable_gps_course_heading,
+            "'.lower() == 'true' and '",
+            gps_course_heading_require_rtk,
+            "'.lower() == 'true')) else 'false'",
+        ]
+    )
 
     return LaunchDescription(
         [
@@ -210,6 +222,10 @@ def generate_launch_description():
                 "gps_course_heading_rtk_status_max_age_s",
                 default_value="2.5",
             ),
+            DeclareLaunchArgument(
+                "gps_rtk_status_topic",
+                default_value="/gps/rtk_status_mavros",
+            ),
             DeclareLaunchArgument("datum_lat", default_value="-31.4858037"),
             DeclareLaunchArgument("datum_lon", default_value="-64.2410570"),
             # Convencion fija operativa para `global v2`: por default el robot
@@ -223,7 +239,12 @@ def generate_launch_description():
                 launch_arguments={
                     "launch_web": "false",
                     "launch_legacy_compat": "false",
-                    "enable_rtk": enable_rtk,
+                    # Si el operador habilita `gps_course_heading` en modo
+                    # RTK-obligatorio, tambien debemos levantar la cadena que
+                    # publica `/gps/rtk_status` para evitar una activacion a
+                    # medias del heading global.
+                    "enable_rtk": effective_enable_rtk,
+                    "rtk_status_topic": gps_rtk_status_topic,
                     "fcu_url": fcu_url,
                 }.items(),
             ),
@@ -317,7 +338,7 @@ def generate_launch_description():
                             gps_course_heading_hold_yaw_variance_multiplier,
                             value_type=float,
                         ),
-                        "rtk_status_topic": "/gps/rtk_status",
+                        "rtk_status_topic": gps_rtk_status_topic,
                         "require_rtk": ParameterValue(
                             gps_course_heading_require_rtk, value_type=bool
                         ),
@@ -426,6 +447,7 @@ def generate_launch_description():
                     "launch_nav_command_server": "false",
                     "launch_nav_snapshot_server": "false",
                     "teleop_cmd_topic": "/cmd_vel_teleop",
+                    "gps_status_topic": gps_rtk_status_topic,
                 }.items(),
                 condition=IfCondition(launch_web_app),
             ),

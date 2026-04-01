@@ -35,13 +35,23 @@ def test_real_global_v2_launch_reuses_real_stack_with_global_navigation() -> Non
     assert 'DeclareLaunchArgument("gps_course_heading_min_speed_mps", default_value="0.8")' in launch_contents
     assert 'DeclareLaunchArgument("gps_course_heading_max_abs_steer_deg", default_value="3.0")' in launch_contents
     assert 'default_value="0.05"' in launch_contents
+    assert 'DeclareLaunchArgument("gps_course_heading_invalid_hold_s", default_value="0.8")' in launch_contents
+    assert 'DeclareLaunchArgument("gps_course_heading_max_sample_dt_s", default_value="2.5")' in launch_contents
     assert 'DeclareLaunchArgument("gps_course_heading_publish_hz", default_value="5.0")' in launch_contents
+    assert 'default_value="4.0"' in launch_contents
     assert 'DeclareLaunchArgument("gps_course_heading_require_rtk", default_value="True")' in launch_contents
     assert 'default_value="RTK_FIXED,RTK_FIX"' in launch_contents
-    assert '"enable_rtk": enable_rtk' in launch_contents
+    assert "effective_enable_rtk = PythonExpression(" in launch_contents
+    assert "'enable_rtk': effective_enable_rtk".replace("'", '"') in launch_contents
+    assert 'DeclareLaunchArgument(\n                "gps_rtk_status_topic",' in launch_contents
+    assert 'default_value="/gps/rtk_status_mavros"' in launch_contents
     assert 'executable="gps_course_heading"' in launch_contents
     assert 'condition=IfCondition(enable_gps_course_heading)' in launch_contents
-    assert '"rtk_status_topic": "/gps/rtk_status"' in launch_contents
+    assert '"rtk_status_topic": gps_rtk_status_topic' in launch_contents
+    assert '"gps_status_topic": gps_rtk_status_topic' in launch_contents
+    assert '"invalid_hold_s": ParameterValue(' in launch_contents
+    assert '"max_sample_dt_s": ParameterValue(' in launch_contents
+    assert '"hold_yaw_variance_multiplier": ParameterValue(' in launch_contents
     assert '"require_rtk": ParameterValue(' in launch_contents
     assert '"allowed_rtk_statuses": gps_course_heading_allowed_rtk_statuses' in launch_contents
     assert '"enable_gps_course_heading": enable_gps_course_heading' in launch_contents
