@@ -67,7 +67,7 @@ def test_real_global_v2_launch_reuses_real_stack_with_global_navigation() -> Non
     assert 'DeclareLaunchArgument("gps_course_heading_publish_hz", default_value="5.0")' in launch_contents
     assert 'default_value="4.0"' in launch_contents
     assert 'DeclareLaunchArgument("gps_course_heading_require_rtk", default_value="True")' in launch_contents
-    assert 'default_value="RTK_FIXED,RTK_FIX"' in launch_contents
+    assert 'default_value="RTK_FIXED,RTK_FIX,RTK_FLOAT"' in launch_contents
     assert "effective_enable_rtk = PythonExpression(" in launch_contents
     assert "'enable_rtk': effective_enable_rtk".replace("'", '"') in launch_contents
     assert 'DeclareLaunchArgument(\n                "gps_rtk_status_topic",' in launch_contents
