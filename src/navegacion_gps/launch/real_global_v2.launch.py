@@ -109,9 +109,18 @@ def generate_launch_description():
     gps_course_heading_max_abs_yaw_rate_rps = LaunchConfiguration(
         "gps_course_heading_max_abs_yaw_rate_rps"
     )
+    gps_course_heading_invalid_hold_s = LaunchConfiguration(
+        "gps_course_heading_invalid_hold_s"
+    )
+    gps_course_heading_max_sample_dt_s = LaunchConfiguration(
+        "gps_course_heading_max_sample_dt_s"
+    )
     gps_course_heading_publish_hz = LaunchConfiguration("gps_course_heading_publish_hz")
     gps_course_heading_yaw_variance_rad2 = LaunchConfiguration(
         "gps_course_heading_yaw_variance_rad2"
+    )
+    gps_course_heading_hold_yaw_variance_multiplier = LaunchConfiguration(
+        "gps_course_heading_hold_yaw_variance_multiplier"
     )
     gps_course_heading_require_rtk = LaunchConfiguration("gps_course_heading_require_rtk")
     gps_course_heading_allowed_rtk_statuses = LaunchConfiguration(
@@ -176,10 +185,21 @@ def generate_launch_description():
                 "gps_course_heading_max_abs_yaw_rate_rps",
                 default_value="0.05",
             ),
+            # En real conviene mantener el ultimo yaw GPS valido por una
+            # ventana breve cuando el RTK sigue sano pero el vehiculo entra
+            # en una curva suave, para evitar que `map->odom` cambie bruscamente.
+            DeclareLaunchArgument("gps_course_heading_invalid_hold_s", default_value="0.8"),
+            # Evita reutilizar una cuerda GPS demasiado vieja; en curvas largas
+            # termina representando una tangente pasada y no el heading actual.
+            DeclareLaunchArgument("gps_course_heading_max_sample_dt_s", default_value="2.5"),
             DeclareLaunchArgument("gps_course_heading_publish_hz", default_value="5.0"),
             DeclareLaunchArgument(
                 "gps_course_heading_yaw_variance_rad2",
                 default_value="0.05",
+            ),
+            DeclareLaunchArgument(
+                "gps_course_heading_hold_yaw_variance_multiplier",
+                default_value="4.0",
             ),
             DeclareLaunchArgument("gps_course_heading_require_rtk", default_value="True"),
             DeclareLaunchArgument(
@@ -263,7 +283,7 @@ def generate_launch_description():
                 parameters=[
                     {
                         "use_sim_time": ParameterValue(use_sim_time, value_type=bool),
-                        "gps_topic": "/gps/fix",
+                        "gps_topic": "/global_position/raw/fix",
                         "odom_topic": "/odometry/local",
                         "drive_telemetry_topic": "/controller/drive_telemetry",
                         "output_topic": "/gps/course_heading",
@@ -281,11 +301,21 @@ def generate_launch_description():
                         "max_abs_yaw_rate_rps": ParameterValue(
                             gps_course_heading_max_abs_yaw_rate_rps, value_type=float
                         ),
+                        "invalid_hold_s": ParameterValue(
+                            gps_course_heading_invalid_hold_s, value_type=float
+                        ),
+                        "max_sample_dt_s": ParameterValue(
+                            gps_course_heading_max_sample_dt_s, value_type=float
+                        ),
                         "publish_hz": ParameterValue(
                             gps_course_heading_publish_hz, value_type=float
                         ),
                         "yaw_variance_rad2": ParameterValue(
                             gps_course_heading_yaw_variance_rad2, value_type=float
+                        ),
+                        "hold_yaw_variance_multiplier": ParameterValue(
+                            gps_course_heading_hold_yaw_variance_multiplier,
+                            value_type=float,
                         ),
                         "rtk_status_topic": "/gps/rtk_status",
                         "require_rtk": ParameterValue(
@@ -318,7 +348,7 @@ def generate_launch_description():
                         "approx_fromll_min_distance_for_fallback_m": 0.5,
                         "fromll_frame": "map",
                         "map_frame": "map",
-                        "gps_topic": "/gps/fix",
+                        "gps_topic": "/global_position/raw/fix",
                         "cmd_vel_safe_topic": "/cmd_vel_safe",
                         "cmd_vel_final_topic": "/cmd_vel_final",
                         "forward_cmd_vel_safe_without_goal": True,
@@ -348,7 +378,7 @@ def generate_launch_description():
                     "use_sim_time": use_sim_time,
                     "drive_telemetry_topic": "/controller/drive_telemetry",
                     "imu_topic": "/imu/data",
-                    "gps_topic": "/gps/fix",
+                    "gps_topic": "/global_position/raw/fix",
                     "wheelbase_m": wheelbase_m,
                     "invert_measured_steer_sign": invert_measured_steer_sign,
                     "pose_covariance_xy": pose_covariance_xy,
@@ -389,7 +419,7 @@ def generate_launch_description():
                 launch_arguments={
                     "ws_host": ws_host,
                     "ws_port": web_app_port,
-                    "gps_topic": "/gps/fix",
+                    "gps_topic": "/global_position/raw/fix",
                     "odom_topic": "/odometry/global",
                     "map_frame": "map",
                     "launch_zones_manager": "false",

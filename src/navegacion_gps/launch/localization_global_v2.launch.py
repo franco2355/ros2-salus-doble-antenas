@@ -255,7 +255,10 @@ def generate_launch_description():
                 default_value="/controller/drive_telemetry",
             ),
             DeclareLaunchArgument("imu_topic", default_value="/imu/data"),
-            DeclareLaunchArgument("gps_topic", default_value="/gps/fix"),
+            DeclareLaunchArgument(
+                "gps_topic",
+                default_value="/global_position/raw/fix",
+            ),
             DeclareLaunchArgument("navsat_use_odometry_yaw", default_value="false"),
             DeclareLaunchArgument(
                 "enable_global_odom_stationary_gate",
