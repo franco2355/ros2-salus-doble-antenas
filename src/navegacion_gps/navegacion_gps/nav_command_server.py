@@ -1052,11 +1052,13 @@ class NavCommandServerNode(Node):
     def _next_loop_segment_start_index(
         poses: Sequence[PoseStamped],
         current_start_index: int,
+        window_size: int = 2,
     ) -> int:
         total = len(list(poses))
         if total <= 1:
             return 0
-        return (int(current_start_index) + 1) % total
+        step = min(total, max(1, int(window_size)))
+        return (int(current_start_index) + step) % total
 
     def _send_follow_waypoints_goal(
         self,
@@ -1365,6 +1367,7 @@ class NavCommandServerNode(Node):
                 next_segment_start_index = self._next_loop_segment_start_index(
                     self._loop_original_poses,
                     self._loop_segment_start_index,
+                    self.loop_segment_size,
                 )
                 restart_goal_poses = self._build_loop_segment_poses(
                     self._loop_original_poses,

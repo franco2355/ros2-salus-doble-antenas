@@ -67,6 +67,55 @@ Comparar dos corridas:
   /ros2_ws/artifacts/nav_benchmarks/heading_core_candidate.json
 ```
 
+## Benchmark loop tipo cuadra
+
+Para probar patrullaje continuo sobre una geometría simple de 4 waypoints, ahora hay un helper que genera un rectángulo cerrado relativo a la pose actual del robot.
+
+La idea es usarlo como benchmark estable de loop:
+
+- 4 waypoints
+- cierre `W3 -> W0`
+- pensado como vuelta a una cuadra
+- reutilizable tanto en `sim_global_v2` como en `real_global_v2`
+
+Generar el YAML base desde la pose actual:
+
+```bash
+./tools/generate_block_loop_benchmark.sh
+```
+
+Eso escribe por default:
+
+- `/ros2_ws/src/navegacion_gps/config/block_loop_benchmark.yaml`
+
+Cambiar geometría o sentido de giro:
+
+```bash
+./tools/generate_block_loop_benchmark.sh \
+  --long-edge-m 42.0 \
+  --short-edge-m 20.0 \
+  --turn-direction right
+```
+
+Si querés que además quede disponible en la web app como waypoints guardados:
+
+```bash
+./tools/generate_block_loop_benchmark.sh \
+  --write-saved-waypoints /ros2_ws/src/navegacion_gps/config/saved_waypoints.yaml
+```
+
+Si querés empujarlo directo al `nav_command_server` como loop activo:
+
+```bash
+BLOCK_LOOP_SEND_GOAL=1 ./tools/generate_block_loop_benchmark.sh
+```
+
+Notas operativas:
+
+- el loop se construye relativo a `gps/fix` + heading actual en `map`;
+- por eso no es un benchmark estático de coordenadas absolutas, sino un generador reproducible sobre la pose actual;
+- el YAML generado usa el mismo formato que consume la web app para `saved_waypoints.yaml`.
+
 ## Linea actual de tuning
 
 Estado de trabajo sobre `sim_global_v2` al dia de hoy:

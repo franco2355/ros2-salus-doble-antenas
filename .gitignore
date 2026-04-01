@@ -2,6 +2,7 @@
 /build/
 /install/
 /log/
+/artifacts/
 
 # Python caches
 **/__pycache__/
@@ -10,3 +11,6 @@
 # Local editor / scratch state
 /.vscode/
 /.trash_mapviz/
+
+# Generated runtime configs
+/src/navegacion_gps/config/block_loop_benchmark.yaml

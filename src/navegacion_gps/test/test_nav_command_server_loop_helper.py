@@ -25,10 +25,16 @@ def test_build_loop_segment_poses_for_zero_or_one() -> None:
 
 
 def test_next_loop_segment_start_index_wraps() -> None:
+    poses = [1, 2, 3, 4]
+    assert NavCommandServerNode._next_loop_segment_start_index(poses, 0, 2) == 2
+    assert NavCommandServerNode._next_loop_segment_start_index(poses, 2, 2) == 0
+    assert NavCommandServerNode._next_loop_segment_start_index(poses, 3, 2) == 1
+
+
+def test_next_loop_segment_start_index_handles_short_loops() -> None:
     poses = [1, 2, 3]
-    assert NavCommandServerNode._next_loop_segment_start_index(poses, 0) == 1
-    assert NavCommandServerNode._next_loop_segment_start_index(poses, 1) == 2
-    assert NavCommandServerNode._next_loop_segment_start_index(poses, 2) == 0
+    assert NavCommandServerNode._next_loop_segment_start_index(poses, 0, 2) == 2
+    assert NavCommandServerNode._next_loop_segment_start_index(poses, 2, 2) == 1
 
 
 class _FakeLogger:
@@ -142,6 +148,7 @@ class _FakeLoopNode:
 
 def test_result_callback_advances_to_next_loop_segment_on_success() -> None:
     node = _FakeLoopNode()
+    node._loop_original_poses = [1, 2, 3, 4]
 
     NavCommandServerNode._on_nav_action_result_done(
         node,
@@ -150,21 +157,22 @@ def test_result_callback_advances_to_next_loop_segment_on_success() -> None:
     )
 
     poses, loop_enabled, reason, details = node.sent_calls[0]
-    assert poses == [2, 3]
+    assert poses == [3, 4]
     assert loop_enabled is True
     assert reason == "loop_segment_advance"
-    assert details["loop_segment_start_index"] == 1
+    assert details["loop_segment_start_index"] == 2
     assert details["loop_segment_size"] == 2
-    assert details["loop_total_waypoints"] == 3
-    assert node._loop_segment_start_index == 1
-    assert node._loop_waypoint_poses == [2, 3]
+    assert details["loop_total_waypoints"] == 4
+    assert node._loop_segment_start_index == 2
+    assert node._loop_waypoint_poses == [3, 4]
     assert node._is_navigating is True
     assert node._auto_mode == "loop"
 
 
 def test_result_callback_wraps_to_first_waypoint_after_last_segment() -> None:
     node = _FakeLoopNode()
-    node._loop_waypoint_poses = [3, 1]
+    node._loop_original_poses = [1, 2, 3, 4]
+    node._loop_waypoint_poses = [3, 4]
     node._loop_segment_start_index = 2
 
     NavCommandServerNode._on_nav_action_result_done(

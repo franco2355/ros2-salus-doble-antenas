@@ -50,6 +50,7 @@ Fuente de verdad: `src/**/launch/*.launch.py` y `tools/*.sh`
 | Herramienta | Comando | Estado |
 | --- | --- | --- |
 | Rosbag debug navegación | `./tools/record_nav_debug_bag.sh` | vigente |
+| Generador loop tipo cuadra | `./tools/generate_block_loop_benchmark.sh` | vigente |
 | Healthcheck LiDAR | `./tools/healthcheck-lidar.sh` | vigente |
 | Envío de path V2 | `./tools/send_follow_path_v2.sh` | soporte |
 | Stop sim local V2 | `./tools/stop_sim_local_v2.sh` | soporte |
