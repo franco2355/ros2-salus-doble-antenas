@@ -22,6 +22,8 @@ def generate_launch_description():
     rtcm_topic = LaunchConfiguration("rtcm_topic")
     send_rtcm_topic = LaunchConfiguration("send_rtcm_topic")
     rtk_status_topic = LaunchConfiguration("rtk_status_topic")
+    gps_raw_topic = LaunchConfiguration("gps_raw_topic")
+    gps_rtk_topic = LaunchConfiguration("gps_rtk_topic")
     rtk_sources_config = LaunchConfiguration("rtk_sources_config")
     active_rtk_source_id = LaunchConfiguration("active_rtk_source_id")
     rtk_source_select_topic = LaunchConfiguration("rtk_source_select_topic")
@@ -106,6 +108,16 @@ def generate_launch_description():
                 "rtk_status_topic",
                 default_value="/gps/rtk_status",
                 description="Topic where the RTK bridge publishes consolidated RTK status",
+            ),
+            DeclareLaunchArgument(
+                "gps_raw_topic",
+                default_value="/mavros_node/gps1/raw",
+                description="Raw MAVROS GPS topic used to classify RTK float/fixed states",
+            ),
+            DeclareLaunchArgument(
+                "gps_rtk_topic",
+                default_value="/mavros_node/gps1/rtk",
+                description="MAVROS GPS RTK diagnostics topic used by the RTK bridge",
             ),
             DeclareLaunchArgument(
                 "rtk_sources_config",
@@ -278,6 +290,8 @@ def generate_launch_description():
                     {"send_rtcm_topic": send_rtcm_topic},
                     {"gps_topic": gps_topic},
                     {"status_topic": rtk_status_topic},
+                    {"gps_raw_topic": gps_raw_topic},
+                    {"gps_rtk_topic": gps_rtk_topic},
                 ],
             ),
             Node(
@@ -304,6 +318,8 @@ def generate_launch_description():
                     {"send_rtcm_topic": send_rtcm_topic},
                     {"gps_topic": gps_topic},
                     {"status_topic": rtk_status_topic},
+                    {"gps_raw_topic": gps_raw_topic},
+                    {"gps_rtk_topic": gps_rtk_topic},
                 ],
             ),
         ]

@@ -7,11 +7,14 @@ from dataclasses import dataclass
 from typing import Optional
 
 import rclpy
-from mavros_msgs.msg import RTCM, RTKBaseline
+from mavros_msgs.msg import GPSRAW, GPSRTK, RTCM, RTKBaseline
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import NavSatFix, NavSatStatus
 from std_msgs.msg import Float32, Int32, String, UInt8MultiArray
+
+from sensores.rtk_bridge_core import RtkStatusInputs
+from sensores.rtk_bridge_core import resolve_rtk_status
 
 RTCM_TCP_HOST = "127.0.0.1"
 RTCM_TCP_PORT = 2102
@@ -39,10 +42,15 @@ class RtkBridgeNode(Node):
         self.declare_parameter("rtcm_topic", "/rtcm")
         self.declare_parameter("send_rtcm_topic", "/mavros_node/send_rtcm")
         self.declare_parameter("gps_topic", "/global_position/raw/fix")
+        self.declare_parameter("gps_raw_topic", "/mavros_node/gps1/raw")
+        self.declare_parameter("gps_rtk_topic", "/mavros_node/gps1/rtk")
         self.declare_parameter("status_topic", "/gps/rtk_status")
         self.declare_parameter("rtk_baseline_topic", "/mavros_node/rtk_baseline")
         self.declare_parameter("diagnostics_period_s", 1.0)
         self.declare_parameter("rtcm_stale_timeout_s", 5.0)
+        self.declare_parameter("gps_raw_stale_timeout_s", 2.5)
+        self.declare_parameter("gps_rtk_stale_timeout_s", 2.5)
+        self.declare_parameter("rtk_baseline_stale_timeout_s", 2.5)
         self.declare_parameter("tcp_retry_log_period_s", 30.0)
 
         self.enable_rtcm_tcp = bool(self.get_parameter("enable_rtcm_tcp").value)
@@ -51,6 +59,8 @@ class RtkBridgeNode(Node):
         self.rtcm_topic = str(self.get_parameter("rtcm_topic").value)
         self.send_rtcm_topic = str(self.get_parameter("send_rtcm_topic").value)
         self.gps_topic = str(self.get_parameter("gps_topic").value)
+        self.gps_raw_topic = str(self.get_parameter("gps_raw_topic").value)
+        self.gps_rtk_topic = str(self.get_parameter("gps_rtk_topic").value)
         self.status_topic = str(self.get_parameter("status_topic").value)
         self.rtk_baseline_topic = str(self.get_parameter("rtk_baseline_topic").value)
         self._diagnostics_period_s = float(
@@ -58,6 +68,15 @@ class RtkBridgeNode(Node):
         )
         self._rtcm_stale_timeout_s = float(
             self.get_parameter("rtcm_stale_timeout_s").value
+        )
+        self._gps_raw_stale_timeout_s = float(
+            self.get_parameter("gps_raw_stale_timeout_s").value
+        )
+        self._gps_rtk_stale_timeout_s = float(
+            self.get_parameter("gps_rtk_stale_timeout_s").value
+        )
+        self._rtk_baseline_stale_timeout_s = float(
+            self.get_parameter("rtk_baseline_stale_timeout_s").value
         )
         self._tcp_retry_log_period_s = float(
             self.get_parameter("tcp_retry_log_period_s").value
@@ -70,6 +89,12 @@ class RtkBridgeNode(Node):
 
         self.create_subscription(
             NavSatFix, self.gps_topic, self._gps_cb, qos_profile_sensor_data
+        )
+        self.create_subscription(
+            GPSRAW, self.gps_raw_topic, self._gps_raw_cb, qos_profile_sensor_data
+        )
+        self.create_subscription(
+            GPSRTK, self.gps_rtk_topic, self._gps_rtk_cb, qos_profile_sensor_data
         )
         self.create_subscription(
             RTKBaseline,
@@ -85,7 +110,12 @@ class RtkBridgeNode(Node):
         self._tcp_thread: Optional[threading.Thread] = None
         self._tcp_last_connect_attempt_s = 0.0
         self._last_gps_msg: Optional[NavSatFix] = None
+        self._last_gps_raw_msg: Optional[GPSRAW] = None
+        self._last_gps_raw_rx_s: Optional[float] = None
+        self._last_gps_rtk_msg: Optional[GPSRTK] = None
+        self._last_gps_rtk_rx_s: Optional[float] = None
         self._last_rtk_baseline: Optional[RTKBaseline] = None
+        self._last_rtk_baseline_rx_s: Optional[float] = None
         self._rtcm_state = RTCMState()
         self._missing_mavros_logged = False
         self._rtcm_stale_logged = False
@@ -101,8 +131,8 @@ class RtkBridgeNode(Node):
             "RTK bridge active: "
             f"{self.rtcm_topic} + TCP({self.rtcm_tcp_host}:{self.rtcm_tcp_port}) -> "
             f"{self.send_rtcm_topic} | GPS diagnostics from {self.gps_topic} "
-            f"| status topic {self.status_topic} "
-            f"| baseline topic {self.rtk_baseline_topic}"
+            f"| gps_raw={self.gps_raw_topic} | gps_rtk={self.gps_rtk_topic} "
+            f"| status topic {self.status_topic} | baseline topic {self.rtk_baseline_topic}"
         )
 
     def destroy_node(self) -> bool:
@@ -158,8 +188,17 @@ class RtkBridgeNode(Node):
     def _gps_cb(self, msg: NavSatFix) -> None:
         self._last_gps_msg = msg
 
+    def _gps_raw_cb(self, msg: GPSRAW) -> None:
+        self._last_gps_raw_msg = msg
+        self._last_gps_raw_rx_s = self._now_s()
+
+    def _gps_rtk_cb(self, msg: GPSRTK) -> None:
+        self._last_gps_rtk_msg = msg
+        self._last_gps_rtk_rx_s = self._now_s()
+
     def _rtk_baseline_cb(self, msg: RTKBaseline) -> None:
         self._last_rtk_baseline = msg
+        self._last_rtk_baseline_rx_s = self._now_s()
 
     def _rtcm_callback(self, msg, source: str) -> None:
         rtcm_data = self._extract_rtcm_bytes(msg)
@@ -293,25 +332,50 @@ class RtkBridgeNode(Node):
         except AttributeError:
             return self.count_subscribers(self.send_rtcm_topic)
 
+    @staticmethod
+    def _message_fresh(
+        *,
+        now_s: float,
+        last_rx_s: Optional[float],
+        stale_timeout_s: float,
+    ) -> bool:
+        if last_rx_s is None:
+            return False
+        return max(0.0, float(now_s) - float(last_rx_s)) <= max(0.1, float(stale_timeout_s))
+
     def _status_text(self, rtcm_age: float) -> str:
-        if self._rtcm_consumer_count() == 0:
-            return "waiting_for_mavros_gps_rtk"
-        if self._last_gps_msg is None:
-            return "waiting_for_gps"
-        if (
-            self._last_rtk_baseline is not None
-            and self._last_gps_msg.status.status >= NavSatStatus.STATUS_GBAS_FIX
-        ):
-            return "rtk_fix"
-        if self._last_gps_msg.status.status == NavSatStatus.STATUS_NO_FIX:
-            return "gps_no_fix"
-        if self._last_gps_msg.status.status == NavSatStatus.STATUS_GBAS_FIX:
-            return "rtk_fix"
-        if self._rtcm_state.received_count == 0:
-            return "gps_only"
-        if rtcm_age > self._rtcm_stale_timeout_s:
-            return "rtcm_stale"
-        return "rtcm_ok"
+        now_s = self._now_s()
+        navsat_status = None
+        if self._last_gps_msg is not None:
+            navsat_status = int(self._last_gps_msg.status.status)
+        gpsraw_fix_type = None
+        if self._last_gps_raw_msg is not None:
+            gpsraw_fix_type = int(self._last_gps_raw_msg.fix_type)
+        return resolve_rtk_status(
+            RtkStatusInputs(
+                mavros_rtk_consumer_present=self._rtcm_consumer_count() > 0,
+                navsat_status=navsat_status,
+                gpsraw_fix_type=gpsraw_fix_type,
+                gpsraw_fresh=self._message_fresh(
+                    now_s=now_s,
+                    last_rx_s=self._last_gps_raw_rx_s,
+                    stale_timeout_s=self._gps_raw_stale_timeout_s,
+                ),
+                gpsrtk_fresh=self._message_fresh(
+                    now_s=now_s,
+                    last_rx_s=self._last_gps_rtk_rx_s,
+                    stale_timeout_s=self._gps_rtk_stale_timeout_s,
+                ),
+                baseline_fresh=self._message_fresh(
+                    now_s=now_s,
+                    last_rx_s=self._last_rtk_baseline_rx_s,
+                    stale_timeout_s=self._rtk_baseline_stale_timeout_s,
+                ),
+                rtcm_received_count=self._rtcm_state.received_count,
+                rtcm_age_s=rtcm_age,
+                rtcm_stale_timeout_s=self._rtcm_stale_timeout_s,
+            )
+        )
 
     def _publish_diagnostics(self) -> None:
         now_s = self._now_s()

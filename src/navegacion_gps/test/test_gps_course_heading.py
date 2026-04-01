@@ -1,3 +1,15 @@
+import sys
+from pathlib import Path
+
+import pytest
+
+
+PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+if str(PACKAGE_ROOT) not in sys.path:
+    sys.path.insert(0, str(PACKAGE_ROOT))
+
+pytest.importorskip("rclpy")
+
 from navegacion_gps.gps_course_heading import is_rtk_status_allowed
 from navegacion_gps.gps_course_heading import normalize_rtk_status_label
 from navegacion_gps.gps_course_heading import parse_allowed_rtk_statuses

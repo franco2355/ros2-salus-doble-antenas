@@ -29,7 +29,7 @@ def test_real_global_v2_launch_reuses_real_stack_with_global_navigation() -> Non
     assert 'DeclareLaunchArgument("use_rviz", default_value="False")' in launch_contents
     assert 'DeclareLaunchArgument("rviz_config", default_value=default_rviz)' in launch_contents
     assert "rviz_global_v2.rviz" in launch_contents
-    assert 'DeclareLaunchArgument("enable_rtk", default_value="False")' in launch_contents
+    assert 'DeclareLaunchArgument("enable_rtk", default_value="True")' in launch_contents
     assert 'DeclareLaunchArgument("enable_gps_course_heading", default_value="False")' in launch_contents
     assert 'DeclareLaunchArgument("gps_course_heading_min_distance_m", default_value="2.0")' in launch_contents
     assert 'DeclareLaunchArgument("gps_course_heading_min_speed_mps", default_value="0.8")' in launch_contents

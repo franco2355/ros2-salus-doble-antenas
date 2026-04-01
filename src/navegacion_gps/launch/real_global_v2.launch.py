@@ -149,7 +149,10 @@ def generate_launch_description():
         [
             DeclareLaunchArgument("use_sim_time", default_value="False"),
             DeclareLaunchArgument("wheelbase_m", default_value="0.94"),
-            DeclareLaunchArgument("enable_rtk", default_value="False"),
+            # En `real_global_v2` la cadena RTK debe quedar observable por
+            # default para diagnosticar el GNSS aunque el heading GPS siga
+            # deshabilitado.
+            DeclareLaunchArgument("enable_rtk", default_value="True"),
             DeclareLaunchArgument(
                 "invert_measured_steer_sign",
                 default_value="True",
@@ -239,10 +242,11 @@ def generate_launch_description():
                 launch_arguments={
                     "launch_web": "false",
                     "launch_legacy_compat": "false",
-                    # Si el operador habilita `gps_course_heading` en modo
-                    # RTK-obligatorio, tambien debemos levantar la cadena que
-                    # publica `/gps/rtk_status` para evitar una activacion a
-                    # medias del heading global.
+                    # El bridge RTK queda activo por default en este perfil.
+                    # Si el operador desactiva RTK pero luego habilita
+                    # `gps_course_heading` en modo RTK-obligatorio, esta
+                    # expresion vuelve a encender la cadena necesaria para
+                    # evitar una activacion a medias del heading global.
                     "enable_rtk": effective_enable_rtk,
                     "rtk_status_topic": gps_rtk_status_topic,
                     "fcu_url": fcu_url,
