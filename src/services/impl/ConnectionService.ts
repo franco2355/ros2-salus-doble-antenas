@@ -172,9 +172,16 @@ export class ConnectionService {
     }
   }
 
+  isCameraEnabled(): boolean {
+    return this.state.preset !== "sim" && this.env.cameraIframeUrl.trim().length > 0;
+  }
+
+  getCameraIframeUrl(): string {
+    return this.isCameraEnabled() ? this.env.cameraIframeUrl.trim() : "";
+  }
+
   private emit(): void {
     const snapshot = this.getState();
     this.listeners.forEach((listener) => listener(snapshot));
   }
 }
-

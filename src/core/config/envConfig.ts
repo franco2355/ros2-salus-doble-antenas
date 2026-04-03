@@ -4,6 +4,7 @@ export interface EnvConfig {
   rosbridgeUrl: string;
   httpBaseUrl: string;
   googleMapsApiKey: string;
+  cameraIframeUrl: string;
 }
 
 export function loadEnvConfig(env: ImportMetaEnv = import.meta.env): EnvConfig {
@@ -12,7 +13,7 @@ export function loadEnvConfig(env: ImportMetaEnv = import.meta.env): EnvConfig {
     wsUrl: env.VITE_WS_URL ?? "ws://localhost:8766",
     rosbridgeUrl: env.VITE_ROSBRIDGE_URL ?? "ws://localhost:9090",
     httpBaseUrl: env.VITE_HTTP_BASE_URL ?? "http://localhost:8080",
-    googleMapsApiKey: env.VITE_GOOGLE_MAPS_API_KEY ?? ""
+    googleMapsApiKey: env.VITE_GOOGLE_MAPS_API_KEY ?? "",
+    cameraIframeUrl: env.VITE_CAMERA_IFRAME_URL ?? ""
   };
 }
-

@@ -28,6 +28,7 @@ export interface CameraStatusData {
 
 export interface NavigationState {
   waypoints: GoalInput[];
+  selectedWaypointIndexes: number[];
   loopRoute: boolean;
   goalMode: boolean;
   manualMode: boolean;
@@ -81,10 +82,18 @@ function parseStoredWaypoints(raw: string): GoalInput[] {
   return parsed.map((entry) => parseGoal(entry)).slice(0, 40);
 }
 
+function sanitizeSelection(selection: number[], max: number): number[] {
+  const next = selection
+    .map((index) => Number(index))
+    .filter((index) => Number.isInteger(index) && index >= 0 && index < max);
+  return Array.from(new Set(next)).sort((a, b) => a - b);
+}
+
 export class NavigationService {
   private readonly listeners = new Set<NavigationListener>();
   private state: NavigationState = {
     waypoints: [],
+    selectedWaypointIndexes: [],
     loopRoute: true,
     goalMode: false,
     manualMode: false,
@@ -99,6 +108,7 @@ export class NavigationService {
     return {
       ...this.state,
       waypoints: this.state.waypoints.map((waypoint) => ({ ...waypoint })),
+      selectedWaypointIndexes: [...this.state.selectedWaypointIndexes],
       lastSnapshot: this.state.lastSnapshot ? { ...this.state.lastSnapshot } : null
     };
   }
@@ -135,6 +145,7 @@ export class NavigationService {
     this.state = {
       ...this.state,
       waypoints: [...this.state.waypoints, parsed].slice(-40),
+      selectedWaypointIndexes: [],
       lastStatus: "Waypoint added"
     };
     this.emit();
@@ -144,6 +155,7 @@ export class NavigationService {
     this.state = {
       ...this.state,
       waypoints: this.state.waypoints.slice(0, Math.max(0, this.state.waypoints.length - 1)),
+      selectedWaypointIndexes: sanitizeSelection(this.state.selectedWaypointIndexes, this.state.waypoints.length - 1),
       lastStatus: "Waypoint removed"
     };
     this.emit();
@@ -153,9 +165,58 @@ export class NavigationService {
     this.state = {
       ...this.state,
       waypoints: [],
+      selectedWaypointIndexes: [],
       lastStatus: "Waypoints cleared"
     };
     this.emit();
+  }
+
+  toggleWaypointSelection(index: number): void {
+    if (!Number.isInteger(index) || index < 0 || index >= this.state.waypoints.length) return;
+    const selected = new Set(this.state.selectedWaypointIndexes);
+    if (selected.has(index)) {
+      selected.delete(index);
+    } else {
+      selected.add(index);
+    }
+    this.state = {
+      ...this.state,
+      selectedWaypointIndexes: sanitizeSelection([...selected], this.state.waypoints.length)
+    };
+    this.emit();
+  }
+
+  selectAllWaypoints(): void {
+    const selected = this.state.waypoints.map((_, index) => index);
+    this.state = {
+      ...this.state,
+      selectedWaypointIndexes: selected
+    };
+    this.emit();
+  }
+
+  clearWaypointSelection(): void {
+    if (this.state.selectedWaypointIndexes.length === 0) return;
+    this.state = {
+      ...this.state,
+      selectedWaypointIndexes: []
+    };
+    this.emit();
+  }
+
+  removeSelectedWaypoints(): number {
+    const selection = new Set(this.state.selectedWaypointIndexes);
+    if (selection.size === 0) return 0;
+    const nextWaypoints = this.state.waypoints.filter((_, index) => !selection.has(index));
+    const removed = this.state.waypoints.length - nextWaypoints.length;
+    this.state = {
+      ...this.state,
+      waypoints: nextWaypoints,
+      selectedWaypointIndexes: [],
+      lastStatus: removed > 0 ? `Removed ${removed} waypoint${removed > 1 ? "s" : ""}` : this.state.lastStatus
+    };
+    this.emit();
+    return removed;
   }
 
   saveWaypoints(): number {
@@ -182,6 +243,7 @@ export class NavigationService {
     this.state = {
       ...this.state,
       waypoints: loaded,
+      selectedWaypointIndexes: [],
       lastStatus: `Loaded ${loaded.length} waypoints`
     };
     this.emit();

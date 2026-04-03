@@ -64,6 +64,36 @@ describe("services", () => {
     expect(service.getState().waypoints).toHaveLength(1);
   });
 
+  it("supports waypoint selection and selective removal", () => {
+    const dispatcher = {
+      requestGoal: vi.fn<() => Promise<IncomingPacket>>().mockResolvedValue({
+        op: "navigation.goal.result",
+        ok: true
+      }),
+      requestCancelGoal: vi.fn(),
+      requestManualMode: vi.fn(),
+      requestManualCommand: vi.fn(),
+      requestSnapshot: vi.fn(),
+      requestCameraPan: vi.fn(),
+      requestCameraZoomToggle: vi.fn(),
+      requestCameraStatus: vi.fn()
+    };
+    const service = new NavigationService(dispatcher as never);
+
+    service.queueWaypoint({ x: 1, y: 1, yawDeg: 0 });
+    service.queueWaypoint({ x: 2, y: 2, yawDeg: 0 });
+    service.queueWaypoint({ x: 3, y: 3, yawDeg: 0 });
+    service.toggleWaypointSelection(0);
+    service.toggleWaypointSelection(2);
+    expect(service.getState().selectedWaypointIndexes).toEqual([0, 2]);
+
+    const removed = service.removeSelectedWaypoints();
+    expect(removed).toBe(2);
+    expect(service.getState().waypoints).toHaveLength(1);
+    expect(service.getState().waypoints[0]).toMatchObject({ x: 2, y: 2, yawDeg: 0 });
+    expect(service.getState().selectedWaypointIndexes).toEqual([]);
+  });
+
   it("sends queued goals through NavigationService", async () => {
     const dispatcher = {
       requestGoal: vi.fn<() => Promise<IncomingPacket>>().mockResolvedValue({

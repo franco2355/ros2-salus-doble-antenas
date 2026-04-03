@@ -3,7 +3,7 @@ import { NAV_EVENTS } from "../../core/events/topics";
 import type { CockpitModule, ModuleContext } from "../../core/types/module";
 import { RobotDispatcher } from "../../dispatcher/impl/RobotDispatcher";
 import { notify } from "../../platform/tauri/notifications";
-import { ConnectionService } from "../../services/impl/ConnectionService";
+import { ConnectionService, type ConnectionState } from "../../services/impl/ConnectionService";
 import type { TelemetrySnapshot } from "../../services/impl/TelemetryService";
 import { NavigationService, type NavigationState, type SnapshotData } from "../../services/impl/NavigationService";
 import { WebSocketTransport } from "../../transport/impl/WebSocketTransport";
@@ -97,6 +97,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
   const service = runtime.registries.serviceRegistry.getService<NavigationService>(NAVIGATION_SERVICE_ID);
   const [draft, setDraft] = useState<WaypointDraft>({ x: "1.0", y: "2.0", yawDeg: "90" });
   const [state, setState] = useState<NavigationState>(service.getState());
+  const selectedCount = state.selectedWaypointIndexes.length;
 
   useEffect(() => service.subscribe((next) => setState(next)), [service]);
 
@@ -287,6 +288,50 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
         >
           Clear waypoints
         </button>
+        <div className="action-grid">
+          <button type="button" onClick={() => service.selectAllWaypoints()} disabled={state.waypoints.length === 0}>
+            Select all
+          </button>
+          <button type="button" onClick={() => service.clearWaypointSelection()} disabled={selectedCount === 0}>
+            Clear selection
+          </button>
+        </div>
+        <button
+          type="button"
+          className="danger-btn"
+          onClick={() => {
+            const removed = service.removeSelectedWaypoints();
+            if (removed > 0) {
+              emitInfo(`Removed ${removed} selected waypoint${removed > 1 ? "s" : ""}`);
+            }
+          }}
+          disabled={selectedCount === 0}
+        >
+          Remove selected ({selectedCount})
+        </button>
+        <div className="waypoint-list-wrap">
+          {state.waypoints.length === 0 ? (
+            <p className="muted">No queued waypoints.</p>
+          ) : (
+            <ul className="waypoint-list">
+              {state.waypoints.map((waypoint, index) => {
+                const checked = state.selectedWaypointIndexes.includes(index);
+                return (
+                  <li key={`${index}-${waypoint.x}-${waypoint.y}-${waypoint.yawDeg}`}>
+                    <label className="check-row">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => service.toggleWaypointSelection(index)}
+                      />
+                      #{index + 1} · x={waypoint.x.toFixed(2)} y={waypoint.y.toFixed(2)} yaw={waypoint.yawDeg.toFixed(1)}
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
         <div className="status-pill">{state.lastStatus}</div>
         <p className="muted">Queued waypoints: {state.waypoints.length}</p>
       </div>
@@ -479,9 +524,24 @@ function CameraSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.Elemen
 }
 
 function CameraGpsWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element {
+  const navigationService = runtime.registries.serviceRegistry.getService<NavigationService>(NAVIGATION_SERVICE_ID);
+  let connectionService: ConnectionService | null = null;
+  try {
+    connectionService = runtime.registries.serviceRegistry.getService<ConnectionService>(CONNECTION_SERVICE_ID);
+  } catch {
+    connectionService = null;
+  }
   const [mainPane, setMainPane] = useState<"camera" | "gps">("camera");
-  const [unlocked, setUnlocked] = useState(false);
+  const [controlsLocked, setControlsLocked] = useState(true);
+  const [frameSrc, setFrameSrc] = useState("");
+  const [frameReady, setFrameReady] = useState(false);
+  const [navigationState, setNavigationState] = useState<NavigationState>(navigationService.getState());
+  const [connectionState, setConnectionState] = useState<ConnectionState | null>(
+    connectionService ? connectionService.getState() : null
+  );
   const mainIsCamera = mainPane === "camera";
+  const cameraUrl = connectionService?.getCameraIframeUrl() ?? "";
+  const cameraEnabled = connectionService?.isCameraEnabled() ?? false;
 
   useEffect(() => {
     return runtime.eventBus.on(NAV_EVENTS.swapWorkspaceRequest, () => {
@@ -489,40 +549,103 @@ function CameraGpsWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.El
     });
   }, [runtime]);
 
+  useEffect(() => navigationService.subscribe((next) => setNavigationState(next)), [navigationService]);
+  useEffect(() => {
+    if (!connectionService) return;
+    return connectionService.subscribe((next) => setConnectionState(next));
+  }, [connectionService]);
+
+  useEffect(() => {
+    if (!navigationState.cameraStreamConnected || !cameraEnabled || !cameraUrl) {
+      setFrameSrc("");
+      setFrameReady(false);
+      return;
+    }
+    const separator = cameraUrl.includes("?") ? "&" : "?";
+    setFrameSrc(`${cameraUrl}${separator}_ts=${Date.now()}`);
+    setFrameReady(false);
+  }, [navigationState.cameraStreamConnected, cameraEnabled, cameraUrl]);
+
+  const cameraOverlayText = !cameraEnabled
+    ? connectionState?.preset === "sim"
+      ? "camera disabled in sim"
+      : "camera unavailable"
+    : !navigationState.cameraStreamConnected
+      ? "camara desconectada"
+      : frameReady
+        ? ""
+        : "camera connecting";
+
   return (
     <div className="stack">
       <div className="panel-card">
         <h3>Camera / GPS Workspace</h3>
         <p className="muted">Stage central con swap de vistas (patrón del monolito).</p>
-        <div className="stage">
+        <div className={`stage ${mainIsCamera ? "mode-camera-main" : "mode-gps-main"}`}>
           <section className={`stage-pane ${mainIsCamera ? "main" : "mini"}`}>
             <h4>Camera</h4>
-            <div className="pane-placeholder">Camera feed iframe host</div>
+            <div className="camera-frame-wrap">
+              <iframe
+                className="camera-frame"
+                src={frameSrc}
+                title="Camera feed"
+                loading="lazy"
+                onLoad={() => setFrameReady(true)}
+              />
+              {cameraOverlayText ? <div className="camera-overlay visible">{cameraOverlayText}</div> : null}
+            </div>
           </section>
           <section className={`stage-pane ${mainIsCamera ? "mini" : "main"}`}>
             <h4>GPS Map</h4>
-            <div className="pane-placeholder">Map canvas host</div>
+            <div className="map-canvas">
+              <div className="pane-placeholder">Map canvas host</div>
+            </div>
           </section>
-          <div className="stage-actions">
-            <button type="button" className="swap-btn" onClick={() => setMainPane(mainIsCamera ? "gps" : "camera")}>
-              Swap
-            </button>
-            <button type="button" onClick={() => setUnlocked((prev) => !prev)}>
-              {unlocked ? "Lock controls" : "Unlock controls"}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                runtime.eventBus.emit("console.event", {
-                  level: "info",
-                  text: `Workspace controls ${unlocked ? "locked" : "unlocked"}`,
-                  timestamp: Date.now()
-                });
-              }}
-            >
-              Publish state
-            </button>
-          </div>
+          <button type="button" className="swap-btn" onClick={() => setMainPane(mainIsCamera ? "gps" : "camera")}>
+            🔄
+          </button>
+          {controlsLocked ? (
+            <div className="view-stage-unlock-overlay">
+              <button type="button" className="view-stage-unlock-btn" onClick={() => setControlsLocked(false)}>
+                <span className="view-stage-unlock-icon" aria-hidden="true">
+                  🔒
+                </span>
+                <span>Desbloquear</span>
+              </button>
+            </div>
+          ) : (
+            <div className="stage-actions">
+              <button
+                type="button"
+                disabled={!cameraEnabled}
+                onClick={() => {
+                  const connected = navigationService.toggleCameraStream();
+                  runtime.eventBus.emit("console.event", {
+                    level: "info",
+                    text: connected ? "Camera stream connected" : "Camera stream disconnected",
+                    timestamp: Date.now()
+                  });
+                }}
+              >
+                {navigationState.cameraStreamConnected ? "Disconnect camera" : "Connect camera"}
+              </button>
+              <button type="button" onClick={() => setControlsLocked(true)}>
+                Lock controls
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  runtime.eventBus.emit("console.event", {
+                    level: "info",
+                    text: `Workspace main view: ${mainIsCamera ? "camera" : "gps"}`,
+                    timestamp: Date.now()
+                  });
+                }}
+              >
+                Publish state
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

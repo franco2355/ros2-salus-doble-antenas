@@ -50,7 +50,8 @@ function createRuntime(): AppRuntime {
       wsUrl: "",
       rosbridgeUrl: "",
       httpBaseUrl: "",
-      googleMapsApiKey: ""
+      googleMapsApiKey: "",
+      cameraIframeUrl: ""
     },
     moduleConfig: { modules: {}, source: "default" },
     container: createContainer(),

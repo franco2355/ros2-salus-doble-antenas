@@ -73,14 +73,14 @@
 				}
 			},
 			{
-				"label": "📦 Cockpit: instalar dependencias",
+				"label": "📦 NPM: Instalar dependencias",
 				"detail": "Instala dependencias del proyecto React + Tauri",
 				"type": "shell",
 				"command": "npm install",
 				"problemMatcher": []
 			},
 			{
-				"label": "🚀 Cockpit: ejecutar proyecto",
+				"label": "🚀 NPM: Ejecutar",
 				"detail": "Ejecuta el proyecto en modo desarrollo",
 				"type": "shell",
 				"command": "npm run dev",
@@ -88,7 +88,7 @@
 				"problemMatcher": []
 			},
 			{
-				"label": "🏗️ Cockpit: compilar proyecto",
+				"label": "🏗️ NPM: Compilar",
 				"detail": "Compila el proyecto para producción",
 				"type": "shell",
 				"command": "npm run build",
@@ -96,7 +96,7 @@
 				"problemMatcher": []
 			},
 			{
-				"label": "🖥️ Cockpit: ejecutar con Tauri",
+				"label": "🖥️ Tauri: Ejecutar",
 				"detail": "Ejecuta la app desktop con Tauri (dev)",
 				"type": "shell",
 				"command": "npm run tauri:dev",
@@ -104,7 +104,7 @@
 				"problemMatcher": []
 			},
 			{
-				"label": "📦 Cockpit: compilar con Tauri",
+				"label": "📦 Tauri: Compilar",
 				"detail": "Compila el bundle desktop con Tauri",
 				"type": "shell",
 				"command": "npm run tauri:build",
