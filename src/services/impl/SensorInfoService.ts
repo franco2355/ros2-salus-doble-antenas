@@ -45,6 +45,29 @@ function parseTab(value: unknown): SensorInfoTab | null {
   return null;
 }
 
+function normalizeTopicHistoryText(snapshot: Record<string, unknown>, current: string): string {
+  const direct = String(snapshot.history_text ?? "").trim();
+  if (direct) return direct;
+  const entries = Array.isArray(snapshot.history_entries) ? snapshot.history_entries : [];
+  if (entries.length === 0) return current;
+  return entries
+    .map((entry) => {
+      if (entry == null) return "";
+      if (typeof entry === "string") return entry;
+      if (typeof entry === "number" || typeof entry === "boolean") return String(entry);
+      if (typeof entry === "object") {
+        try {
+          return JSON.stringify(entry);
+        } catch {
+          return "";
+        }
+      }
+      return "";
+    })
+    .filter((line) => line.length > 0)
+    .join("\n");
+}
+
 export class SensorInfoService {
   private readonly listeners = new Set<Listener>();
   private state: SensorInfoState = {
@@ -274,10 +297,10 @@ export class SensorInfoService {
         ...topics,
         selectedTopic: String(snapshot.selected_topic ?? topics.selectedTopic ?? ""),
         selectedType: String(snapshot.selected_type ?? topics.selectedType ?? ""),
-        historyText: String(snapshot.history_text ?? ""),
+        historyText: normalizeTopicHistoryText(snapshot, topics.historyText),
         truncated: snapshot.truncated === true,
         pendingTopic:
-          String(snapshot.selected_topic ?? "") === topics.pendingTopic ? "" : topics.pendingTopic,
+          String(snapshot.selected_topic ?? "") === topics.pendingTopic || message.ok === false ? "" : topics.pendingTopic,
         catalog
       };
     }

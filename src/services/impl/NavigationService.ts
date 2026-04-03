@@ -26,13 +26,32 @@ export interface CameraStatusData {
   lastCommand: string;
 }
 
+export interface ManualKeysState {
+  w: boolean;
+  a: boolean;
+  s: boolean;
+  d: boolean;
+}
+
 export interface NavigationState {
   waypoints: GoalInput[];
   selectedWaypointIndexes: number[];
   loopRoute: boolean;
   goalMode: boolean;
   manualMode: boolean;
+  manualDisablePending: boolean;
+  manualLinearSpeed: number;
+  manualAngularSpeed: number;
+  manualCommand: {
+    linearX: number;
+    angularZ: number;
+  };
+  manualKeys: ManualKeysState;
+  manualBrakeHeld: boolean;
   cameraStreamConnected: boolean;
+  controlLocked: boolean;
+  controlLockReason: string;
+  unlockGraceUntilMs: number;
   lastStatus: string;
   lastSnapshot: SnapshotData | null;
 }
@@ -40,6 +59,9 @@ export interface NavigationState {
 type NavigationListener = (state: NavigationState) => void;
 
 const WAYPOINT_STORAGE_KEY = "cockpit.navigation.waypoints.v1";
+const DEFAULT_MANUAL_LINEAR_SPEED = 1.2;
+const DEFAULT_MANUAL_ANGULAR_SPEED = 0.4;
+const MANUAL_LOOP_INTERVAL_MS = 120;
 const navigationMemoryStorage = new Map<string, string>();
 
 function getStorageAdapter(): {
@@ -104,24 +126,52 @@ function parseSnapshotStamp(raw: unknown): number {
 
 export class NavigationService {
   private readonly listeners = new Set<NavigationListener>();
+  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+  private manualLoopTimer: ReturnType<typeof setInterval> | null = null;
   private state: NavigationState = {
     waypoints: [],
     selectedWaypointIndexes: [],
     loopRoute: true,
     goalMode: false,
     manualMode: false,
+    manualDisablePending: false,
+    manualLinearSpeed: DEFAULT_MANUAL_LINEAR_SPEED,
+    manualAngularSpeed: DEFAULT_MANUAL_ANGULAR_SPEED,
+    manualCommand: {
+      linearX: 0,
+      angularZ: 0
+    },
+    manualKeys: {
+      w: false,
+      a: false,
+      s: false,
+      d: false
+    },
+    manualBrakeHeld: false,
     cameraStreamConnected: false,
+    controlLocked: true,
+    controlLockReason: "locked",
+    unlockGraceUntilMs: 0,
     lastStatus: "No active goal",
     lastSnapshot: null
   };
 
-  constructor(private readonly robotDispatcher: RobotDispatcher) {}
+  constructor(private readonly robotDispatcher: RobotDispatcher) {
+    const dispatcher = this.robotDispatcher as unknown as {
+      subscribeState?: (callback: (message: Record<string, unknown>) => void) => () => void;
+      subscribeNavTelemetry?: (callback: (message: Record<string, unknown>) => void) => () => void;
+    };
+    dispatcher.subscribeState?.((message) => this.applyControlLockPayload(message));
+    dispatcher.subscribeNavTelemetry?.((message) => this.applyControlLockPayload(message));
+  }
 
   getState(): NavigationState {
     return {
       ...this.state,
       waypoints: this.state.waypoints.map((waypoint) => ({ ...waypoint })),
       selectedWaypointIndexes: [...this.state.selectedWaypointIndexes],
+      manualCommand: { ...this.state.manualCommand },
+      manualKeys: { ...this.state.manualKeys },
       lastSnapshot: this.state.lastSnapshot ? { ...this.state.lastSnapshot } : null
     };
   }
@@ -160,6 +210,23 @@ export class NavigationService {
       waypoints: [...this.state.waypoints, parsed].slice(-40),
       selectedWaypointIndexes: [],
       lastStatus: "Waypoint added"
+    };
+    this.emit();
+  }
+
+  moveWaypoint(index: number, x: number, y: number): void {
+    if (!Number.isInteger(index) || index < 0 || index >= this.state.waypoints.length) return;
+    const current = this.state.waypoints[index];
+    const next = parseGoal({
+      x,
+      y,
+      yawDeg: current.yawDeg
+    });
+    const waypoints = this.state.waypoints.map((entry, entryIndex) => (entryIndex === index ? next : entry));
+    this.state = {
+      ...this.state,
+      waypoints,
+      lastStatus: `Waypoint ${index + 1} moved`
     };
     this.emit();
   }
@@ -273,7 +340,41 @@ export class NavigationService {
     return next;
   }
 
+  async lockControls(): Promise<void> {
+    await this.setControlLock(true);
+  }
+
+  async unlockControls(graceMs = 2000): Promise<void> {
+    await this.setControlLock(false, graceMs);
+  }
+
+  startControlHeartbeat(intervalMs = 1000): void {
+    if (this.heartbeatTimer) return;
+    this.heartbeatTimer = setInterval(() => {
+      void this.robotDispatcher.requestControlHeartbeat().catch(() => undefined);
+    }, Math.max(300, intervalMs));
+  }
+
+  stopControlHeartbeat(): void {
+    if (!this.heartbeatTimer) return;
+    clearInterval(this.heartbeatTimer);
+    this.heartbeatTimer = null;
+  }
+
   async sendQueuedGoal(fallback?: GoalInput): Promise<{ sentCount: number; loopRoute: boolean }> {
+    if (this.state.controlLocked) {
+      throw new Error(`Controls are locked (${this.state.controlLockReason || "locked"})`);
+    }
+    if (this.state.manualMode) {
+      this.state = {
+        ...this.state,
+        manualDisablePending: true,
+        lastStatus: "Disabling manual mode to send goal..."
+      };
+      this.emit();
+      await this.setManualMode(false);
+    }
+
     const queued = this.state.waypoints.length > 0 ? this.state.waypoints : fallback ? [fallback] : [];
     if (queued.length === 0) {
       throw new Error("No waypoint queued");
@@ -310,6 +411,9 @@ export class NavigationService {
   }
 
   async sendGoal(input: GoalInput): Promise<void> {
+    if (this.state.controlLocked) {
+      throw new Error(`Controls are locked (${this.state.controlLockReason || "locked"})`);
+    }
     const validated = parseGoal(input);
     const payload: MessagePayload = {
       waypoints: [
@@ -341,6 +445,9 @@ export class NavigationService {
   }
 
   async setManualMode(enabled: boolean): Promise<void> {
+    if (enabled && this.state.controlLocked) {
+      throw new Error(`Controls are locked (${this.state.controlLockReason || "locked"})`);
+    }
     const response = await this.robotDispatcher.requestManualMode(enabled);
     if (response.ok === false) {
       throw new Error(response.error ?? "Set manual mode failed");
@@ -348,12 +455,20 @@ export class NavigationService {
     this.state = {
       ...this.state,
       manualMode: enabled,
+      manualDisablePending: false,
       lastStatus: enabled ? "Manual mode ON" : "Manual mode OFF"
     };
+    if (!enabled) {
+      this.clearManualIntent();
+    }
+    this.updateManualLoopLifecycle();
     this.emit();
   }
 
   async sendManualCommand(input: ManualCommandInput): Promise<void> {
+    if (this.state.controlLocked) {
+      throw new Error(`Controls are locked (${this.state.controlLockReason || "locked"})`);
+    }
     if (!Number.isFinite(input.linearX) || !Number.isFinite(input.angularZ)) {
       throw new Error("Invalid manual command input");
     }
@@ -417,8 +532,219 @@ export class NavigationService {
     };
   }
 
+  setManualLinearSpeed(value: number): void {
+    const clamped = Math.min(4, Math.max(0.1, Number(value)));
+    if (!Number.isFinite(clamped)) return;
+    this.state = {
+      ...this.state,
+      manualLinearSpeed: clamped
+    };
+    this.emit();
+  }
+
+  setManualAngularSpeed(value: number): void {
+    const clamped = Math.min(1.2, Math.max(0.1, Number(value)));
+    if (!Number.isFinite(clamped)) return;
+    this.state = {
+      ...this.state,
+      manualAngularSpeed: clamped
+    };
+    this.emit();
+  }
+
+  setManualKeyState(key: keyof ManualKeysState, pressed: boolean): void {
+    const nextPressed = pressed === true;
+    if (this.state.manualKeys[key] === nextPressed) return;
+    this.state = {
+      ...this.state,
+      manualKeys: {
+        ...this.state.manualKeys,
+        [key]: nextPressed
+      }
+    };
+    this.updateManualLoopLifecycle();
+    this.emit();
+  }
+
+  setManualBrakeHeld(pressed: boolean): void {
+    const nextPressed = pressed === true;
+    if (this.state.manualBrakeHeld === nextPressed) return;
+    this.state = {
+      ...this.state,
+      manualBrakeHeld: nextPressed
+    };
+    this.updateManualLoopLifecycle();
+    this.emit();
+  }
+
+  getManualKeysSummary(): string {
+    const keys: string[] = [];
+    if (this.state.manualKeys.w) keys.push("W");
+    if (this.state.manualKeys.a) keys.push("A");
+    if (this.state.manualKeys.s) keys.push("S");
+    if (this.state.manualKeys.d) keys.push("D");
+    if (this.state.manualBrakeHeld) keys.push("SPACE");
+    return keys.length > 0 ? keys.join("+") : "-";
+  }
+
   private emit(): void {
     const snapshot = this.getState();
     this.listeners.forEach((listener) => listener(snapshot));
+  }
+
+  private async setControlLock(locked: boolean, graceMs = 2000): Promise<void> {
+    const response = await this.robotDispatcher.requestControlLock(locked);
+    if (response.ok === false) {
+      throw new Error(response.error ?? "Set control lock failed");
+    }
+    const now = Date.now();
+    this.state = {
+      ...this.state,
+      controlLocked: locked,
+      controlLockReason: locked ? "locked" : "unlocked",
+      unlockGraceUntilMs: locked ? 0 : now + Math.max(0, graceMs),
+      lastStatus: locked ? "Controls locked" : "Controls unlocked"
+    };
+    if (locked) {
+      this.state = {
+        ...this.state,
+        manualMode: false,
+        manualDisablePending: false
+      };
+      this.clearManualIntent();
+      this.updateManualLoopLifecycle();
+      this.stopControlHeartbeat();
+    } else {
+      this.startControlHeartbeat();
+    }
+    this.emit();
+  }
+
+  private applyControlLockPayload(message: Record<string, unknown>): void {
+    const hasLocked = typeof message.control_locked === "boolean";
+    const hasReason = typeof message.control_lock_reason === "string";
+    if (!hasLocked && !hasReason) return;
+
+    const nextLocked = hasLocked ? message.control_locked === true : this.state.controlLocked;
+    const nextReason = hasReason ? String(message.control_lock_reason ?? "") : this.state.controlLockReason;
+    this.state = {
+      ...this.state,
+      controlLocked: nextLocked,
+      controlLockReason: nextReason,
+      unlockGraceUntilMs: nextLocked ? 0 : this.state.unlockGraceUntilMs
+    };
+    if (nextLocked) {
+      this.state = {
+        ...this.state,
+        manualMode: false,
+        manualDisablePending: false
+      };
+      this.clearManualIntent();
+      this.updateManualLoopLifecycle();
+      this.stopControlHeartbeat();
+    }
+    this.emit();
+  }
+
+  private clearManualIntent(): void {
+    this.state = {
+      ...this.state,
+      manualKeys: {
+        w: false,
+        a: false,
+        s: false,
+        d: false
+      },
+      manualBrakeHeld: false,
+      manualCommand: {
+        linearX: 0,
+        angularZ: 0
+      }
+    };
+  }
+
+  private updateManualLoopLifecycle(): void {
+    const hasIntent =
+      this.state.manualBrakeHeld ||
+      this.state.manualKeys.w ||
+      this.state.manualKeys.a ||
+      this.state.manualKeys.s ||
+      this.state.manualKeys.d;
+    const shouldRun = this.state.manualMode || this.state.manualDisablePending || hasIntent;
+    if (shouldRun) {
+      if (!this.manualLoopTimer) {
+        this.manualLoopTimer = setInterval(() => {
+          void this.manualControlTick();
+        }, MANUAL_LOOP_INTERVAL_MS);
+      }
+      void this.manualControlTick();
+      return;
+    }
+    if (this.manualLoopTimer) {
+      clearInterval(this.manualLoopTimer);
+      this.manualLoopTimer = null;
+    }
+  }
+
+  private async manualControlTick(): Promise<void> {
+    if (this.state.controlLocked || this.state.manualDisablePending) {
+      this.state = {
+        ...this.state,
+        manualCommand: {
+          linearX: 0,
+          angularZ: 0
+        }
+      };
+      this.emit();
+      return;
+    }
+
+    const hasIntent =
+      this.state.manualBrakeHeld ||
+      this.state.manualKeys.w ||
+      this.state.manualKeys.a ||
+      this.state.manualKeys.s ||
+      this.state.manualKeys.d;
+    if (!this.state.manualMode && !hasIntent) {
+      return;
+    }
+
+    let linear = 0;
+    let angular = 0;
+    let brake = false;
+
+    if (this.state.manualBrakeHeld) {
+      brake = true;
+    } else {
+      const forward = this.state.manualKeys.w ? 1 : 0;
+      const reverse = this.state.manualKeys.s ? 1 : 0;
+      const left = this.state.manualKeys.a ? 1 : 0;
+      const right = this.state.manualKeys.d ? 1 : 0;
+      linear = (forward - reverse) * this.state.manualLinearSpeed;
+      angular = (left - right) * this.state.manualAngularSpeed;
+    }
+
+    if (Math.abs(linear) < 1e-3) linear = 0;
+    if (Math.abs(angular) < 1e-3) angular = 0;
+
+    this.state = {
+      ...this.state,
+      manualCommand: {
+        linearX: linear,
+        angularZ: angular
+      }
+    };
+    this.emit();
+
+    if (!this.state.manualMode) return;
+    try {
+      await this.robotDispatcher.requestManualCommand(linear, angular, brake);
+    } catch (error) {
+      this.state = {
+        ...this.state,
+        lastStatus: `Manual command failed: ${String(error)}`
+      };
+      this.emit();
+    }
   }
 }

@@ -157,6 +157,14 @@ export class MapService {
     this.emit();
   }
 
+  setToolInfo(info: string): void {
+    this.state = {
+      ...this.state,
+      toolInfo: info
+    };
+    this.emit();
+  }
+
   setAutoSync(enabled: boolean): void {
     this.state = {
       ...this.state,

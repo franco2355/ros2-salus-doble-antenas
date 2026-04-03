@@ -82,6 +82,8 @@ export function AppShell({ runtime }: AppShellProps): JSX.Element {
         return;
       }
 
+      if (activeModalId) return;
+
       if (event.code === "KeyQ") {
         setActiveModalId("modal.snapshot");
         runtime.eventBus.emit(NAV_EVENTS.snapshotCaptureRequest, {});
@@ -140,6 +142,26 @@ export function AppShell({ runtime }: AppShellProps): JSX.Element {
       }
 
       if (navigationService) {
+        const manualKeyByCode: Record<string, "w" | "a" | "s" | "d"> = {
+          KeyW: "w",
+          KeyA: "a",
+          KeyS: "s",
+          KeyD: "d"
+        };
+        const manualKey = manualKeyByCode[event.code];
+        if (manualKey) {
+          navigationService.setManualKeyState(manualKey, true);
+          event.preventDefault();
+          return;
+        }
+        if (event.code === "Space") {
+          navigationService.setManualBrakeHeld(true);
+          event.preventDefault();
+          return;
+        }
+      }
+
+      if (navigationService) {
         const cameraArrowByCode: Record<string, number> = {
           ArrowUp: 0,
           ArrowDown: 180,
@@ -155,9 +177,39 @@ export function AppShell({ runtime }: AppShellProps): JSX.Element {
       }
     };
 
+    const onKeyUp = (event: KeyboardEvent): void => {
+      if (isEditingTarget(event.target)) return;
+      let navigationService: NavigationService | null = null;
+      try {
+        navigationService = runtime.registries.serviceRegistry.getService<NavigationService>("service.navigation");
+      } catch {
+        navigationService = null;
+      }
+      if (!navigationService) return;
+
+      const manualKeyByCode: Record<string, "w" | "a" | "s" | "d"> = {
+        KeyW: "w",
+        KeyA: "a",
+        KeyS: "s",
+        KeyD: "d"
+      };
+      const manualKey = manualKeyByCode[event.code];
+      if (manualKey) {
+        navigationService.setManualKeyState(manualKey, false);
+        event.preventDefault();
+        return;
+      }
+      if (event.code === "Space") {
+        navigationService.setManualBrakeHeld(false);
+        event.preventDefault();
+      }
+    };
+
     window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
     };
   }, [activeModalId, runtime]);
 

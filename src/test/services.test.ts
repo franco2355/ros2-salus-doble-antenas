@@ -10,9 +10,14 @@ describe("services", () => {
       requestGoal: vi.fn<() => Promise<IncomingPacket>>().mockResolvedValue({
         op: "navigation.goal.result",
         ok: true
+      }),
+      requestControlLock: vi.fn<() => Promise<IncomingPacket>>().mockResolvedValue({
+        op: "ack",
+        ok: true
       })
     };
     const service = new NavigationService(dispatcher as never);
+    await service.unlockControls();
     await expect(service.sendGoal({ x: 1, y: 2, yawDeg: 3 })).resolves.toBeUndefined();
     await expect(service.sendGoal({ x: Number.NaN, y: 2, yawDeg: 3 })).rejects.toThrow("Invalid");
   });
@@ -106,9 +111,14 @@ describe("services", () => {
       requestSnapshot: vi.fn(),
       requestCameraPan: vi.fn(),
       requestCameraZoomToggle: vi.fn(),
-      requestCameraStatus: vi.fn()
+      requestCameraStatus: vi.fn(),
+      requestControlLock: vi.fn<() => Promise<IncomingPacket>>().mockResolvedValue({
+        op: "ack",
+        ok: true
+      })
     };
     const service = new NavigationService(dispatcher as never);
+    await service.unlockControls();
     service.queueWaypoint({ x: 3, y: 4, yawDeg: 0 });
     const sent = await service.sendQueuedGoal({ x: 0, y: 0, yawDeg: 0 });
     expect(sent.sentCount).toBe(1);
@@ -177,5 +187,42 @@ describe("services", () => {
     const service = new MissionService(dispatcher as never);
     await expect(service.startRosbag("core")).resolves.toMatchObject({ active: true, profile: "core" });
     await expect(service.startRosbag("")).rejects.toThrow("required");
+  });
+
+  it("runs manual command loop when keys are pressed", async () => {
+    const dispatcher = {
+      requestGoal: vi.fn(),
+      requestCancelGoal: vi.fn(),
+      requestManualMode: vi.fn<() => Promise<IncomingPacket>>().mockResolvedValue({
+        op: "ack",
+        ok: true
+      }),
+      requestManualCommand: vi
+        .fn<(linearX: number, angularZ: number, brake: boolean) => Promise<IncomingPacket>>()
+        .mockResolvedValue({
+          op: "ack",
+          ok: true
+        }),
+      requestSnapshot: vi.fn(),
+      requestCameraPan: vi.fn(),
+      requestCameraZoomToggle: vi.fn(),
+      requestCameraStatus: vi.fn(),
+      requestControlLock: vi.fn<() => Promise<IncomingPacket>>().mockResolvedValue({
+        op: "ack",
+        ok: true
+      })
+    };
+    const service = new NavigationService(dispatcher as never);
+    await service.unlockControls();
+    await service.setManualMode(true);
+    service.setManualKeyState("w", true);
+    await Promise.resolve();
+    expect(dispatcher.requestManualCommand).toHaveBeenCalled();
+    const calls = dispatcher.requestManualCommand.mock.calls;
+    const [linearX, angularZ, brake] = calls[calls.length - 1] ?? [];
+    expect(Number(linearX)).toBeGreaterThan(0);
+    expect(Number(angularZ)).toBe(0);
+    expect(brake).toBe(false);
+    await service.setManualMode(false);
   });
 });

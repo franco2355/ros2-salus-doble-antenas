@@ -176,7 +176,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
                 });
               }
             }}
-            disabled={state.waypoints.length === 0}
+            disabled={state.waypoints.length === 0 || state.controlLocked}
           >
             ➤ Send
           </button>
@@ -254,6 +254,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
               }
             }}
             title="Manual mode"
+            disabled={state.controlLocked}
           >
             {state.manualMode ? "ON" : "OFF"}
           </button>
@@ -269,6 +270,11 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
         >
           Loop route: {state.loopRoute ? "ON" : "OFF"}
         </button>
+        <p className="nav-legacy-text">
+          Manual: {state.manualDisablePending ? "DISABLING" : state.manualMode ? "ON" : "OFF"} · keys=
+          {service.getManualKeysSummary()} · vx={state.manualCommand.linearX.toFixed(2)} · wz=
+          {state.manualCommand.angularZ.toFixed(2)}
+        </p>
         <p className="nav-legacy-text">{state.lastStatus}</p>
       </div>
       <ManualControlSidebarPanel runtime={runtime} />
@@ -278,34 +284,35 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
 }
 
 function ManualControlSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.Element {
-  void runtime;
-  const [linearSpeed, setLinearSpeed] = useState(1.2);
-  const [angularSpeed, setAngularSpeed] = useState(0.4);
+  const service = runtime.registries.serviceRegistry.getService<NavigationService>(NAVIGATION_SERVICE_ID);
+  const [state, setState] = useState<NavigationState>(service.getState());
+
+  useEffect(() => service.subscribe((next) => setState(next)), [service]);
 
   return (
     <div className="stack">
       <div className="panel-card">
         <h3>Sliders</h3>
         <label className="range-row">
-          Linear speed (m/s): {linearSpeed.toFixed(2)}
+          Linear speed (m/s): {state.manualLinearSpeed.toFixed(2)}
           <input
             type="range"
             min={1.0}
             max={4.0}
             step={0.01}
-            value={linearSpeed}
-            onChange={(event) => setLinearSpeed(Number(event.target.value))}
+            value={state.manualLinearSpeed}
+            onChange={(event) => service.setManualLinearSpeed(Number(event.target.value))}
           />
         </label>
         <label className="range-row">
-          Angular speed (rad/s): {angularSpeed.toFixed(2)}
+          Angular speed (rad/s): {state.manualAngularSpeed.toFixed(2)}
           <input
             type="range"
             min={0.1}
-            max={0.4}
+            max={1.2}
             step={0.01}
-            value={angularSpeed}
-            onChange={(event) => setAngularSpeed(Number(event.target.value))}
+            value={state.manualAngularSpeed}
+            onChange={(event) => service.setManualAngularSpeed(Number(event.target.value))}
           />
         </label>
       </div>
