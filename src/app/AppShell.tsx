@@ -19,6 +19,17 @@ function isEditingTarget(target: EventTarget | null): boolean {
   return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
 }
 
+function sidebarEmoji(panelId: string): string {
+  if (panelId.includes("connection")) return "🔌";
+  if (panelId.includes("navigation")) return "🧭";
+  if (panelId.includes("manual")) return "🎮";
+  if (panelId.includes("camera")) return "📷";
+  if (panelId.includes("telemetry")) return "📡";
+  if (panelId.includes("zone")) return "🗺️";
+  if (panelId.includes("map")) return "🗺️";
+  return "🧩";
+}
+
 export function AppShell({ runtime }: AppShellProps): JSX.Element {
   const toolbarMenus = runtime.registries.toolbarMenuRegistry.list();
   const sidebarPanels = runtime.registries.sidebarPanelRegistry.list();
@@ -30,6 +41,10 @@ export function AppShell({ runtime }: AppShellProps): JSX.Element {
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>(workspaceViews[0]?.id ?? "");
   const [activeConsoleId, setActiveConsoleId] = useState<string>(consoleTabs[0]?.id ?? "");
   const [activeModalId, setActiveModalId] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [consoleCollapsed, setConsoleCollapsed] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(320);
+  const [consoleHeight, setConsoleHeight] = useState(220);
 
   useEffect(() => {
     if (activeSidebarId && sidebarPanels.some((panel) => panel.id === activeSidebarId)) return;
@@ -119,13 +134,52 @@ export function AppShell({ runtime }: AppShellProps): JSX.Element {
     };
   }, [activeModalId, runtime]);
 
+  const startSidebarResize = (event: React.MouseEvent<HTMLDivElement>): void => {
+    if (sidebarCollapsed) return;
+    event.preventDefault();
+    const startX = event.clientX;
+    const initial = sidebarWidth;
+    const onMove = (moveEvent: MouseEvent): void => {
+      const next = Math.max(260, Math.min(560, initial + (moveEvent.clientX - startX)));
+      setSidebarWidth(next);
+    };
+    const onUp = (): void => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  };
+
+  const startConsoleResize = (event: React.MouseEvent<HTMLDivElement>): void => {
+    if (consoleCollapsed) return;
+    event.preventDefault();
+    const startY = event.clientY;
+    const initial = consoleHeight;
+    const onMove = (moveEvent: MouseEvent): void => {
+      const next = Math.max(120, Math.min(420, initial - (moveEvent.clientY - startY)));
+      setConsoleHeight(next);
+    };
+    const onUp = (): void => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  };
+
   const activeSidebarPanel = sidebarPanels.find((panel) => panel.id === activeSidebarId) ?? null;
   const activeWorkspace = workspaceViews.find((view) => view.id === activeWorkspaceId) ?? null;
 
   return (
     <div className="shell">
       <TopToolbar runtime={runtime} menus={toolbarMenus} openModal={setActiveModalId} />
-      <div className="shell-body">
+      <div
+        className="shell-body"
+        style={{
+          gridTemplateColumns: `52px ${sidebarCollapsed ? 0 : sidebarWidth}px ${sidebarCollapsed ? 0 : 4}px minmax(0, 1fr)`
+        }}
+      >
         <div className="sidebar-selector">
           {sidebarPanels.map((panel) => (
             <button
@@ -133,12 +187,29 @@ export function AppShell({ runtime }: AppShellProps): JSX.Element {
               type="button"
               className={panel.id === activeSidebarId ? "active" : ""}
               onClick={() => setActiveSidebarId(panel.id)}
+              title={panel.label}
+              aria-label={panel.label}
             >
-              {panel.label}
+              <span aria-hidden="true">{sidebarEmoji(panel.id)}</span>
             </button>
           ))}
+          <button
+            type="button"
+            className="collapse-toggle"
+            onClick={() => setSidebarCollapsed((prev) => !prev)}
+            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {sidebarCollapsed ? "▶" : "◀"}
+          </button>
         </div>
-        <SidebarHost runtime={runtime} panel={activeSidebarPanel} />
+        <SidebarHost runtime={runtime} panel={sidebarCollapsed ? null : activeSidebarPanel} />
+        <div
+          className={`splitter-vertical ${sidebarCollapsed ? "collapsed" : ""}`}
+          onMouseDown={startSidebarResize}
+          role="separator"
+          aria-orientation="vertical"
+        />
         <main className="workspace-column">
           <section className="workspace-selector">
             {workspaceViews.map((view) => (
@@ -153,11 +224,20 @@ export function AppShell({ runtime }: AppShellProps): JSX.Element {
             ))}
           </section>
           <WorkspaceHost runtime={runtime} view={activeWorkspace} />
+          <div
+            className={`splitter-horizontal ${consoleCollapsed ? "collapsed" : ""}`}
+            onMouseDown={startConsoleResize}
+            role="separator"
+            aria-orientation="horizontal"
+          />
           <ConsoleHost
             runtime={runtime}
             tabs={consoleTabs}
             activeTabId={activeConsoleId}
             onSelectTab={setActiveConsoleId}
+            collapsed={consoleCollapsed}
+            height={consoleCollapsed ? 36 : consoleHeight}
+            onToggleCollapse={() => setConsoleCollapsed((prev) => !prev)}
           />
         </main>
       </div>

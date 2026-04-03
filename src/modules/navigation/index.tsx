@@ -335,6 +335,8 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
         <div className="status-pill">{state.lastStatus}</div>
         <p className="muted">Queued waypoints: {state.waypoints.length}</p>
       </div>
+      <ManualControlSidebarPanel runtime={runtime} />
+      <CameraSidebarPanel runtime={runtime} />
     </div>
   );
 }
@@ -892,18 +894,6 @@ function registerSidebarPanels(ctx: ModuleContext): void {
     label: "Navigation",
     order: 6,
     render: (runtime) => <NavigationSidebarPanel runtime={runtime} />
-  });
-  ctx.registries.sidebarPanelRegistry.registerSidebarPanel({
-    id: "sidebar.manual",
-    label: "Manual",
-    order: 7,
-    render: (runtime) => <ManualControlSidebarPanel runtime={runtime} />
-  });
-  ctx.registries.sidebarPanelRegistry.registerSidebarPanel({
-    id: "sidebar.camera",
-    label: "Camera",
-    order: 8,
-    render: (runtime) => <CameraSidebarPanel runtime={runtime} />
   });
 }
 

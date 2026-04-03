@@ -922,3 +922,385 @@ pre {
     grid-template-columns: 1fr;
   }
 }
+
+/* VSCode-like Monokai Pro Ristretto overrides */
+:root {
+  --bg: #2c2525;
+  --panel: #332b2b;
+  --line: #5b4f4f;
+  --line-strong: #6b5e5e;
+  --text: #fff1f3;
+  --muted: #b5a5a8;
+  --accent: #ff8095;
+  --good: #badf8a;
+  --warn: #fbd47f;
+  --bad: #ff6f8d;
+  --overlay: rgba(20, 17, 17, 0.72);
+}
+
+html,
+body,
+#root {
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+.shell {
+  grid-template-rows: 34px 1fr;
+  gap: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.top-toolbar {
+  background: #221d1d;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  padding: 0 8px;
+  gap: 10px;
+  min-height: 34px;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.app-logo {
+  display: block;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.toolbar-center {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+  padding-right: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toolbar-menus {
+  gap: 2px;
+}
+
+.toolbar-menu > summary {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  font-weight: 500;
+  min-height: 28px;
+  padding: 4px 8px;
+}
+
+.toolbar-menu > summary:hover {
+  background: #3e3535;
+}
+
+.toolbar-dropdown {
+  border: 1px solid var(--line-strong);
+  border-radius: 0;
+  background: #2b2424;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+}
+
+.toolbar-dropdown button {
+  border: 1px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  min-height: 30px;
+  font-weight: 500;
+}
+
+.toolbar-dropdown button:hover:not(:disabled) {
+  background: #4f4343;
+}
+
+.shell-body {
+  gap: 0;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sidebar-selector {
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  background: #252020;
+  padding: 6px 4px;
+}
+
+.sidebar-selector button {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  min-height: 42px;
+  writing-mode: initial;
+  text-orientation: initial;
+  transform: none;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.sidebar-selector button.active {
+  background: #4a4040;
+  border-left: 2px solid var(--accent);
+}
+
+.collapse-toggle {
+  margin-top: auto;
+  min-height: 28px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.sidebar-panel {
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--panel);
+  padding: 8px;
+  min-height: 0;
+  overflow: auto;
+}
+
+.splitter-vertical {
+  width: 4px;
+  cursor: col-resize;
+  background: #2a2424;
+  border-right: 1px solid #191515;
+}
+
+.splitter-vertical:hover {
+  background: #514646;
+}
+
+.splitter-vertical.collapsed {
+  display: none;
+}
+
+.workspace-column {
+  grid-template-rows: 32px minmax(0, 1fr) 4px auto;
+  gap: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.workspace-selector {
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: #2a2424;
+  padding: 0 6px;
+  align-items: center;
+}
+
+.workspace-selector button {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  min-height: 30px;
+  padding: 0 12px;
+}
+
+.workspace-selector button.active {
+  background: #3f3535;
+  color: var(--text);
+  border-bottom: 2px solid var(--accent);
+}
+
+.workspace-view {
+  border: 0;
+  border-radius: 0;
+  background: #2f2828;
+  padding: 10px;
+  min-height: 0;
+  overflow: auto;
+}
+
+.splitter-horizontal {
+  height: 4px;
+  cursor: row-resize;
+  background: #2a2424;
+  border-top: 1px solid #191515;
+}
+
+.splitter-horizontal:hover {
+  background: #514646;
+}
+
+.splitter-horizontal.collapsed {
+  display: none;
+}
+
+.console-host {
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: #2a2323;
+  grid-template-rows: 32px 1fr;
+  min-height: 36px;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.console-host.collapsed {
+  grid-template-rows: 32px 0;
+}
+
+.console-tabs {
+  gap: 0;
+  padding: 0 6px;
+  border-bottom: 1px solid var(--line);
+  align-items: center;
+}
+
+.console-tabs button {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  min-height: 30px;
+  padding: 0 10px;
+}
+
+.console-tabs button.active {
+  color: var(--text);
+  background: #3f3535;
+  border-bottom: 2px solid var(--accent);
+}
+
+.console-collapse-btn {
+  margin-left: auto;
+  width: auto;
+  min-width: 28px;
+  padding: 0 8px;
+}
+
+.console-tab-content {
+  padding: 8px;
+  background: #262121;
+  min-height: 0;
+  overflow: auto;
+}
+
+.panel-card,
+.status-board,
+.map-canvas,
+.zone-list,
+.feed-item,
+.status-pill,
+.modal-preview,
+.snapshot-image,
+.code-block,
+pre,
+input,
+select,
+textarea,
+button {
+  border-radius: 0;
+}
+
+.panel-card,
+.status-board,
+.map-canvas {
+  background: #352d2d;
+  border: 1px solid var(--line);
+}
+
+.panel-card h3,
+.panel-card h4 {
+  color: var(--text);
+}
+
+.panel-card.collapsed > :not(h3):not(h4) {
+  display: none;
+}
+
+.collapsible-heading {
+  cursor: pointer;
+  position: relative;
+  padding-left: 14px;
+}
+
+.collapsible-heading::before {
+  content: "▾";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--muted);
+}
+
+.panel-card.collapsed .collapsible-heading::before {
+  content: "▸";
+}
+
+button {
+  border: 1px solid var(--line);
+  background: #4a4040;
+  color: var(--text);
+  box-shadow: none;
+  min-height: 30px;
+  font-weight: 600;
+}
+
+button:hover:not(:disabled) {
+  filter: none;
+  transform: none;
+  background: #5b4f4f;
+}
+
+.danger-btn {
+  background: #7e2c3f;
+  border-color: #8d3a4d;
+}
+
+.status-pill {
+  background: #2b2424;
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+.status-pill.ok,
+.status-ok {
+  color: var(--good);
+}
+
+.status-pill.bad,
+.status-bad {
+  color: var(--bad);
+}
+
+.modal-card {
+  background: #2a2323;
+  border: 1px solid var(--line-strong);
+  border-radius: 0;
+  grid-template-rows: 40px 1fr 44px;
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--line);
+  background: #241f1f;
+}
+
+.camera-frame-wrap {
+  border: 1px solid var(--line);
+  border-radius: 0;
+}
+
+.camera-overlay {
+  background: rgba(8, 8, 10, 0.64);
+}
