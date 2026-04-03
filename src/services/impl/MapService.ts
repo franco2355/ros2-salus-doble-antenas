@@ -25,6 +25,28 @@ export interface MapWorkspaceState {
   inspectCoords: string;
 }
 
+const mapMemoryStorage = new Map<string, string>();
+
+function getStorageAdapter(): {
+  getItem: (key: string) => string | null;
+  setItem: (key: string, value: string) => void;
+} {
+  if (
+    typeof window !== "undefined" &&
+    window.localStorage &&
+    typeof window.localStorage.getItem === "function" &&
+    typeof window.localStorage.setItem === "function"
+  ) {
+    return window.localStorage;
+  }
+  return {
+    getItem: (key: string) => (mapMemoryStorage.has(key) ? mapMemoryStorage.get(key)! : null),
+    setItem: (key: string, value: string) => {
+      mapMemoryStorage.set(key, value);
+    }
+  };
+}
+
 export class MapService {
   private readonly listeners = new Set<(state: MapWorkspaceState) => void>();
   private state: MapWorkspaceState = {
@@ -36,6 +58,7 @@ export class MapService {
     inspectCoords: "n/a"
   };
   private savedZonesPayload = "[]";
+  private readonly zoneStorageKey = "cockpit.map.zones.v1";
 
   constructor(private readonly mapDispatcher: MapDispatcher) {}
 
@@ -171,6 +194,21 @@ export class MapService {
       zones: Array.isArray(parsed) ? parsed.map((zone) => ({ ...zone })) : []
     };
     this.emit();
+  }
+
+  persistZonesToStorage(): number {
+    const payload = this.saveZones();
+    getStorageAdapter().setItem(this.zoneStorageKey, payload);
+    return this.state.zones.length;
+  }
+
+  loadZonesFromStorage(): number {
+    const raw = getStorageAdapter().getItem(this.zoneStorageKey);
+    if (!raw) {
+      return 0;
+    }
+    this.loadZones(raw);
+    return this.state.zones.length;
   }
 
   setInspectCoords(lat: number, lon: number): void {

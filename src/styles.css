@@ -330,6 +330,42 @@ select {
   padding: 8px;
 }
 
+.feed-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.status-board {
+  display: grid;
+  gap: 8px;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #f9fbfe;
+  padding: 8px;
+}
+
+.status-ok {
+  color: #166534;
+}
+
+.status-bad {
+  color: #b91c1c;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
 .stage {
   position: relative;
   min-height: 360px;
@@ -561,6 +597,11 @@ select {
   }
 
   .key-value-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .feed-grid,
+  .status-grid {
     grid-template-columns: 1fr;
   }
 }

@@ -53,13 +53,10 @@ function ZonesSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.Element
           <button
             type="button"
             onClick={() => {
-              const payload = service.saveZones();
-              if (typeof window !== "undefined") {
-                window.localStorage.setItem("cockpit.map.zones.v1", payload);
-              }
+              const count = service.persistZonesToStorage();
               runtime.eventBus.emit("console.event", {
                 level: "info",
-                text: "Zones saved",
+                text: `Zones saved (${count})`,
                 timestamp: Date.now()
               });
             }}
@@ -69,12 +66,11 @@ function ZonesSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.Element
           <button
             type="button"
             onClick={() => {
-              const stored = typeof window !== "undefined" ? window.localStorage.getItem("cockpit.map.zones.v1") : null;
               try {
-                service.loadZones(stored ?? undefined);
+                const count = service.loadZonesFromStorage();
                 runtime.eventBus.emit("console.event", {
                   level: "info",
-                  text: "Zones loaded",
+                  text: `Zones loaded (${count})`,
                   timestamp: Date.now()
                 });
               } catch (error) {

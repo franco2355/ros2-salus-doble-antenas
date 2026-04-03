@@ -36,6 +36,67 @@ describe("services", () => {
     expect(map.title).toBe("Main map");
   });
 
+  it("keeps waypoint state in NavigationService and persists to localStorage", () => {
+    const dispatcher = {
+      requestGoal: vi.fn<() => Promise<IncomingPacket>>().mockResolvedValue({
+        op: "navigation.goal.result",
+        ok: true
+      }),
+      requestCancelGoal: vi.fn(),
+      requestManualMode: vi.fn(),
+      requestManualCommand: vi.fn(),
+      requestSnapshot: vi.fn(),
+      requestCameraPan: vi.fn(),
+      requestCameraZoomToggle: vi.fn(),
+      requestCameraStatus: vi.fn()
+    };
+    const service = new NavigationService(dispatcher as never);
+
+    service.queueWaypoint({ x: 1, y: 2, yawDeg: 90 });
+    expect(service.getState().waypoints).toHaveLength(1);
+    const count = service.saveWaypoints();
+    expect(count).toBe(1);
+
+    service.clearWaypoints();
+    expect(service.getState().waypoints).toHaveLength(0);
+    const loaded = service.loadWaypoints();
+    expect(loaded).toBe(1);
+    expect(service.getState().waypoints).toHaveLength(1);
+  });
+
+  it("sends queued goals through NavigationService", async () => {
+    const dispatcher = {
+      requestGoal: vi.fn<() => Promise<IncomingPacket>>().mockResolvedValue({
+        op: "navigation.goal.result",
+        ok: true
+      }),
+      requestCancelGoal: vi.fn(),
+      requestManualMode: vi.fn(),
+      requestManualCommand: vi.fn(),
+      requestSnapshot: vi.fn(),
+      requestCameraPan: vi.fn(),
+      requestCameraZoomToggle: vi.fn(),
+      requestCameraStatus: vi.fn()
+    };
+    const service = new NavigationService(dispatcher as never);
+    service.queueWaypoint({ x: 3, y: 4, yawDeg: 0 });
+    const sent = await service.sendQueuedGoal({ x: 0, y: 0, yawDeg: 0 });
+    expect(sent.sentCount).toBe(1);
+    expect(dispatcher.requestGoal).toHaveBeenCalledTimes(1);
+  });
+
+  it("persists zone state in MapService local storage adapter", () => {
+    const service = new MapService({ requestMap: vi.fn() } as never);
+    service.addZone("A");
+    const savedCount = service.persistZonesToStorage();
+    expect(savedCount).toBe(1);
+    service.clearZones();
+    expect(service.getState().zones).toHaveLength(0);
+    const loadedCount = service.loadZonesFromStorage();
+    expect(loadedCount).toBe(1);
+    expect(service.getState().zones).toHaveLength(1);
+  });
+
   it("validates mission input in MissionService", async () => {
     const dispatcher = {
       startMission: vi.fn<() => Promise<IncomingPacket>>().mockResolvedValue({
@@ -48,5 +109,25 @@ describe("services", () => {
     await expect(service.startMission({ missionId: "m1", robotId: "r1" })).resolves.toBeUndefined();
     await expect(service.startMission({ missionId: "", robotId: "r1" })).rejects.toThrow("required");
   });
-});
 
+  it("validates rosbag profile input in MissionService", async () => {
+    const dispatcher = {
+      startMission: vi.fn<() => Promise<IncomingPacket>>().mockResolvedValue({
+        op: "mission.start.result",
+        ok: true
+      }),
+      subscribeMissionStatus: vi.fn(() => () => undefined),
+      startRosbag: vi.fn<() => Promise<IncomingPacket>>().mockResolvedValue({
+        op: "rosbag.status.update",
+        ok: true,
+        payload: { active: true, profile: "core", outputPath: "/tmp/bag", logPath: "/tmp/log" } as never
+      }),
+      stopRosbag: vi.fn(),
+      requestRosbagStatus: vi.fn(),
+      subscribeRosbagStatus: vi.fn(() => () => undefined)
+    };
+    const service = new MissionService(dispatcher as never);
+    await expect(service.startRosbag("core")).resolves.toMatchObject({ active: true, profile: "core" });
+    await expect(service.startRosbag("")).rejects.toThrow("required");
+  });
+});

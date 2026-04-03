@@ -4,7 +4,7 @@ import { RobotDispatcher } from "../../dispatcher/impl/RobotDispatcher";
 import { notify } from "../../platform/tauri/notifications";
 import { ConnectionService } from "../../services/impl/ConnectionService";
 import type { TelemetrySnapshot } from "../../services/impl/TelemetryService";
-import { NavigationService, type SnapshotData } from "../../services/impl/NavigationService";
+import { NavigationService, type NavigationState, type SnapshotData } from "../../services/impl/NavigationService";
 import { WebSocketTransport } from "../../transport/impl/WebSocketTransport";
 
 const TRANSPORT_ID = "transport.ws.core";
@@ -12,7 +12,6 @@ const DISPATCHER_ID = "dispatcher.robot";
 const NAVIGATION_SERVICE_ID = "service.navigation";
 const CONNECTION_SERVICE_ID = "service.connection";
 const TELEMETRY_SERVICE_ID = "service.telemetry";
-const WAYPOINT_STORAGE_KEY = "cockpit.navigation.waypoints.v1";
 
 interface WaypointDraft {
   x: string;
@@ -96,10 +95,9 @@ function ConnectionSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
 function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.Element {
   const service = runtime.registries.serviceRegistry.getService<NavigationService>(NAVIGATION_SERVICE_ID);
   const [draft, setDraft] = useState<WaypointDraft>({ x: "1.0", y: "2.0", yawDeg: "90" });
-  const [waypoints, setWaypoints] = useState<WaypointDraft[]>([]);
-  const [loopRoute, setLoopRoute] = useState(true);
-  const [manualMode, setManualMode] = useState(false);
-  const [status, setStatus] = useState("No active goal");
+  const [state, setState] = useState<NavigationState>(service.getState());
+
+  useEffect(() => service.subscribe((next) => setState(next)), [service]);
 
   const parseDraft = (value: WaypointDraft): { x: number; y: number; yawDeg: number } | null => {
     const parsed = {
@@ -116,31 +114,6 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
       text,
       timestamp: Date.now()
     });
-  };
-
-  const loadWaypoints = (): void => {
-    if (typeof window === "undefined") return;
-    const raw = window.localStorage.getItem(WAYPOINT_STORAGE_KEY);
-    if (!raw) {
-      setStatus("No saved waypoints");
-      return;
-    }
-    try {
-      const parsed = JSON.parse(raw) as WaypointDraft[];
-      if (!Array.isArray(parsed)) throw new Error("invalid payload");
-      setWaypoints(parsed.slice(0, 40));
-      setStatus(`Loaded ${parsed.length} waypoints`);
-      emitInfo(`Loaded ${parsed.length} waypoints`);
-    } catch (error) {
-      setStatus(`Load failed: ${String(error)}`);
-    }
-  };
-
-  const saveWaypoints = (): void => {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem(WAYPOINT_STORAGE_KEY, JSON.stringify(waypoints));
-    setStatus(`Saved ${waypoints.length} waypoints`);
-    emitInfo(`Saved ${waypoints.length} waypoints`);
   };
 
   return (
@@ -171,11 +144,15 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
             onClick={() => {
               const parsed = parseDraft(draft);
               if (!parsed) {
-                setStatus("Invalid waypoint");
+                runtime.eventBus.emit("console.event", {
+                  level: "warn",
+                  text: "Invalid waypoint payload",
+                  timestamp: Date.now()
+                });
                 return;
               }
-              setWaypoints((prev) => [...prev, draft].slice(-40));
-              setStatus("Waypoint added");
+              service.queueWaypoint(parsed);
+              emitInfo("Waypoint added");
             }}
           >
             Add waypoint
@@ -183,10 +160,9 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
           <button
             type="button"
             onClick={() => {
-              setWaypoints((prev) => prev.slice(0, Math.max(0, prev.length - 1)));
-              setStatus("Waypoint removed");
+              service.removeLastWaypoint();
             }}
-            disabled={waypoints.length === 0}
+            disabled={state.waypoints.length === 0}
           >
             Undo
           </button>
@@ -195,24 +171,25 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
           <button
             type="button"
             onClick={async () => {
-              const first = parseDraft(waypoints[0] ?? draft);
+              const first = parseDraft(draft);
               if (!first) {
-                setStatus("Invalid goal payload");
+                runtime.eventBus.emit("console.event", {
+                  level: "warn",
+                  text: "Invalid goal payload",
+                  timestamp: Date.now()
+                });
                 return;
               }
               try {
-                await service.sendGoal(first);
-                const sentCount = waypoints.length > 0 ? waypoints.length : 1;
-                setStatus(
-                  sentCount > 1 && loopRoute
-                    ? `Route sent (${sentCount}) · loop ON`
-                    : sentCount > 1
-                      ? `Route sent (${sentCount})`
-                      : "Goal sent"
-                );
+                const sent = await service.sendQueuedGoal(first);
+                const sentCount = sent.sentCount;
                 emitInfo(`Goal dispatch sent (${sentCount} waypoint${sentCount > 1 ? "s" : ""})`);
               } catch (error) {
-                setStatus(`Goal failed: ${String(error)}`);
+                runtime.eventBus.emit("console.event", {
+                  level: "error",
+                  text: `Goal failed: ${String(error)}`,
+                  timestamp: Date.now()
+                });
               }
             }}
           >
@@ -223,10 +200,13 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
             onClick={async () => {
               try {
                 await service.cancelGoal();
-                setStatus("Goal cancelled");
                 emitInfo("Goal cancelled");
               } catch (error) {
-                setStatus(`Cancel failed: ${String(error)}`);
+                runtime.eventBus.emit("console.event", {
+                  level: "error",
+                  text: `Cancel failed: ${String(error)}`,
+                  timestamp: Date.now()
+                });
               }
             }}
           >
@@ -234,48 +214,71 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
           </button>
         </div>
         <div className="action-grid">
-          <button type="button" onClick={saveWaypoints}>
+          <button
+            type="button"
+            onClick={() => {
+              const count = service.saveWaypoints();
+              emitInfo(`Saved ${count} waypoints`);
+            }}
+          >
             Save route
           </button>
-          <button type="button" onClick={loadWaypoints}>
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                const count = service.loadWaypoints();
+                emitInfo(`Loaded ${count} waypoints`);
+              } catch (error) {
+                runtime.eventBus.emit("console.event", {
+                  level: "error",
+                  text: `Load waypoints failed: ${String(error)}`,
+                  timestamp: Date.now()
+                });
+              }
+            }}
+          >
             Load route
           </button>
         </div>
         <div className="row">
           <label className="check-row">
-            <input type="checkbox" checked={loopRoute} onChange={(event) => setLoopRoute(event.target.checked)} />
+            <input
+              type="checkbox"
+              checked={state.loopRoute}
+              onChange={(event) => service.setLoopRoute(event.target.checked)}
+            />
             Loop route
           </label>
           <button
             type="button"
             onClick={async () => {
-              const next = !manualMode;
+              const next = !state.manualMode;
               try {
                 await service.setManualMode(next);
-                setManualMode(next);
-                setStatus(next ? "Manual mode ON" : "Manual mode OFF");
                 emitInfo(next ? "Manual mode enabled" : "Manual mode disabled");
               } catch (error) {
-                setStatus(`Manual mode failed: ${String(error)}`);
+                runtime.eventBus.emit("console.event", {
+                  level: "error",
+                  text: `Manual mode failed: ${String(error)}`,
+                  timestamp: Date.now()
+                });
               }
             }}
           >
-            Manual: {manualMode ? "ON" : "OFF"}
+            Manual: {state.manualMode ? "ON" : "OFF"}
           </button>
         </div>
         <button
           type="button"
           className="danger-btn"
-          onClick={() => {
-            setWaypoints([]);
-            setStatus("Waypoints cleared");
-          }}
-          disabled={waypoints.length === 0}
+          onClick={() => service.clearWaypoints()}
+          disabled={state.waypoints.length === 0}
         >
           Clear waypoints
         </button>
-        <div className="status-pill">{status}</div>
-        <p className="muted">Queued waypoints: {waypoints.length}</p>
+        <div className="status-pill">{state.lastStatus}</div>
+        <p className="muted">Queued waypoints: {state.waypoints.length}</p>
       </div>
     </div>
   );
@@ -283,10 +286,12 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
 
 function ManualControlSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.Element {
   const service = runtime.registries.serviceRegistry.getService<NavigationService>(NAVIGATION_SERVICE_ID);
+  const [navigation, setNavigation] = useState<NavigationState>(service.getState());
   const [linearSpeed, setLinearSpeed] = useState(1.2);
   const [angularSpeed, setAngularSpeed] = useState(0.4);
-  const [manualEnabled, setManualEnabled] = useState(false);
   const [status, setStatus] = useState("Manual mode OFF");
+
+  useEffect(() => service.subscribe((next) => setNavigation(next)), [service]);
 
   const send = async (linearX: number, angularZ: number, brake = false): Promise<void> => {
     try {
@@ -334,17 +339,16 @@ function ManualControlSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX
           <button
             type="button"
             onClick={async () => {
-              const next = !manualEnabled;
+              const next = !navigation.manualMode;
               try {
                 await service.setManualMode(next);
-                setManualEnabled(next);
                 setStatus(next ? "Manual mode ON" : "Manual mode OFF");
               } catch (error) {
                 setStatus(`Manual mode failed: ${String(error)}`);
               }
             }}
           >
-            Manual: {manualEnabled ? "ON" : "OFF"}
+            Manual: {navigation.manualMode ? "ON" : "OFF"}
           </button>
           <button type="button" onClick={() => void send(0, 0, true)}>
             Brake
@@ -372,8 +376,10 @@ function ManualControlSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX
 
 function CameraSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.Element {
   const service = runtime.registries.serviceRegistry.getService<NavigationService>(NAVIGATION_SERVICE_ID);
-  const [streamConnected, setStreamConnected] = useState(false);
+  const [navigation, setNavigation] = useState<NavigationState>(service.getState());
   const [cameraStatus, setCameraStatus] = useState("camera: disconnected");
+
+  useEffect(() => service.subscribe((next) => setNavigation(next)), [service]);
 
   const pan = async (angleDeg: number): Promise<void> => {
     try {
@@ -432,11 +438,11 @@ function CameraSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.Elemen
           <button
             type="button"
             onClick={() => {
-              setStreamConnected((prev) => !prev);
-              setCameraStatus(streamConnected ? "camera: disconnected" : "camera: connected");
+              const connected = service.toggleCameraStream();
+              setCameraStatus(connected ? "camera: connected" : "camera: disconnected");
             }}
           >
-            {streamConnected ? "Disconnect stream" : "Connect stream"}
+            {navigation.cameraStreamConnected ? "Disconnect stream" : "Connect stream"}
           </button>
           <button
             type="button"
@@ -456,7 +462,7 @@ function CameraSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.Elemen
             Read status
           </button>
         </div>
-        <div className={`status-pill ${streamConnected ? "ok" : "bad"}`}>{cameraStatus}</div>
+        <div className={`status-pill ${navigation.cameraStreamConnected ? "ok" : "bad"}`}>{cameraStatus}</div>
       </div>
     </div>
   );
@@ -514,9 +520,15 @@ function snapshotExtFromMime(mime: string): string {
 
 function SnapshotModal({ runtime }: { runtime: ModuleContext }): JSX.Element {
   const service = runtime.registries.serviceRegistry.getService<NavigationService>(NAVIGATION_SERVICE_ID);
-  const [snapshot, setSnapshot] = useState<SnapshotData | null>(null);
+  const [navigation, setNavigation] = useState<NavigationState>(service.getState());
+  const [snapshot, setSnapshot] = useState<SnapshotData | null>(service.getState().lastSnapshot);
   const [status, setStatus] = useState("No snapshot loaded.");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => service.subscribe((next) => setNavigation(next)), [service]);
+  useEffect(() => {
+    setSnapshot(navigation.lastSnapshot);
+  }, [navigation.lastSnapshot]);
 
   const download = (): void => {
     if (!snapshot || typeof window === "undefined") return;
