@@ -1,0 +1,143 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "C++ debug",
+				"type": "cppdbg",
+				"request": "launch",
+				"program": "${workspaceFolder}/main",
+				"args": [],
+				"stopAtEntry": false,
+				"cwd": "${workspaceFolder}",
+				"environment": [],
+				"externalConsole": false,
+				"MIMode": "gdb",
+				"setupCommands": [
+					{
+						"description": "Enable pretty-printing for gdb",
+						"text": "-enable-pretty-printing",
+						"ignoreFailures": true
+					}
+				]
+			},
+			{
+				"name": "C++ compilar y debuggear",
+				"type": "cppdbg",
+				"request": "launch",
+				"preLaunchTask": "compilar",
+				"program": "${workspaceFolder}/main",
+				"args": [],
+				"stopAtEntry": false,
+				"cwd": "${workspaceFolder}",
+				"environment": [],
+				"externalConsole": false,
+				"MIMode": "gdb",
+				"setupCommands": [
+					{
+						"description": "Enable pretty-printing for gdb",
+						"text": "-enable-pretty-printing",
+						"ignoreFailures": true
+					}
+				]
+			},
+			{
+				"name": "Go debug",
+				"type": "go",
+				"request": "launch",
+				"mode": "debug",
+				"program": "${fileDirname}/${fileBasename}",
+				"args": [],
+				"env": {},
+				"console": "integratedTerminal"
+			}
+		]
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "🔄 Hacer git fetch",
+				"detail": "Hace git fetch para obtener cambios remotos",
+				"type": "shell",
+				"command": "git fetch",
+				"problemMatcher": [],
+				"runOptions": {
+					"runOn": "folderOpen"
+				}
+			},
+			{
+				"label": "📦 Cockpit: instalar dependencias",
+				"detail": "Instala dependencias del proyecto React + Tauri",
+				"type": "shell",
+				"command": "npm install",
+				"problemMatcher": []
+			},
+			{
+				"label": "🚀 Cockpit: ejecutar proyecto",
+				"detail": "Ejecuta el proyecto en modo desarrollo",
+				"type": "shell",
+				"command": "npm run dev",
+				"group": "test",
+				"problemMatcher": []
+			},
+			{
+				"label": "🏗️ Cockpit: compilar proyecto",
+				"detail": "Compila el proyecto para producción",
+				"type": "shell",
+				"command": "npm run build",
+				"group": "build",
+				"problemMatcher": []
+			},
+			{
+				"label": "🖥️ Cockpit: ejecutar con Tauri",
+				"detail": "Ejecuta la app desktop con Tauri (dev)",
+				"type": "shell",
+				"command": "npm run tauri:dev",
+				"group": "test",
+				"problemMatcher": []
+			},
+			{
+				"label": "📦 Cockpit: compilar con Tauri",
+				"detail": "Compila el bundle desktop con Tauri",
+				"type": "shell",
+				"command": "npm run tauri:build",
+				"group": "build",
+				"problemMatcher": []
+			},
+			{
+				"label": "🐳 Ejecutar comando en contenedor",
+				"detail": "Ejecuta un comando personalizado en un contenedor",
+				"type": "shell",
+				"command": "docker exec -ti ${input:containerName} ${input:command}",
+				"problemMatcher": []
+			}
+		],
+		"inputs": [
+			{
+				"id": "serviceName",
+				"description": "Nombre del servicio de Docker",
+				"default": "users-api",
+				"type": "promptString"
+			},
+			{
+				"id": "containerName",
+				"description": "Nombre del contenedor",
+				"default": "mysql-users-api",
+				"type": "promptString"
+			},
+			{
+				"id": "command",
+				"description": "Comando a ejecutar",
+				"default": "bash",
+				"type": "promptString"
+			}
+		]
+	}
+}
