@@ -187,6 +187,7 @@ export function createTelemetryModule(): CockpitModule {
       ctx.registries.sidebarPanelRegistry.registerSidebarPanel({
         id: "sidebar.telemetry",
         label: "Telemetry",
+        icon: "📡",
         render: (runtime) => <TelemetrySidebarPanel runtime={runtime} />
       });
 

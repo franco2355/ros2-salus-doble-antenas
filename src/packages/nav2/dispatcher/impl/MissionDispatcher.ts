@@ -1,5 +1,5 @@
 import type { IncomingPacket } from "../../../../core/types/message";
-import { DispatcherBase } from "../../../../dispatcher/base/Dispatcher";
+import { DispatcherBase } from "../../../core/dispatcher/base/Dispatcher";
 
 export interface MissionStartRequest {
   missionId: string;

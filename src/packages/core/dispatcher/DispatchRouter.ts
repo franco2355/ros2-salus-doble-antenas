@@ -1,4 +1,4 @@
-import type { IncomingPacket, MessagePayload } from "../core/types/message";
+import type { IncomingPacket, MessagePayload } from "../../../core/types/message";
 import type { Dispatcher, RequestOptions } from "./base/Dispatcher";
 import type { TransportManager } from "../transport/manager/TransportManager";
 

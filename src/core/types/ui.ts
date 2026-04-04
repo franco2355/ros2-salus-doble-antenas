@@ -17,6 +17,7 @@ export interface ToolbarMenuDefinition {
 export interface SidebarPanelDefinition {
   id: string;
   label: string;
+  icon?: string;
   render: (runtime: AppRuntime) => ReactNode;
 }
 

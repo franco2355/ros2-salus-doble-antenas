@@ -1,4 +1,4 @@
-import type { IncomingPacket, OutgoingPacket } from "../../core/types/message";
+import type { IncomingPacket, OutgoingPacket } from "../../../../core/types/message";
 import type { Transport, TransportContext } from "../base/Transport";
 
 export interface TransportTrafficStats {

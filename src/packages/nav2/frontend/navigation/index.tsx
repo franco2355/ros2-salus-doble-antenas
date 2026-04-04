@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import "./styles.css";
-import { CollapsibleSection } from "../../../../app/layout/CollapsibleSection";
+import { PanelCollapsibleSection } from "../../../core";
 import { CORE_EVENTS, NAV_EVENTS } from "../../../../core/events/topics";
 import type { CockpitModule, ModuleContext } from "../../../../core/types/module";
 import { RobotDispatcher } from "../../dispatcher/impl/RobotDispatcher";
 import { ConnectionService, type ConnectionState } from "../../services/impl/ConnectionService";
-import { DIALOG_SERVICE_ID, type DialogService } from "../../../../services/impl/DialogService";
+import { DIALOG_SERVICE_ID, type DialogService } from "../../../core/services/impl/DialogService";
 import { MapService, type MapWorkspaceState } from "../../services/impl/MapService";
 import { SensorInfoService, type SensorInfoTab } from "../../services/impl/SensorInfoService";
 import type { TelemetrySnapshot } from "../../services/impl/TelemetryService";
@@ -158,7 +158,7 @@ function ConnectionSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
 
   return (
     <div className="stack">
-      <CollapsibleSection title="Connection">
+      <PanelCollapsibleSection title="Connection">
         <div className="stack">
           <select
             value={state.preset}
@@ -200,7 +200,7 @@ function ConnectionSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
           </div>
           {state.lastError ? <p className="muted">Error: {state.lastError}</p> : null}
         </div>
-      </CollapsibleSection>
+      </PanelCollapsibleSection>
     </div>
   );
 }
@@ -247,7 +247,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
 
   return (
     <div className="stack">
-      <CollapsibleSection title="Navigation">
+      <PanelCollapsibleSection title="Navigation">
         <div className="nav-legacy-grid">
           <button
             type="button"
@@ -420,7 +420,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
           />
           Loop route
         </label>
-      </CollapsibleSection>
+      </PanelCollapsibleSection>
       <ManualControlSidebarPanel runtime={runtime} />
       <ZonesSidebarSection runtime={runtime} />
       <CameraSidebarPanel runtime={runtime} />
@@ -436,7 +436,7 @@ function ManualControlSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX
 
   return (
     <div className="stack">
-      <CollapsibleSection title="Speed limits">
+      <PanelCollapsibleSection title="Speed limits">
         <label className="range-row">
           Linear speed (m/s): {state.manualLinearSpeed.toFixed(2)}
           <input
@@ -459,7 +459,7 @@ function ManualControlSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX
             onChange={(event) => service.setManualAngularSpeed(Number(event.target.value))}
           />
         </label>
-      </CollapsibleSection>
+      </PanelCollapsibleSection>
     </div>
   );
 }
@@ -478,7 +478,7 @@ function ZonesSidebarSection({ runtime }: { runtime: ModuleContext }): JSX.Eleme
 
   return (
     <div className="stack">
-      <CollapsibleSection title="Zones">
+      <PanelCollapsibleSection title="Zones">
         <div className="zones-legacy-grid">
           <button
             type="button"
@@ -572,8 +572,8 @@ function ZonesSidebarSection({ runtime }: { runtime: ModuleContext }): JSX.Eleme
           <input type="checkbox" checked={state.autoSync} onChange={(event) => mapService.setAutoSync(event.target.checked)} />
           Auto-sync edits
         </label>
-      </CollapsibleSection>
-      <CollapsibleSection title="Zone List">
+      </PanelCollapsibleSection>
+      <PanelCollapsibleSection title="Zone List">
         {state.zones.length === 0 ? (
           <p className="muted">No zones.</p>
         ) : (
@@ -593,7 +593,7 @@ function ZonesSidebarSection({ runtime }: { runtime: ModuleContext }): JSX.Eleme
             ))}
           </ul>
         )}
-      </CollapsibleSection>
+      </PanelCollapsibleSection>
     </div>
   );
 }
@@ -629,7 +629,7 @@ function CameraSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.Elemen
 
   return (
     <div className="stack">
-      <CollapsibleSection title="Camera PTZ">
+      <PanelCollapsibleSection title="Camera PTZ">
         <div className="ptz-grid">
           <button type="button" onClick={() => void pan(45)}>
             ⇖
@@ -672,7 +672,7 @@ function CameraSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.Elemen
             ⇘
           </button>
         </div>
-      </CollapsibleSection>
+      </PanelCollapsibleSection>
     </div>
   );
 }
@@ -1240,11 +1240,13 @@ function registerSidebarPanels(ctx: ModuleContext): void {
   ctx.registries.sidebarPanelRegistry.registerSidebarPanel({
     id: "sidebar.connection",
     label: "Connection",
+    icon: "🔌",
     render: (runtime) => <ConnectionSidebarPanel runtime={runtime} />
   });
   ctx.registries.sidebarPanelRegistry.registerSidebarPanel({
     id: "sidebar.navigation",
     label: "Navigation",
+    icon: "🧭",
     render: (runtime) => <NavigationSidebarPanel runtime={runtime} />
   });
 }

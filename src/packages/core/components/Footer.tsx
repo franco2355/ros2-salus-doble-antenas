@@ -1,14 +1,14 @@
-import type { AppRuntime } from "../../core/types/module";
-import type { FooterItemDefinition } from "../../core/types/ui";
+import type { AppRuntime } from "../../../core/types/module";
+import type { FooterItemDefinition } from "../../../core/types/ui";
 
-interface FooterHostProps {
+interface FooterProps {
   runtime: AppRuntime;
   items: FooterItemDefinition[];
   consoleCollapsed: boolean;
   onToggleConsoleCollapse: () => void;
 }
 
-export function FooterHost({ runtime, items, consoleCollapsed, onToggleConsoleCollapse }: FooterHostProps): JSX.Element {
+export function Footer({ runtime, items, consoleCollapsed, onToggleConsoleCollapse }: FooterProps): JSX.Element {
   return (
     <footer className="shell-footer">
       {items.map((item) => (

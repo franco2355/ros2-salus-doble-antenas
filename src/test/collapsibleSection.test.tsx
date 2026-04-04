@@ -1,13 +1,13 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { CollapsibleSection } from "../app/layout/CollapsibleSection";
+import { PanelCollapsibleSection } from "../packages/core";
 
-describe("CollapsibleSection", () => {
+describe("PanelCollapsibleSection", () => {
   it("renders expanded by default and toggles on click", () => {
     render(
-      <CollapsibleSection title="Navigation">
+      <PanelCollapsibleSection title="Navigation">
         <p>Body content</p>
-      </CollapsibleSection>
+      </PanelCollapsibleSection>
     );
 
     const header = screen.getByRole("button", { name: "Navigation" });
@@ -21,9 +21,9 @@ describe("CollapsibleSection", () => {
 
   it("supports keyboard toggle with Enter and Space", () => {
     render(
-      <CollapsibleSection title="Camera PTZ" defaultCollapsed>
+      <PanelCollapsibleSection title="Camera PTZ" defaultCollapsed>
         <p>PTZ body</p>
-      </CollapsibleSection>
+      </PanelCollapsibleSection>
     );
 
     const header = screen.getByRole("button", { name: "Camera PTZ" });

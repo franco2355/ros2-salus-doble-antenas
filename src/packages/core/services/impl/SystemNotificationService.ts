@@ -1,9 +1,9 @@
-import { CORE_EVENTS } from "../../core/events/topics";
-import type { EventBus } from "../../core/events/eventBus";
-import type { CoreNotificationSettings } from "../../core/types/settings";
-import { DEFAULT_CORE_NOTIFICATION_SETTINGS, loadCoreNotificationSettings } from "../../core/config/globalNotificationConfig";
-import { notify } from "../../platform/tauri/notifications";
-import { isMainWindowFocused } from "../../platform/tauri/windowFocus";
+import { CORE_EVENTS } from "../../../../core/events/topics";
+import type { EventBus } from "../../../../core/events/eventBus";
+import type { CoreNotificationSettings } from "../../../../core/types/settings";
+import { DEFAULT_CORE_NOTIFICATION_SETTINGS, loadCoreNotificationSettings } from "../../../../core/config/globalNotificationConfig";
+import { notify } from "../../../../platform/tauri/notifications";
+import { isMainWindowFocused } from "../../../../platform/tauri/windowFocus";
 
 export const SYSTEM_NOTIFICATION_SERVICE_ID = "service.system-notifications";
 

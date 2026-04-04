@@ -1,5 +1,5 @@
 import type { OutgoingPacket } from "../../../../core/types/message";
-import type { Transport, TransportContext, TransportReceiveHandler } from "../../../../transport/base/Transport";
+import type { Transport, TransportContext, TransportReceiveHandler } from "../../../core/transport/base/Transport";
 
 export class GoogleMapsTransport implements Transport {
   readonly kind = "google-maps";

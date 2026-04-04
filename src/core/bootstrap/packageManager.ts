@@ -1,5 +1,5 @@
-import type { Dispatcher } from "../../dispatcher/base/Dispatcher";
-import type { Transport } from "../../transport/base/Transport";
+import type { Dispatcher } from "../../packages/core/dispatcher/base/Dispatcher";
+import type { Transport } from "../../packages/core/transport/base/Transport";
 import { CORE_EVENTS } from "../events/topics";
 import { isPackageEnabled, isPackageModuleEnabled, type ModuleConfig } from "../config/moduleConfigLoader";
 import {

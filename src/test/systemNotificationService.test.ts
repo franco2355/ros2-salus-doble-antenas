@@ -7,7 +7,7 @@ import {
   resetCoreNotificationSettings,
   saveCoreNotificationSettings
 } from "../core/config/globalNotificationConfig";
-import { SystemNotificationService } from "../services/impl/SystemNotificationService";
+import { SystemNotificationService } from "../packages/core/services/impl/SystemNotificationService";
 
 interface ConnectionState {
   connected: boolean;

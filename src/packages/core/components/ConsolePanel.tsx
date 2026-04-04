@@ -1,7 +1,7 @@
-import type { AppRuntime } from "../../core/types/module";
-import type { ConsoleTabDefinition } from "../../core/types/ui";
+import type { AppRuntime } from "../../../core/types/module";
+import type { ConsoleTabDefinition } from "../../../core/types/ui";
 
-interface ConsoleHostProps {
+interface ConsolePanelProps {
   runtime: AppRuntime;
   tabs: ConsoleTabDefinition[];
   activeTabId: string;
@@ -10,14 +10,14 @@ interface ConsoleHostProps {
   height: number;
 }
 
-export function ConsoleHost({
+export function ConsolePanel({
   runtime,
   tabs,
   activeTabId,
   onSelectTab,
   collapsed,
   height
-}: ConsoleHostProps): JSX.Element {
+}: ConsolePanelProps): JSX.Element {
   const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? null;
 
   return (

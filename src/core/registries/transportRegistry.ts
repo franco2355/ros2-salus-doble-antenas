@@ -1,4 +1,4 @@
-import type { Transport } from "../../transport/base/Transport";
+import type { Transport } from "../../packages/core/transport/base/Transport";
 import { OrderedRegistry } from "./orderedRegistry";
 
 export interface TransportDefinition {

@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import type { AppRuntime } from "../../core/types/module";
-import type { ToolbarMenuDefinition } from "../../core/types/ui";
-import logo from "../../../logo.png";
+import type { AppRuntime } from "../../../core/types/module";
+import type { ToolbarMenuDefinition } from "../../../core/types/ui";
+import { ToolbarMenuItem } from "./ToolbarMenuItem";
+import logo from "../../../../logo.png";
 
-interface TopToolbarProps {
+interface ToolbarMenuProps {
   runtime: AppRuntime;
   menus: ToolbarMenuDefinition[];
   openModal: (modalId: string) => void;
 }
 
-export function TopToolbar({ runtime, menus, openModal }: TopToolbarProps): JSX.Element {
+export function ToolbarMenu({ runtime, menus, openModal }: ToolbarMenuProps): JSX.Element {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const rootRef = useRef<HTMLElement | null>(null);
 
@@ -63,16 +64,13 @@ export function TopToolbar({ runtime, menus, openModal }: TopToolbarProps): JSX.
               {openMenuId === menu.id && (menu.items?.length ?? 0) > 0 ? (
                 <div className="toolbar-dropdown">
                   {(menu.items ?? []).map((item) => (
-                    <button
+                    <ToolbarMenuItem
                       key={item.id}
-                      type="button"
-                      onClick={() => {
-                        setOpenMenuId(null);
-                        void item.onSelect({ runtime, openModal });
-                      }}
-                    >
-                      {item.label}
-                    </button>
+                      item={item}
+                      runtime={runtime}
+                      openModal={openModal}
+                      onClose={() => setOpenMenuId(null)}
+                    />
                   ))}
                 </div>
               ) : null}

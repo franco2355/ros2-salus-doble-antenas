@@ -1,5 +1,5 @@
-import type { DispatchRouter } from "../../dispatcher/DispatchRouter";
-import type { TransportManager } from "../../transport/manager/TransportManager";
+import type { DispatchRouter } from "../../packages/core/dispatcher/DispatchRouter";
+import type { TransportManager } from "../../packages/core/transport/manager/TransportManager";
 import type { EnvConfig } from "../config/envConfig";
 import type { ModuleConfig } from "../config/moduleConfigLoader";
 import type { Container } from "../di/container";

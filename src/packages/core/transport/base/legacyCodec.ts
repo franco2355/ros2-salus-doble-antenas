@@ -1,4 +1,4 @@
-import type { IncomingPacket, OutgoingPacket } from "../../core/types/message";
+import type { IncomingPacket, OutgoingPacket } from "../../../../core/types/message";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);

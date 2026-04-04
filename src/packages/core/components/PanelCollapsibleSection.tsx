@@ -1,6 +1,6 @@
 import { useState, type KeyboardEvent, type ReactNode } from "react";
 
-interface CollapsibleSectionProps {
+interface PanelCollapsibleSectionProps {
   title: string;
   defaultCollapsed?: boolean;
   className?: string;
@@ -12,13 +12,13 @@ function joinClassNames(...values: Array<string | undefined | false>): string {
   return values.filter(Boolean).join(" ");
 }
 
-export function CollapsibleSection({
+export function PanelCollapsibleSection({
   title,
   defaultCollapsed = false,
   className,
   actions,
   children
-}: CollapsibleSectionProps): JSX.Element {
+}: PanelCollapsibleSectionProps): JSX.Element {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
   const toggle = (): void => {

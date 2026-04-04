@@ -1,6 +1,6 @@
 import type { EnvConfig } from "../../../../core/config/envConfig";
 import type { EventBus } from "../../../../core/events/eventBus";
-import type { TransportManager, TransportTrafficStats } from "../../../../transport/manager/TransportManager";
+import type { TransportManager, TransportTrafficStats } from "../../../core/transport/manager/TransportManager";
 
 export type ConnectionPreset = "real" | "sim";
 

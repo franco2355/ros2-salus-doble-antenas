@@ -14,7 +14,7 @@ Implementar un paquete nuevo bajo `src/packages/<packageId>` siguiendo contratos
 - Services no dependen de componentes React.
 - Dispatchers no contienen lógica de UI.
 - Transports no contienen lógica de negocio.
-- En sidebar usar `CollapsibleSection` para secciones colapsables.
+- En sidebar usar `PanelCollapsibleSection` del paquete `core` para secciones colapsables.
 - El orden visual/runtime se define por orden de registro (no existe propiedad `order`).
 
 ## Pasos mínimos que debe ejecutar la IA

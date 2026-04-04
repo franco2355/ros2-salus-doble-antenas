@@ -1,4 +1,4 @@
-import type { IncomingPacket, MessagePayload } from "../../core/types/message";
+import type { IncomingPacket, MessagePayload } from "../../../../core/types/message";
 import type { DispatchRouter } from "../DispatchRouter";
 
 export interface RequestOptions {

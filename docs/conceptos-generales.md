@@ -116,7 +116,7 @@ Los módulos usan IDs lógicos (`service.x`, `dispatcher.y`, etc.).
 ## Sidebar colapsable
 
 No existe colapsado implícito por `.panel-card + h3/h4`.  
-Para secciones colapsables en sidebar usar `CollapsibleSection` (global).
+Para secciones colapsables en sidebar usar `PanelCollapsibleSection` del paquete `core`.
 
 ## CSS
 

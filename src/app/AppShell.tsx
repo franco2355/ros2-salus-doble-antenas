@@ -1,15 +1,11 @@
 import { useEffect, useState } from "react";
-import { ConsoleHost } from "./layout/ConsoleHost";
-import { FooterHost } from "./layout/FooterHost";
+import { ToolbarMenu, Panel, WorkspacePanel, ConsolePanel, Footer } from "../packages/core";
 import { GlobalDialogHost } from "./layout/GlobalDialogHost";
 import { ModalHost } from "./layout/ModalHost";
-import { SidebarHost } from "./layout/SidebarHost";
-import { TopToolbar } from "./layout/TopToolbar";
-import { WorkspaceHost } from "./layout/WorkspaceHost";
 import type { AppRuntime } from "../core/types/module";
 import { NAV_EVENTS } from "../core/events/topics";
-import { DIALOG_SERVICE_ID, type DialogService } from "../services/impl/DialogService";
-import { SYSTEM_NOTIFICATION_SERVICE_ID, type SystemNotificationService } from "../services/impl/SystemNotificationService";
+import { DIALOG_SERVICE_ID, type DialogService } from "../packages/core/services/impl/DialogService";
+import { SYSTEM_NOTIFICATION_SERVICE_ID, type SystemNotificationService } from "../packages/core/services/impl/SystemNotificationService";
 
 interface AppShellProps {
   runtime: AppRuntime;
@@ -36,34 +32,6 @@ function isEditingTarget(target: EventTarget | null): boolean {
   if (target.isContentEditable) return true;
   const tag = target.tagName;
   return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
-}
-
-function sidebarEmoji(panelId: string): string {
-  if (panelId.includes("connection")) return "🔌";
-  if (panelId.includes("navigation")) return "🧭";
-  if (panelId.includes("manual")) return "🎮";
-  if (panelId.includes("camera")) return "📷";
-  if (panelId.includes("telemetry")) return "📡";
-  if (panelId.includes("zone")) return "🗺️";
-  if (panelId.includes("map")) return "🗺️";
-  return "🧩";
-}
-
-function sidebarTooltipLabel(label: string): string {
-  const normalized = label.trim();
-  const labels: Record<string, string> = {
-    Connection: "Conexión",
-    Navigation: "Navegación",
-    Telemetry: "Telemetría",
-    Debug: "Depuración",
-    Settings: "Configuración",
-    Map: "Mapa",
-    Zones: "Zonas",
-    "Zone List": "Lista de zonas",
-    "Speed limits": "Límites de velocidad",
-    "Camera PTZ": "Cámara PTZ"
-  };
-  return labels[normalized] ?? normalized;
 }
 
 function isDisconnectedErrorText(text: string): boolean {
@@ -461,81 +429,49 @@ export function AppShell({ runtime }: AppShellProps): JSX.Element {
     window.addEventListener("mouseup", onUp);
   };
 
-  const activeSidebarPanel = sidebarPanels.find((panel) => panel.id === activeSidebarId) ?? null;
-  const activeWorkspace = workspaceViews.find((view) => view.id === activeWorkspaceId) ?? null;
   const shellBodyColumns = sidebarCollapsed
     ? "52px minmax(0, 1fr)"
     : `52px ${sidebarWidth}px 4px minmax(0, 1fr)`;
 
   return (
     <div className="shell">
-      <TopToolbar runtime={runtime} menus={toolbarMenus} openModal={openModal} />
+      <ToolbarMenu runtime={runtime} menus={toolbarMenus} openModal={openModal} />
       <div
         className="shell-body"
         style={{
           gridTemplateColumns: shellBodyColumns
         }}
       >
-        <div className="sidebar-selector">
-          {sidebarPanels.map((panel) => (
-            <button
-              key={panel.id}
-              type="button"
-              className={panel.id === activeSidebarId ? "active" : ""}
-              onClick={() => {
-                if (panel.id === activeSidebarId) {
-                  setSidebarCollapsed((prev) => !prev);
-                  return;
-                }
-                setActiveSidebarId(panel.id);
-                setSidebarCollapsed(false);
-              }}
-              title={sidebarTooltipLabel(panel.label)}
-              aria-label={sidebarTooltipLabel(panel.label)}
-            >
-              <span aria-hidden="true">{sidebarEmoji(panel.id)}</span>
-            </button>
-          ))}
-          <button
-            type="button"
-            className="collapse-toggle"
-            onClick={() => setSidebarCollapsed((prev) => !prev)}
-            title={sidebarCollapsed ? "Expandir panel lateral" : "Colapsar panel lateral"}
-            aria-label={sidebarCollapsed ? "Expandir panel lateral" : "Colapsar panel lateral"}
-          >
-            {sidebarCollapsed ? "▶" : "◀"}
-          </button>
-        </div>
-        {!sidebarCollapsed ? <SidebarHost runtime={runtime} panel={activeSidebarPanel} /> : null}
-        {!sidebarCollapsed ? (
-          <div
-            className="splitter-vertical"
-            onMouseDown={startSidebarResize}
-            role="separator"
-            aria-orientation="vertical"
-          />
-        ) : null}
-        <main className="workspace-column">
-          <section className="workspace-selector">
-            {workspaceViews.map((view) => (
-              <button
-                key={view.id}
-                type="button"
-                className={view.id === activeWorkspaceId ? "active" : ""}
-                onClick={() => setActiveWorkspaceId(view.id)}
-              >
-                {view.label}
-              </button>
-            ))}
-          </section>
-          <WorkspaceHost runtime={runtime} view={activeWorkspace} />
+        <Panel
+          runtime={runtime}
+          panels={sidebarPanels}
+          activePanelId={activeSidebarId}
+          onSelectPanel={(id) => {
+            if (id === activeSidebarId) {
+              setSidebarCollapsed((prev) => !prev);
+              return;
+            }
+            setActiveSidebarId(id);
+            setSidebarCollapsed(false);
+          }}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
+          width={sidebarWidth}
+          onResizeStart={startSidebarResize}
+        />
+        <WorkspacePanel
+          runtime={runtime}
+          views={workspaceViews}
+          activeViewId={activeWorkspaceId}
+          onSelectView={setActiveWorkspaceId}
+        >
           <div
             className={`splitter-horizontal ${consoleCollapsed ? "collapsed" : ""}`}
             onMouseDown={startConsoleResize}
             role="separator"
             aria-orientation="horizontal"
           />
-          <ConsoleHost
+          <ConsolePanel
             runtime={runtime}
             tabs={consoleTabs}
             activeTabId={activeConsoleId}
@@ -543,11 +479,11 @@ export function AppShell({ runtime }: AppShellProps): JSX.Element {
             collapsed={consoleCollapsed}
             height={consoleCollapsed ? 36 : consoleHeight}
           />
-        </main>
+        </WorkspacePanel>
       </div>
       <ModalHost runtime={runtime} dialogs={modalDialogs} modalId={activeModalId} closeModal={() => setActiveModalId(null)} />
       <GlobalDialogHost runtime={runtime} />
-      <FooterHost
+      <Footer
         runtime={runtime}
         items={footerItems}
         consoleCollapsed={consoleCollapsed}

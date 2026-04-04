@@ -1,8 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { SidebarHost } from "../app/layout/SidebarHost";
-import { DispatchRouter } from "../dispatcher/DispatchRouter";
-import { TransportManager } from "../transport/manager/TransportManager";
+import { Panel } from "../packages/core";
+import { DispatchRouter } from "../packages/core/dispatcher/DispatchRouter";
+import { TransportManager } from "../packages/core/transport/manager/TransportManager";
 import { createContainer } from "../core/di/container";
 import { createEventBus } from "../core/events/eventBus";
 import { createRegistries } from "../core/registries/createRegistries";
@@ -36,7 +36,7 @@ function createRuntime(): AppRuntime {
   };
 }
 
-describe("SidebarHost", () => {
+describe("Panel", () => {
   it("does not auto-collapse panel-card sections via implicit host logic", () => {
     const runtime = createRuntime();
     const panel: SidebarPanelDefinition = {
@@ -49,7 +49,18 @@ describe("SidebarHost", () => {
         </div>
       )
     };
-    render(<SidebarHost runtime={runtime} panel={panel} />);
+    render(
+      <Panel
+        runtime={runtime}
+        panels={[panel]}
+        activePanelId="sidebar.test"
+        onSelectPanel={() => {}}
+        collapsed={false}
+        onToggleCollapse={() => {}}
+        width={320}
+        onResizeStart={() => {}}
+      />
+    );
 
     expect(screen.getByText("Legacy body")).toBeInTheDocument();
     fireEvent.click(screen.getByText("Legacy Heading"));

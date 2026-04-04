@@ -1,4 +1,4 @@
-import type { Dispatcher } from "../../dispatcher/base/Dispatcher";
+import type { Dispatcher } from "../../packages/core/dispatcher/base/Dispatcher";
 import { OrderedRegistry } from "./orderedRegistry";
 
 export interface DispatcherDefinition {

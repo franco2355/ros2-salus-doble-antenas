@@ -1,6 +1,6 @@
 import type { IncomingPacket, OutgoingPacket } from "../../../../core/types/message";
-import type { Transport, TransportContext, TransportReceiveHandler } from "../../../../transport/base/Transport";
-import { decodeLegacyIncoming, encodeLegacyOutgoing } from "../../../../transport/base/legacyCodec";
+import type { Transport, TransportContext, TransportReceiveHandler } from "../../../core/transport/base/Transport";
+import { decodeLegacyIncoming, encodeLegacyOutgoing } from "../../../core/transport/base/legacyCodec";
 
 export class HttpTransport implements Transport {
   readonly kind = "http";

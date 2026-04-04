@@ -1,5 +1,5 @@
-import type { EnvConfig } from "../../core/config/envConfig";
-import type { IncomingPacket, OutgoingPacket } from "../../core/types/message";
+import type { EnvConfig } from "../../../../core/config/envConfig";
+import type { IncomingPacket, OutgoingPacket } from "../../../../core/types/message";
 
 export interface TransportContext {
   env: EnvConfig;
