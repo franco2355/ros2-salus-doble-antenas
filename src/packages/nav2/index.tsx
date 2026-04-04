@@ -1,8 +1,8 @@
 import type { CockpitPackage } from "../../core/types/module";
-import { createDebugModule } from "./frontend/debug";
-import { createMapModule } from "./frontend/map";
-import { createNavigationModule } from "./frontend/navigation";
-import { createTelemetryModule } from "./frontend/telemetry";
+import { createDebugModule } from "./modules/debug/frontend";
+import { createMapModule } from "./modules/map/frontend";
+import { createNavigationModule } from "./modules/navigation/frontend";
+import { createTelemetryModule } from "./modules/telemetry/frontend";
 
 export function createPackage(): CockpitPackage {
   return {

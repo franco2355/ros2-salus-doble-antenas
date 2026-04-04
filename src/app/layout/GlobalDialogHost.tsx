@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { AppRuntime } from "../../core/types/module";
-import { DIALOG_SERVICE_ID, type ActiveGlobalDialog, type DialogService } from "../../packages/core/services/impl/DialogService";
+import { DIALOG_SERVICE_ID, type ActiveGlobalDialog, type DialogService } from "../../packages/core/modules/runtime/service/impl/DialogService";
 
 interface GlobalDialogHostProps {
   runtime: AppRuntime;

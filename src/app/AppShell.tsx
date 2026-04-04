@@ -4,8 +4,8 @@ import { GlobalDialogHost } from "./layout/GlobalDialogHost";
 import { ModalHost } from "./layout/ModalHost";
 import type { AppRuntime } from "../core/types/module";
 import { NAV_EVENTS } from "../core/events/topics";
-import { DIALOG_SERVICE_ID, type DialogService } from "../packages/core/services/impl/DialogService";
-import { SYSTEM_NOTIFICATION_SERVICE_ID, type SystemNotificationService } from "../packages/core/services/impl/SystemNotificationService";
+import { DIALOG_SERVICE_ID, type DialogService } from "../packages/core/modules/runtime/service/impl/DialogService";
+import { SYSTEM_NOTIFICATION_SERVICE_ID, type SystemNotificationService } from "../packages/core/modules/runtime/service/impl/SystemNotificationService";
 
 interface AppShellProps {
   runtime: AppRuntime;

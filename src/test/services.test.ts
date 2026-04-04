@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { MapService } from "../packages/nav2/services/impl/MapService";
-import { MissionService } from "../packages/nav2/services/impl/MissionService";
-import { NavigationService } from "../packages/nav2/services/impl/NavigationService";
-import { ConnectionService } from "../packages/nav2/services/impl/ConnectionService";
+import { MapService } from "../packages/nav2/modules/map/service/impl/MapService";
+import { MissionService } from "../packages/nav2/modules/debug/service/impl/MissionService";
+import { NavigationService } from "../packages/nav2/modules/navigation/service/impl/NavigationService";
+import { ConnectionService } from "../packages/nav2/modules/navigation/service/impl/ConnectionService";
 import type { IncomingPacket } from "../core/types/message";
 
 function installStorageMock(seed: Record<string, string> = {}): void {

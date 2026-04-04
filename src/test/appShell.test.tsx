@@ -1,8 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { AppShell } from "../app/AppShell";
-import { DispatchRouter } from "../packages/core/dispatcher/DispatchRouter";
-import { TransportManager } from "../packages/core/transport/manager/TransportManager";
+import { DispatchRouter } from "../packages/core/modules/runtime/dispatcher/DispatchRouter";
+import { TransportManager } from "../packages/core/modules/runtime/transport/manager/TransportManager";
 import { createContainer } from "../core/di/container";
 import { createEventBus } from "../core/events/eventBus";
 import { createRegistries } from "../core/registries/createRegistries";

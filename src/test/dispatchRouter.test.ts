@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { DispatchRouter } from "../packages/core/dispatcher/DispatchRouter";
-import { DispatcherBase } from "../packages/core/dispatcher/base/Dispatcher";
+import { DispatchRouter } from "../packages/core/modules/runtime/dispatcher/DispatchRouter";
+import { DispatcherBase } from "../packages/core/modules/runtime/dispatcher/base/Dispatcher";
 import type { IncomingPacket, OutgoingPacket } from "../core/types/message";
-import type { Transport, TransportContext, TransportReceiveHandler } from "../packages/core/transport/base/Transport";
-import { TransportManager } from "../packages/core/transport/manager/TransportManager";
+import type { Transport, TransportContext, TransportReceiveHandler } from "../packages/core/modules/runtime/transport/base/Transport";
+import { TransportManager } from "../packages/core/modules/runtime/transport/manager/TransportManager";
 
 class MockTransport implements Transport {
   readonly kind = "mock";
