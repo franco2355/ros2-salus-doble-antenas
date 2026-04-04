@@ -1158,7 +1158,6 @@ function MapWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element 
     <div className="map-workspace-root">
       <div className={`stage map-stage ${mainIsMap ? "mode-gps-main" : "mode-camera-main"}`}>
         <section className={`stage-pane ${mainIsMap ? "main" : "mini"} map-stage-pane`}>
-          <h4>Map</h4>
           <div className="map-canvas map-pane-canvas">
             <LeafletMapCanvas
               state={state}

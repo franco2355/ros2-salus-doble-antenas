@@ -4,7 +4,6 @@ import { CollapsibleSection } from "../../../../app/layout/CollapsibleSection";
 import { CORE_EVENTS, NAV_EVENTS } from "../../../../core/events/topics";
 import type { CockpitModule, ModuleContext } from "../../../../core/types/module";
 import { RobotDispatcher } from "../../dispatcher/impl/RobotDispatcher";
-import { notify } from "../../../../platform/tauri/notifications";
 import { ConnectionService, type ConnectionState } from "../../services/impl/ConnectionService";
 import { DIALOG_SERVICE_ID, type DialogService } from "../../../../services/impl/DialogService";
 import { MapService, type MapWorkspaceState } from "../../services/impl/MapService";
@@ -26,9 +25,20 @@ interface Nav2RuntimeConfig {
   ws_real_port?: unknown;
   ws_sim_host?: unknown;
   ws_sim_port?: unknown;
+  manual_linear_speed_min?: unknown;
+  manual_linear_speed_max?: unknown;
   manual_linear_speed_default?: unknown;
+  manual_angular_speed_min?: unknown;
+  manual_angular_speed_max?: unknown;
   manual_angular_speed_default?: unknown;
   manual_loop_interval_ms?: unknown;
+}
+
+interface ManualSpeedLimits {
+  linearMin: number;
+  linearMax: number;
+  angularMin: number;
+  angularMax: number;
 }
 
 function readNav2Config(ctx: ModuleContext): Nav2RuntimeConfig {
@@ -56,6 +66,23 @@ function parseLoopIntervalMs(value: unknown, fallback: number): number {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return fallback;
   return Math.max(20, Math.round(parsed));
+}
+
+function parseManualSpeedLimits(config: Nav2RuntimeConfig): ManualSpeedLimits {
+  const linearMinCandidate = Number(config.manual_linear_speed_min);
+  const linearMaxCandidate = Number(config.manual_linear_speed_max);
+  const angularMinCandidate = Number(config.manual_angular_speed_min);
+  const angularMaxCandidate = Number(config.manual_angular_speed_max);
+  const linearMin = Number.isFinite(linearMinCandidate) ? linearMinCandidate : 1.0;
+  const linearMax = Number.isFinite(linearMaxCandidate) ? linearMaxCandidate : 4.0;
+  const angularMin = Number.isFinite(angularMinCandidate) ? angularMinCandidate : 0.1;
+  const angularMax = Number.isFinite(angularMaxCandidate) ? angularMaxCandidate : 1.2;
+  return {
+    linearMin: linearMax > linearMin ? linearMin : 1.0,
+    linearMax: linearMax > linearMin ? linearMax : 4.0,
+    angularMin: angularMax > angularMin ? angularMin : 0.1,
+    angularMax: angularMax > angularMin ? angularMax : 1.2
+  };
 }
 
 function buildConnectionPresetDefaults(ctx: ModuleContext, config: Nav2RuntimeConfig): {
@@ -420,8 +447,8 @@ function ManualControlSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX
           Linear speed (m/s): {state.manualLinearSpeed.toFixed(2)}
           <input
             type="range"
-            min={1.0}
-            max={4.0}
+            min={state.manualLinearMin}
+            max={state.manualLinearMax}
             step={0.01}
             value={state.manualLinearSpeed}
             onChange={(event) => service.setManualLinearSpeed(Number(event.target.value))}
@@ -431,8 +458,8 @@ function ManualControlSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX
           Angular speed (rad/s): {state.manualAngularSpeed.toFixed(2)}
           <input
             type="range"
-            min={0.1}
-            max={1.2}
+            min={state.manualAngularMin}
+            max={state.manualAngularMax}
             step={0.01}
             value={state.manualAngularSpeed}
             onChange={(event) => service.setManualAngularSpeed(Number(event.target.value))}
@@ -1240,9 +1267,14 @@ function registerDispatcher(ctx: ModuleContext): RobotDispatcher {
 
 function registerServices(ctx: ModuleContext, dispatcher: RobotDispatcher): NavigationService {
   const config = readNav2Config(ctx);
+  const limits = parseManualSpeedLimits(config);
   const navigationService = new NavigationService(dispatcher, {
-    linearSpeed: parseNumberInRange(config.manual_linear_speed_default, 1.2, 1.0, 4.0),
-    angularSpeed: parseNumberInRange(config.manual_angular_speed_default, 0.4, 0.1, 1.2),
+    linearMin: limits.linearMin,
+    linearMax: limits.linearMax,
+    angularMin: limits.angularMin,
+    angularMax: limits.angularMax,
+    linearSpeed: parseNumberInRange(config.manual_linear_speed_default, 1.2, limits.linearMin, limits.linearMax),
+    angularSpeed: parseNumberInRange(config.manual_angular_speed_default, 0.4, limits.angularMin, limits.angularMax),
     loopIntervalMs: parseLoopIntervalMs(config.manual_loop_interval_ms, 50)
   });
   ctx.registries.serviceRegistry.registerService({
@@ -1253,7 +1285,7 @@ function registerServices(ctx: ModuleContext, dispatcher: RobotDispatcher): Navi
   const connectionService = new ConnectionService(
     ctx.transportManager,
     ctx.env,
-    TRANSPORT_ID,
+    dispatcher.transportId,
     ctx.eventBus,
     buildConnectionPresetDefaults(ctx, config)
   );
@@ -1265,10 +1297,15 @@ function registerServices(ctx: ModuleContext, dispatcher: RobotDispatcher): Navi
     const packageId = typeof payload?.packageId === "string" ? payload.packageId : "";
     if (packageId !== "nav2") return;
     const nextConfig = (payload.config ?? {}) as Nav2RuntimeConfig;
+    const nextLimits = parseManualSpeedLimits(nextConfig);
     connectionService.applyPresetDefaults(buildConnectionPresetDefaults(ctx, nextConfig));
     navigationService.applyRuntimeDefaults({
-      linearSpeed: parseNumberInRange(nextConfig.manual_linear_speed_default, 1.2, 1.0, 4.0),
-      angularSpeed: parseNumberInRange(nextConfig.manual_angular_speed_default, 0.4, 0.1, 1.2),
+      linearMin: nextLimits.linearMin,
+      linearMax: nextLimits.linearMax,
+      angularMin: nextLimits.angularMin,
+      angularMax: nextLimits.angularMax,
+      linearSpeed: parseNumberInRange(nextConfig.manual_linear_speed_default, 1.2, nextLimits.linearMin, nextLimits.linearMax),
+      angularSpeed: parseNumberInRange(nextConfig.manual_angular_speed_default, 0.4, nextLimits.angularMin, nextLimits.angularMax),
       loopIntervalMs: parseLoopIntervalMs(nextConfig.manual_loop_interval_ms, 50)
     });
   });
@@ -1317,69 +1354,23 @@ function registerFooterItems(ctx: ModuleContext): void {
   });
 }
 
-function registerToolbarMenu(ctx: ModuleContext, navigationService: NavigationService): void {
+function registerToolbarMenu(ctx: ModuleContext): void {
   ctx.registries.toolbarMenuRegistry.registerToolbarMenu({
     id: "toolbar.navigation",
     label: "Navigation",
     items: [
       {
-        id: "navigation.send-test-goal",
-        label: "Send test goal",
-        onSelect: async () => {
-          try {
-            await navigationService.sendGoal({ x: 1.0, y: 2.0, yawDeg: 90 });
-            ctx.eventBus.emit("console.event", {
-              level: "info",
-              text: "Navigation goal sent",
-              timestamp: Date.now()
-            });
-          } catch (error) {
-            ctx.eventBus.emit("console.event", {
-              level: "error",
-              text: `Navigation goal failed: ${String(error)}`,
-              timestamp: Date.now()
-            });
-          }
-        }
-      },
-      {
-        id: "navigation.toggle-goal-mode",
-        label: "Toggle goal mode",
-        onSelect: () => {
-          const enabled = navigationService.toggleGoalMode();
-          ctx.eventBus.emit("console.event", {
-            level: "info",
-            text: enabled ? "Goal mode enabled" : "Goal mode disabled",
-            timestamp: Date.now()
-          });
-        }
-      },
-      {
-        id: "navigation.swap-workspace",
-        label: "Swap camera/map",
-        onSelect: () => {
-          ctx.eventBus.emit(NAV_EVENTS.swapWorkspaceRequest, {});
-        }
-      },
-      {
         id: "navigation.open-snapshot-modal",
-        label: "Open snapshot modal",
+        label: "Captura",
         onSelect: ({ openModal }) => {
           openModal("modal.snapshot");
         }
       },
       {
         id: "navigation.open-info-modal",
-        label: "Open info modal",
+        label: "Información",
         onSelect: ({ openModal }) => {
           openModal("modal.info");
-        }
-      },
-      {
-        id: "navigation.notify",
-        label: "Notify status",
-        onSelect: async () => {
-          await notify("Cockpit", "Navigation module online");
         }
       }
     ]
@@ -1394,11 +1385,11 @@ export function createNavigationModule(): CockpitModule {
     register(ctx: ModuleContext): void {
       registerTransport(ctx);
       const dispatcher = registerDispatcher(ctx);
-      const navigationService = registerServices(ctx, dispatcher);
+      registerServices(ctx, dispatcher);
       registerSidebarPanels(ctx);
       registerModals(ctx);
       registerFooterItems(ctx);
-      registerToolbarMenu(ctx, navigationService);
+      registerToolbarMenu(ctx);
     }
   };
 }

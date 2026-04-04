@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import "./styles.css";
 import type { CockpitModule, ModuleContext } from "../../../../core/types/module";
 import { MissionDispatcher } from "../../dispatcher/impl/MissionDispatcher";
-import { notify } from "../../../../platform/tauri/notifications";
-import { openWindow } from "../../../../platform/tauri/windows";
 import { MissionService } from "../../services/impl/MissionService";
 import type { RosbagStatus } from "../../dispatcher/impl/MissionDispatcher";
 import { RosBridgeTransport } from "../../transport/impl/RosBridgeTransport";
@@ -11,48 +9,6 @@ import { RosBridgeTransport } from "../../transport/impl/RosBridgeTransport";
 const TRANSPORT_ID = "transport.rosbridge";
 const DISPATCHER_ID = "dispatcher.mission";
 const SERVICE_ID = "service.mission";
-
-function MissionModal({ runtime, close }: { runtime: ModuleContext; close: () => void }): JSX.Element {
-  const missionService = runtime.registries.serviceRegistry.getService<MissionService>(SERVICE_ID);
-  const [missionId, setMissionId] = useState("mission-alpha");
-  const [robotId, setRobotId] = useState("robot-01");
-
-  return (
-    <div className="panel-card">
-      <h3>Mission Debug</h3>
-      <p className="muted">Launch mission using MissionService and MissionDispatcher.</p>
-      <div className="row">
-        <input value={missionId} onChange={(event) => setMissionId(event.target.value)} />
-        <input value={robotId} onChange={(event) => setRobotId(event.target.value)} />
-      </div>
-      <div className="row">
-        <button
-          type="button"
-          onClick={async () => {
-            try {
-              await missionService.startMission({ missionId, robotId });
-              runtime.eventBus.emit("console.event", {
-                level: "info",
-                text: `Mission started: ${missionId}`,
-                timestamp: Date.now()
-              });
-              await notify("Mission", `Started ${missionId}`);
-              close();
-            } catch (error) {
-              runtime.eventBus.emit("console.event", {
-                level: "error",
-                text: `Mission failed: ${String(error)}`,
-                timestamp: Date.now()
-              });
-            }
-          }}
-        >
-          Start mission
-        </button>
-      </div>
-    </div>
-  );
-}
 
 function RecordModal({ runtime }: { runtime: ModuleContext }): JSX.Element {
   const missionService = runtime.registries.serviceRegistry.getService<MissionService>(SERVICE_ID);
@@ -174,12 +130,6 @@ export function createDebugModule(): CockpitModule {
       });
 
       ctx.registries.modalRegistry.registerModalDialog({
-        id: "modal.debug",
-        title: "Debug mission",
-        render: ({ runtime, close }) => <MissionModal runtime={runtime} close={close} />
-      });
-
-      ctx.registries.modalRegistry.registerModalDialog({
         id: "modal.record",
         title: "Record",
         render: ({ runtime }) => <RecordModal runtime={runtime} />
@@ -190,28 +140,10 @@ export function createDebugModule(): CockpitModule {
         label: "Debug",
         items: [
           {
-            id: "debug.open-modal",
-            label: "Open mission modal",
-            onSelect: ({ openModal }) => {
-              openModal("modal.debug");
-            }
-          },
-          {
             id: "debug.open-record-modal",
             label: "Open record modal",
             onSelect: ({ openModal }) => {
               openModal("modal.record");
-            }
-          },
-          {
-            id: "debug.open-window",
-            label: "Open secondary window",
-            onSelect: async () => {
-              await openWindow({
-                label: "telemetry-window",
-                route: "/",
-                title: "Telemetry Window"
-              });
             }
           }
         ]

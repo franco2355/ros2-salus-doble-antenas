@@ -96,6 +96,18 @@ export function AppShell({ runtime }: AppShellProps): JSX.Element {
   const [sidebarWidth, setSidebarWidth] = useState(320);
   const [consoleHeight, setConsoleHeight] = useState(220);
 
+  const resolveModalId = (modalId: string): string => {
+    if (modalDialogs.some((dialog) => dialog.id === modalId)) return modalId;
+    const suffix = `.${modalId}`;
+    const namespaced = modalDialogs.find((dialog) => dialog.id.endsWith(suffix));
+    return namespaced?.id ?? modalId;
+  };
+  const snapshotModalId = resolveModalId("modal.snapshot");
+  const infoModalId = resolveModalId("modal.info");
+  const openModal = (modalId: string): void => {
+    setActiveModalId(resolveModalId(modalId));
+  };
+
   useEffect(() => {
     if (activeSidebarId && sidebarPanels.some((panel) => panel.id === activeSidebarId)) return;
     setActiveSidebarId(sidebarPanels[0]?.id ?? "");
@@ -218,7 +230,7 @@ export function AppShell({ runtime }: AppShellProps): JSX.Element {
 
       if (event.key === "Escape") {
         if (activeModalId) {
-          if (event.shiftKey && activeModalId === "modal.snapshot") {
+          if (event.shiftKey && activeModalId === snapshotModalId) {
             runtime.eventBus.emit(NAV_EVENTS.snapshotDownloadRequest, {});
           }
           setActiveModalId(null);
@@ -238,7 +250,7 @@ export function AppShell({ runtime }: AppShellProps): JSX.Element {
       }
 
       if (event.code === "KeyQ") {
-        setActiveModalId("modal.snapshot");
+        openModal(snapshotModalId);
         if (navigationService) {
           void navigationService
             .requestSnapshot()
@@ -266,7 +278,7 @@ export function AppShell({ runtime }: AppShellProps): JSX.Element {
       if (activeModalId) return;
 
       if (event.code === "KeyI" && !event.ctrlKey && !event.altKey && !event.metaKey) {
-        setActiveModalId("modal.info");
+        openModal(infoModalId);
         event.preventDefault();
         return;
       }
@@ -385,7 +397,7 @@ export function AppShell({ runtime }: AppShellProps): JSX.Element {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
     };
-  }, [activeModalId, runtime]);
+  }, [activeModalId, runtime, snapshotModalId, infoModalId]);
 
   const startSidebarResize = (event: React.MouseEvent<HTMLDivElement>): void => {
     if (sidebarCollapsed) return;
@@ -429,7 +441,7 @@ export function AppShell({ runtime }: AppShellProps): JSX.Element {
 
   return (
     <div className="shell">
-      <TopToolbar runtime={runtime} menus={toolbarMenus} openModal={setActiveModalId} />
+      <TopToolbar runtime={runtime} menus={toolbarMenus} openModal={openModal} />
       <div
         className="shell-body"
         style={{

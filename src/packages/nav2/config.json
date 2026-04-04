@@ -9,7 +9,11 @@
     "map_default_center_lat": -31.4201,
     "map_default_center_lon": -64.1888,
     "map_default_zoom": 16,
+    "manual_linear_speed_min": 1.0,
+    "manual_linear_speed_max": 4.0,
     "manual_linear_speed_default": 1.2,
+    "manual_angular_speed_min": 0.1,
+    "manual_angular_speed_max": 1.2,
     "manual_angular_speed_default": 0.4,
     "manual_loop_interval_ms": 50
   },
@@ -66,8 +70,28 @@
         "type": "number"
       },
       {
+        "key": "manual_linear_speed_min",
+        "label": "Manual Linear Speed Min",
+        "type": "number"
+      },
+      {
+        "key": "manual_linear_speed_max",
+        "label": "Manual Linear Speed Max",
+        "type": "number"
+      },
+      {
         "key": "manual_linear_speed_default",
         "label": "Manual Linear Speed Default",
+        "type": "number"
+      },
+      {
+        "key": "manual_angular_speed_min",
+        "label": "Manual Angular Speed Min",
+        "type": "number"
+      },
+      {
+        "key": "manual_angular_speed_max",
+        "label": "Manual Angular Speed Max",
         "type": "number"
       },
       {

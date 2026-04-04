@@ -42,6 +42,10 @@ export interface NavigationState {
   manualDisablePending: boolean;
   manualLinearSpeed: number;
   manualAngularSpeed: number;
+  manualLinearMin: number;
+  manualLinearMax: number;
+  manualAngularMin: number;
+  manualAngularMax: number;
   manualCommand: {
     linearX: number;
     angularZ: number;
@@ -59,7 +63,11 @@ export interface NavigationState {
 type NavigationListener = (state: NavigationState) => void;
 
 const WAYPOINT_STORAGE_KEY = "cockpit.navigation.waypoints.v1";
+const DEFAULT_MANUAL_LINEAR_MIN = 1.0;
+const DEFAULT_MANUAL_LINEAR_MAX = 4.0;
 const DEFAULT_MANUAL_LINEAR_SPEED = 1.2;
+const DEFAULT_MANUAL_ANGULAR_MIN = 0.1;
+const DEFAULT_MANUAL_ANGULAR_MAX = 1.2;
 const DEFAULT_MANUAL_ANGULAR_SPEED = 0.4;
 const MANUAL_LOOP_INTERVAL_MS = 50;
 const navigationMemoryStorage = new Map<string, string>();
@@ -68,18 +76,30 @@ export interface NavigationManualDefaults {
   linearSpeed: number;
   angularSpeed: number;
   loopIntervalMs: number;
+  linearMin: number;
+  linearMax: number;
+  angularMin: number;
+  angularMax: number;
 }
 
-function clampManualLinearSpeed(value: unknown): number {
+function clampInRange(value: unknown, fallback: number, min: number, max: number): number {
   const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return DEFAULT_MANUAL_LINEAR_SPEED;
-  return Math.min(4, Math.max(0.1, parsed));
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, parsed));
 }
 
-function clampManualAngularSpeed(value: unknown): number {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return DEFAULT_MANUAL_ANGULAR_SPEED;
-  return Math.min(1.2, Math.max(0.1, parsed));
+function normalizeRange(
+  rawMin: unknown,
+  rawMax: unknown,
+  fallbackMin: number,
+  fallbackMax: number
+): { min: number; max: number } {
+  const minCandidate = Number(rawMin);
+  const maxCandidate = Number(rawMax);
+  const min = Number.isFinite(minCandidate) ? minCandidate : fallbackMin;
+  const max = Number.isFinite(maxCandidate) ? maxCandidate : fallbackMax;
+  if (max > min) return { min, max };
+  return { min: fallbackMin, max: fallbackMax };
 }
 
 function clampManualLoopIntervalMs(value: unknown): number {
@@ -153,6 +173,10 @@ export class NavigationService {
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private manualLoopTimer: ReturnType<typeof setInterval> | null = null;
   private manualLoopIntervalMs: number;
+  private manualLinearMin = DEFAULT_MANUAL_LINEAR_MIN;
+  private manualLinearMax = DEFAULT_MANUAL_LINEAR_MAX;
+  private manualAngularMin = DEFAULT_MANUAL_ANGULAR_MIN;
+  private manualAngularMax = DEFAULT_MANUAL_ANGULAR_MAX;
   private state: NavigationState = {
     waypoints: [],
     selectedWaypointIndexes: [],
@@ -162,6 +186,10 @@ export class NavigationService {
     manualDisablePending: false,
     manualLinearSpeed: DEFAULT_MANUAL_LINEAR_SPEED,
     manualAngularSpeed: DEFAULT_MANUAL_ANGULAR_SPEED,
+    manualLinearMin: DEFAULT_MANUAL_LINEAR_MIN,
+    manualLinearMax: DEFAULT_MANUAL_LINEAR_MAX,
+    manualAngularMin: DEFAULT_MANUAL_ANGULAR_MIN,
+    manualAngularMax: DEFAULT_MANUAL_ANGULAR_MAX,
     manualCommand: {
       linearX: 0,
       angularZ: 0
@@ -182,14 +210,44 @@ export class NavigationService {
   };
 
   constructor(private readonly robotDispatcher: RobotDispatcher, manualDefaults?: Partial<NavigationManualDefaults>) {
-    const safeLinearSpeed = clampManualLinearSpeed(manualDefaults?.linearSpeed);
-    const safeAngularSpeed = clampManualAngularSpeed(manualDefaults?.angularSpeed);
+    const linearRange = normalizeRange(
+      manualDefaults?.linearMin,
+      manualDefaults?.linearMax,
+      DEFAULT_MANUAL_LINEAR_MIN,
+      DEFAULT_MANUAL_LINEAR_MAX
+    );
+    const angularRange = normalizeRange(
+      manualDefaults?.angularMin,
+      manualDefaults?.angularMax,
+      DEFAULT_MANUAL_ANGULAR_MIN,
+      DEFAULT_MANUAL_ANGULAR_MAX
+    );
+    this.manualLinearMin = linearRange.min;
+    this.manualLinearMax = linearRange.max;
+    this.manualAngularMin = angularRange.min;
+    this.manualAngularMax = angularRange.max;
+    const safeLinearSpeed = clampInRange(
+      manualDefaults?.linearSpeed,
+      DEFAULT_MANUAL_LINEAR_SPEED,
+      this.manualLinearMin,
+      this.manualLinearMax
+    );
+    const safeAngularSpeed = clampInRange(
+      manualDefaults?.angularSpeed,
+      DEFAULT_MANUAL_ANGULAR_SPEED,
+      this.manualAngularMin,
+      this.manualAngularMax
+    );
     this.manualLoopIntervalMs = clampManualLoopIntervalMs(manualDefaults?.loopIntervalMs);
 
     this.state = {
       ...this.state,
       manualLinearSpeed: safeLinearSpeed,
-      manualAngularSpeed: safeAngularSpeed
+      manualAngularSpeed: safeAngularSpeed,
+      manualLinearMin: this.manualLinearMin,
+      manualLinearMax: this.manualLinearMax,
+      manualAngularMin: this.manualAngularMin,
+      manualAngularMax: this.manualAngularMax
     };
 
     const dispatcher = this.robotDispatcher as unknown as {
@@ -641,7 +699,7 @@ export class NavigationService {
   }
 
   setManualLinearSpeed(value: number): void {
-    const clamped = clampManualLinearSpeed(value);
+    const clamped = clampInRange(value, this.state.manualLinearSpeed, this.manualLinearMin, this.manualLinearMax);
     this.state = {
       ...this.state,
       manualLinearSpeed: clamped
@@ -650,7 +708,7 @@ export class NavigationService {
   }
 
   setManualAngularSpeed(value: number): void {
-    const clamped = clampManualAngularSpeed(value);
+    const clamped = clampInRange(value, this.state.manualAngularSpeed, this.manualAngularMin, this.manualAngularMax);
     this.state = {
       ...this.state,
       manualAngularSpeed: clamped
@@ -659,21 +717,51 @@ export class NavigationService {
   }
 
   applyRuntimeDefaults(defaults: Partial<NavigationManualDefaults>): void {
-    const nextLinear = defaults.linearSpeed !== undefined ? clampManualLinearSpeed(defaults.linearSpeed) : this.state.manualLinearSpeed;
+    const nextLinearRange = normalizeRange(
+      defaults.linearMin ?? this.manualLinearMin,
+      defaults.linearMax ?? this.manualLinearMax,
+      DEFAULT_MANUAL_LINEAR_MIN,
+      DEFAULT_MANUAL_LINEAR_MAX
+    );
+    const nextAngularRange = normalizeRange(
+      defaults.angularMin ?? this.manualAngularMin,
+      defaults.angularMax ?? this.manualAngularMax,
+      DEFAULT_MANUAL_ANGULAR_MIN,
+      DEFAULT_MANUAL_ANGULAR_MAX
+    );
+    const nextLinear =
+      defaults.linearSpeed !== undefined
+        ? clampInRange(defaults.linearSpeed, this.state.manualLinearSpeed, nextLinearRange.min, nextLinearRange.max)
+        : clampInRange(this.state.manualLinearSpeed, DEFAULT_MANUAL_LINEAR_SPEED, nextLinearRange.min, nextLinearRange.max);
     const nextAngular =
-      defaults.angularSpeed !== undefined ? clampManualAngularSpeed(defaults.angularSpeed) : this.state.manualAngularSpeed;
+      defaults.angularSpeed !== undefined
+        ? clampInRange(defaults.angularSpeed, this.state.manualAngularSpeed, nextAngularRange.min, nextAngularRange.max)
+        : clampInRange(this.state.manualAngularSpeed, DEFAULT_MANUAL_ANGULAR_SPEED, nextAngularRange.min, nextAngularRange.max);
     const nextLoopInterval =
       defaults.loopIntervalMs !== undefined ? clampManualLoopIntervalMs(defaults.loopIntervalMs) : this.manualLoopIntervalMs;
 
+    const rangesChanged =
+      nextLinearRange.min !== this.manualLinearMin ||
+      nextLinearRange.max !== this.manualLinearMax ||
+      nextAngularRange.min !== this.manualAngularMin ||
+      nextAngularRange.max !== this.manualAngularMax;
     const speedChanged = nextLinear !== this.state.manualLinearSpeed || nextAngular !== this.state.manualAngularSpeed;
     const intervalChanged = nextLoopInterval !== this.manualLoopIntervalMs;
-    if (!speedChanged && !intervalChanged) return;
+    if (!speedChanged && !intervalChanged && !rangesChanged) return;
 
     this.manualLoopIntervalMs = nextLoopInterval;
+    this.manualLinearMin = nextLinearRange.min;
+    this.manualLinearMax = nextLinearRange.max;
+    this.manualAngularMin = nextAngularRange.min;
+    this.manualAngularMax = nextAngularRange.max;
     this.state = {
       ...this.state,
       manualLinearSpeed: nextLinear,
-      manualAngularSpeed: nextAngular
+      manualAngularSpeed: nextAngular,
+      manualLinearMin: this.manualLinearMin,
+      manualLinearMax: this.manualLinearMax,
+      manualAngularMin: this.manualAngularMin,
+      manualAngularMax: this.manualAngularMax
     };
     if (intervalChanged && this.manualLoopTimer) {
       clearInterval(this.manualLoopTimer);
