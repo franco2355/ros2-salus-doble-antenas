@@ -1,6 +1,13 @@
 import type { Dispatcher } from "../../dispatcher/base/Dispatcher";
 import type { Transport } from "../../transport/base/Transport";
+import { CORE_EVENTS } from "../events/topics";
 import { isPackageEnabled, isPackageModuleEnabled, type ModuleConfig } from "../config/moduleConfigLoader";
+import {
+  loadPackageConfigOverride,
+  mergePackageConfig,
+  resetPackageConfigOverride,
+  savePackageConfigOverride
+} from "../config/packageConfigLoader";
 import type { AppRuntime, LoadedPackage, PackageCatalogEntry, RegistryBundle } from "../types/module";
 import type { ConsoleTabDefinition, FooterItemDefinition, ModalDialogDefinition, SidebarPanelDefinition, ToolbarMenuDefinition, WorkspaceViewDefinition } from "../types/ui";
 import type { DispatcherDefinition } from "../registries/dispatcherRegistry";
@@ -55,6 +62,9 @@ function createScopedRegistries(
   const wrapModalRender = (definition: ModalDialogDefinition): ModalDialogDefinition => ({
     ...definition,
     id: scopeId(packageId, definition.id),
+    renderHeader: definition.renderHeader
+      ? ({ close }) => definition.renderHeader!({ runtime: scopedRuntimeRef(), close })
+      : undefined,
     render: ({ close }) => definition.render({ runtime: scopedRuntimeRef(), close }),
     renderFooter: definition.renderFooter
       ? ({ close }) => definition.renderFooter!({ runtime: scopedRuntimeRef(), close })
@@ -63,7 +73,21 @@ function createScopedRegistries(
   const wrapToolbarMenu = (definition: ToolbarMenuDefinition): ToolbarMenuDefinition => ({
     ...definition,
     id: scopeId(packageId, definition.id),
-    items: definition.items.map((item) => ({
+    onSelect: definition.onSelect
+      ? ({ openModal }) =>
+          definition.onSelect!({
+            runtime: scopedRuntimeRef(),
+            openModal: (modalId) => {
+              const scopedModalId = scopeId(packageId, modalId);
+              if (root.modalRegistry.has(scopedModalId)) {
+                openModal(scopedModalId);
+                return;
+              }
+              openModal(modalId);
+            }
+          })
+      : undefined,
+    items: (definition.items ?? []).map((item) => ({
       ...item,
       id: scopeId(packageId, item.id),
       onSelect: ({ openModal }) =>
@@ -272,12 +296,19 @@ function createScopedRuntime(rootRuntime: AppRuntime, packageId: string): AppRun
     },
     getPackageConfig<T extends Record<string, unknown>>(targetPackageId: string): T {
       return rootRuntime.getPackageConfig<T>(targetPackageId);
+    },
+    async setPackageConfig(targetPackageId: string, config: Record<string, unknown>): Promise<void> {
+      await rootRuntime.setPackageConfig(targetPackageId, config);
+    },
+    async resetPackageConfig(targetPackageId: string): Promise<void> {
+      await rootRuntime.resetPackageConfig(targetPackageId);
     }
   };
   return scopedRuntime;
 }
 
 export class PackageManager {
+  private readonly packageBaseConfigById = new Map<string, Record<string, unknown>>();
   private readonly packageConfigById = new Map<string, Record<string, unknown>>();
 
   constructor(
@@ -287,6 +318,32 @@ export class PackageManager {
 
   getPackageConfig<T extends Record<string, unknown>>(packageId: string): T {
     return { ...(this.packageConfigById.get(packageId) ?? {}) } as T;
+  }
+
+  async setPackageConfig(packageId: string, config: Record<string, unknown>): Promise<void> {
+    const base = this.packageBaseConfigById.get(packageId);
+    if (!base) {
+      throw new Error(`Unknown package '${packageId}'`);
+    }
+    this.packageConfigById.set(packageId, { ...config });
+    await savePackageConfigOverride(packageId, config);
+    this.runtime.eventBus.emit(CORE_EVENTS.packageConfigUpdated, {
+      packageId,
+      config: { ...config }
+    });
+  }
+
+  async resetPackageConfig(packageId: string): Promise<void> {
+    const base = this.packageBaseConfigById.get(packageId);
+    if (!base) {
+      throw new Error(`Unknown package '${packageId}'`);
+    }
+    this.packageConfigById.set(packageId, { ...base });
+    await resetPackageConfigOverride(packageId);
+    this.runtime.eventBus.emit(CORE_EVENTS.packageConfigUpdated, {
+      packageId,
+      config: { ...base }
+    });
   }
 
   async registerPackages(catalog: PackageCatalogEntry[]): Promise<LoadedPackage[]> {
@@ -300,7 +357,11 @@ export class PackageManager {
       }
       seen.add(cockpitPackage.id);
 
-      this.packageConfigById.set(cockpitPackage.id, { ...entry.config });
+      const baseConfig = { ...entry.packageConfig.values };
+      const overrideConfig = await loadPackageConfigOverride(cockpitPackage.id);
+      const mergedConfig = mergePackageConfig(baseConfig, overrideConfig);
+      this.packageBaseConfigById.set(cockpitPackage.id, baseConfig);
+      this.packageConfigById.set(cockpitPackage.id, mergedConfig);
 
       const scopedRuntime = createScopedRuntime(this.runtime, cockpitPackage.id);
 
@@ -321,7 +382,7 @@ export class PackageManager {
         version: cockpitPackage.version,
         enabled,
         moduleIds: enabledModuleIds,
-        createSettingsSection: cockpitPackage.createSettingsSection
+        settingsSchema: entry.packageConfig.settings
       });
     }
 

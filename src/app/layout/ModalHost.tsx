@@ -12,18 +12,23 @@ export function ModalHost({ runtime, dialogs, modalId, closeModal }: ModalHostPr
   if (!modalId) return null;
   const dialog = dialogs.find((entry) => entry.id === modalId);
   if (!dialog) return null;
+  const headerContent = dialog.renderHeader ? dialog.renderHeader({ runtime, close: closeModal }) : null;
   const footerContent = dialog.renderFooter ? dialog.renderFooter({ runtime, close: closeModal }) : null;
   const dialogClassName = `modal-card modal-card-${dialog.id.replace(/\./g, "-")}`;
 
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true" onClick={closeModal}>
       <div className={dialogClassName} onClick={(event) => event.stopPropagation()}>
-        <div className="modal-header">
-          <strong>{dialog.title}</strong>
-          <button type="button" onClick={closeModal}>
-            X
-          </button>
-        </div>
+        {headerContent ? (
+          <div className="modal-header">{headerContent}</div>
+        ) : (
+          <div className="modal-header">
+            <strong>{dialog.title}</strong>
+            <button type="button" onClick={closeModal}>
+              X
+            </button>
+          </div>
+        )}
         <div className="modal-body">{dialog.render({ runtime, close: closeModal })}</div>
         {footerContent ? <div className="modal-footer">{footerContent}</div> : null}
       </div>

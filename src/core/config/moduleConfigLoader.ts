@@ -11,7 +11,6 @@ const DEFAULT_MODULES_YAML = `packages:
       telemetry: true
       map: true
       debug: true
-      settings: true
 `;
 
 export interface PackageToggleConfig {

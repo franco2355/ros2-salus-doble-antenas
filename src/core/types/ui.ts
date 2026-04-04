@@ -11,7 +11,8 @@ export interface ToolbarMenuDefinition {
   id: string;
   label: string;
   order?: number;
-  items: ToolbarMenuItemDefinition[];
+  onSelect?: (ctx: { runtime: AppRuntime; openModal: (modalId: string) => void }) => void | Promise<void>;
+  items?: ToolbarMenuItemDefinition[];
 }
 
 export interface SidebarPanelDefinition {
@@ -45,6 +46,7 @@ export interface ModalDialogDefinition {
   id: string;
   title: string;
   order?: number;
+  renderHeader?: (ctx: { runtime: AppRuntime; close: () => void }) => ReactNode;
   render: (ctx: { runtime: AppRuntime; close: () => void }) => ReactNode;
   renderFooter?: (ctx: { runtime: AppRuntime; close: () => void }) => ReactNode;
 }

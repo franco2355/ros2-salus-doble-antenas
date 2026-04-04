@@ -4,7 +4,6 @@ import type { EnvConfig } from "../config/envConfig";
 import type { ModuleConfig } from "../config/moduleConfigLoader";
 import type { Container } from "../di/container";
 import type { EventBus } from "../events/eventBus";
-import type { ReactNode } from "react";
 import type { ConsoleTabDefinition, FooterItemDefinition, ModalDialogDefinition, SidebarPanelDefinition, ToolbarMenuDefinition, WorkspaceViewDefinition } from "./ui";
 import type { DispatcherDefinition } from "../registries/dispatcherRegistry";
 import type { ServiceDefinition } from "../registries/serviceRegistry";
@@ -107,9 +106,32 @@ export interface ModuleContext {
   packages: LoadedPackage[];
   getService<T>(serviceId: string): T;
   getPackageConfig<T extends Record<string, unknown>>(packageId: string): T;
+  setPackageConfig(packageId: string, config: Record<string, unknown>): Promise<void>;
+  resetPackageConfig(packageId: string): Promise<void>;
 }
 
 export interface AppRuntime extends ModuleContext {}
+
+export type PackageSettingFieldType = "string" | "number" | "boolean" | "json";
+
+export interface PackageSettingFieldSchema {
+  key: string;
+  label: string;
+  type: PackageSettingFieldType;
+  description?: string;
+  order?: number;
+  placeholder?: string;
+}
+
+export interface PackageSettingsSchema {
+  title?: string;
+  fields: PackageSettingFieldSchema[];
+}
+
+export interface PackageConfigSchema {
+  values: Record<string, unknown>;
+  settings: PackageSettingsSchema;
+}
 
 export interface CockpitModule {
   id: string;
@@ -118,24 +140,17 @@ export interface CockpitModule {
   register(ctx: ModuleContext): void | Promise<void>;
 }
 
-export interface PackageSettingsSectionContext {
-  runtime: AppRuntime;
-  packageId: string;
-  config: Record<string, unknown>;
-}
-
 export interface CockpitPackage {
   id: string;
   version: string;
   enabledByDefault: boolean;
   modules: CockpitModule[];
-  createSettingsSection?: (ctx: PackageSettingsSectionContext) => ReactNode;
 }
 
 export interface PackageCatalogEntry {
   path: string;
   cockpitPackage: CockpitPackage;
-  config: Record<string, unknown>;
+  packageConfig: PackageConfigSchema;
 }
 
 export interface LoadedPackage {
@@ -143,5 +158,5 @@ export interface LoadedPackage {
   version: string;
   enabled: boolean;
   moduleIds: string[];
-  createSettingsSection?: CockpitPackage["createSettingsSection"];
+  settingsSchema: PackageSettingsSchema;
 }

@@ -203,7 +203,6 @@ pre {
   min-height: 18px;
   padding: 1px 8px;
   border: 1px solid #000;
-  border-radius: 3px;
   font-weight: 700;
 }
 
@@ -299,7 +298,7 @@ pre {
 .nav-legacy-grid button {
   min-height: 40px;
   height: 40px;
-  font-size: 22px;
+  font-size: 15px;
   line-height: 1;
   padding: 0;
   display: inline-flex;
@@ -314,13 +313,13 @@ pre {
 }
 
 .nav-legacy-grid button:last-child {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 700;
 }
 
 .nav-legacy-send-btn {
   grid-column: span 2;
-  font-size: 20px;
+  /* font-size: 20px; */
   font-weight: 700;
   background: linear-gradient(180deg, #66b78e, #4a9d75);
   border-color: #3e8865;
@@ -332,7 +331,7 @@ pre {
 
 .nav-legacy-cancel-btn {
   grid-column: span 2;
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 700;
   background: linear-gradient(180deg, #c34a46, #a6312d);
   border-color: #8e2825;

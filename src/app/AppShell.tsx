@@ -48,6 +48,23 @@ function sidebarEmoji(panelId: string): string {
   return "🧩";
 }
 
+function sidebarTooltipLabel(label: string): string {
+  const normalized = label.trim();
+  const labels: Record<string, string> = {
+    Connection: "Conexión",
+    Navigation: "Navegación",
+    Telemetry: "Telemetría",
+    Debug: "Depuración",
+    Settings: "Configuración",
+    Map: "Mapa",
+    Zones: "Zonas",
+    "Zone List": "Lista de zonas",
+    "Speed limits": "Límites de velocidad",
+    "Camera PTZ": "Cámara PTZ"
+  };
+  return labels[normalized] ?? normalized;
+}
+
 function isDisconnectedErrorText(text: string): boolean {
   const normalized = text.toLowerCase();
   if (!normalized.trim()) return false;
@@ -429,8 +446,8 @@ export function AppShell({ runtime }: AppShellProps): JSX.Element {
                 setActiveSidebarId(panel.id);
                 setSidebarCollapsed(false);
               }}
-              title={panel.label}
-              aria-label={panel.label}
+              title={sidebarTooltipLabel(panel.label)}
+              aria-label={sidebarTooltipLabel(panel.label)}
             >
               <span aria-hidden="true">{sidebarEmoji(panel.id)}</span>
             </button>
@@ -439,8 +456,8 @@ export function AppShell({ runtime }: AppShellProps): JSX.Element {
             type="button"
             className="collapse-toggle"
             onClick={() => setSidebarCollapsed((prev) => !prev)}
-            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={sidebarCollapsed ? "Expandir panel lateral" : "Colapsar panel lateral"}
+            aria-label={sidebarCollapsed ? "Expandir panel lateral" : "Colapsar panel lateral"}
           >
             {sidebarCollapsed ? "▶" : "◀"}
           </button>

@@ -24,6 +24,48 @@ const GPS_DEFAULT_CENTER: L.LatLngTuple = [-31.4201, -64.1888];
 const MAP_WHEEL_PX_PER_ZOOM_LEVEL = 160;
 const MAP_WHEEL_DEBOUNCE_MS = 80;
 
+interface Nav2MapConfig {
+  map_default_center_lat?: unknown;
+  map_default_center_lon?: unknown;
+  map_default_zoom?: unknown;
+  camera_probe_timeout_ms?: unknown;
+  camera_load_timeout_ms?: unknown;
+}
+
+function readNav2MapConfig(runtime: ModuleContext): Nav2MapConfig {
+  return runtime.getPackageConfig<Record<string, unknown>>("nav2") as Nav2MapConfig;
+}
+
+function parseFinite(value: unknown, fallback: number): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function parseCenter(config: Nav2MapConfig): L.LatLngTuple {
+  const lat = parseFinite(config.map_default_center_lat, GPS_DEFAULT_CENTER[0]);
+  const lon = parseFinite(config.map_default_center_lon, GPS_DEFAULT_CENTER[1]);
+  return [Math.max(-90, Math.min(90, lat)), Math.max(-180, Math.min(180, lon))];
+}
+
+function parseZoom(config: Nav2MapConfig): number {
+  const parsed = Math.round(parseFinite(config.map_default_zoom, GPS_DEFAULT_ZOOM));
+  return Math.max(0, Math.min(GPS_NATIVE_MAX_ZOOM, parsed));
+}
+
+function parseCameraProbeTimeout(config: Nav2MapConfig, runtime: ModuleContext): number {
+  const fallback = Math.max(500, Number(runtime.env.cameraProbeTimeoutMs ?? 3000));
+  const parsed = Number(config.camera_probe_timeout_ms);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(500, Math.round(parsed));
+}
+
+function parseCameraLoadTimeout(config: Nav2MapConfig, runtime: ModuleContext): number {
+  const fallback = Math.max(1000, Number(runtime.env.cameraLoadTimeoutMs ?? 7000));
+  const parsed = Number(config.camera_load_timeout_ms);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(1000, Math.round(parsed));
+}
+
 interface TelemetryServiceLike {
   getSnapshot: () => TelemetrySnapshot;
   subscribeTelemetry: (callback: (snapshot: TelemetrySnapshot) => void) => () => void;
@@ -74,15 +116,15 @@ function geodesicArea(points: L.LatLng[]): number {
 
 function formatControlLockReason(reason: string): string {
   const normalized = reason.trim();
-  if (!normalized) return "Robot locked";
+  if (!normalized) return "Robot bloqueado";
   const labels: Record<string, string> = {
-    STARTUP_LOCKED: "Robot locked at startup",
-    UI_LOCK_REQUEST: "Robot locked from UI",
-    UI_HEARTBEAT_TIMEOUT: "Robot locked by missing UI heartbeat",
-    DISCONNECTED: "Robot locked until backend confirms unlock",
-    LOCKED: "Robot locked"
+    STARTUP_LOCKED: "Robot bloqueado al iniciar",
+    UI_LOCK_REQUEST: "Robot bloqueado desde la UI",
+    UI_HEARTBEAT_TIMEOUT: "Robot bloqueado por ausencia de heartbeat de la UI",
+    DISCONNECTED: "Robot bloqueado hasta que el backend confirme el desbloqueo",
+    LOCKED: "Robot bloqueado"
   };
-  return labels[normalized] ?? `Robot locked: ${normalized}`;
+  return labels[normalized] ?? `Robot bloqueado: ${normalized}`;
 }
 
 function normalizeYawDeg(yawDeg: number): number {
@@ -154,7 +196,10 @@ function LeafletMapCanvas({
   centerRequestKey,
   onQueueWaypoint,
   onToggleWaypointSelection,
-  onMoveWaypoint
+  onMoveWaypoint,
+  initialCenterLat,
+  initialCenterLon,
+  initialZoom
 }: {
   state: MapWorkspaceState;
   mapService: MapService;
@@ -168,6 +213,9 @@ function LeafletMapCanvas({
   onQueueWaypoint: (lat: number, lon: number, yawDeg: number) => void;
   onToggleWaypointSelection: (index: number) => void;
   onMoveWaypoint: (index: number, lat: number, lon: number) => void;
+  initialCenterLat: number;
+  initialCenterLon: number;
+  initialZoom: number;
 }): JSX.Element {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -353,7 +401,7 @@ function LeafletMapCanvas({
       zoomControl: true,
       wheelPxPerZoomLevel: MAP_WHEEL_PX_PER_ZOOM_LEVEL,
       wheelDebounceTime: MAP_WHEEL_DEBOUNCE_MS
-    }).setView(GPS_DEFAULT_CENTER, GPS_DEFAULT_ZOOM);
+    }).setView([initialCenterLat, initialCenterLon], initialZoom);
     L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       {
@@ -566,7 +614,7 @@ function LeafletMapCanvas({
       draftMarkerRef.current = null;
       measurePointsRef.current = [];
     };
-  }, [mapService, runtime.eventBus]);
+  }, [initialCenterLat, initialCenterLon, initialZoom, mapService, runtime.eventBus]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -774,6 +822,7 @@ function LeafletMapCanvas({
 }
 
 function MapWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element {
+  const nav2Config = readNav2MapConfig(runtime);
   const mapService = runtime.registries.serviceRegistry.getService<MapService>(SERVICE_ID);
   let navigationService: NavigationService | null = null;
   try {
@@ -878,8 +927,12 @@ function MapWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element 
   const mainIsMap = !cameraPaneAvailable || mainPane === "map";
   const cameraEnabled = connectionService?.isCameraEnabled() ?? false;
   const cameraUrl = connectionService?.getCameraIframeUrl() ?? "";
-  const cameraProbeTimeoutMs = Math.max(500, Number(runtime.env.cameraProbeTimeoutMs ?? 3000));
-  const cameraLoadTimeoutMs = Math.max(1000, Number(runtime.env.cameraLoadTimeoutMs ?? 7000));
+  const cameraProbeTimeoutMs = parseCameraProbeTimeout(nav2Config, runtime);
+  const cameraLoadTimeoutMs = parseCameraLoadTimeout(nav2Config, runtime);
+  const initialCenter = parseCenter(nav2Config);
+  const initialCenterLat = initialCenter[0];
+  const initialCenterLon = initialCenter[1];
+  const initialZoom = parseZoom(nav2Config);
   const cameraStreamConnected = navigationState?.cameraStreamConnected === true;
   const controlsLocked = navigationState?.controlLocked ?? true;
   const mapInteractive = mainIsMap;
@@ -1107,6 +1160,9 @@ function MapWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element 
               onQueueWaypoint={queueWaypointFromMap}
               onToggleWaypointSelection={toggleWaypointSelectionFromMap}
               onMoveWaypoint={moveWaypointFromMap}
+              initialCenterLat={initialCenterLat}
+              initialCenterLon={initialCenterLon}
+              initialZoom={initialZoom}
             />
             <div className={`map-overlay-tools ${mainIsMap ? "" : "hidden"}`}>
               <div className="map-tool-status">{state.toolInfo}</div>
@@ -1115,8 +1171,8 @@ function MapWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element 
                   type="button"
                   className={toolButtonClass(state.toolMode, "ruler")}
                   onClick={() => selectTool("ruler", "ruler")}
-                  title="Ruler"
-                  aria-label="Ruler"
+                  title="Regla"
+                  aria-label="Regla"
                   disabled={!mapToolsEnabled}
                 >
                   📏
@@ -1125,8 +1181,8 @@ function MapWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element 
                   type="button"
                   className={toolButtonClass(state.toolMode, "area")}
                   onClick={() => selectTool("area", "area")}
-                  title="Area"
-                  aria-label="Area"
+                  title="Área"
+                  aria-label="Área"
                   disabled={!mapToolsEnabled}
                 >
                   📐
@@ -1135,8 +1191,8 @@ function MapWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element 
                   type="button"
                   className={toolButtonClass(state.toolMode, "inspect")}
                   onClick={() => selectTool("inspect", "inspect")}
-                  title="Inspect"
-                  aria-label="Inspect"
+                  title="Inspeccionar"
+                  aria-label="Inspeccionar"
                   disabled={!mapToolsEnabled}
                 >
                   📍
@@ -1152,8 +1208,8 @@ function MapWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element 
                       timestamp: Date.now()
                     });
                   }}
-                  title="Center robot"
-                  aria-label="Center robot"
+                  title="Centrar robot"
+                  aria-label="Centrar robot"
                   disabled={!mapToolsEnabled}
                 >
                   🎯
@@ -1178,8 +1234,8 @@ function MapWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element 
                         });
                       });
                   }}
-                  title="Set datum"
-                  aria-label="Set datum"
+                  title="Definir datum"
+                  aria-label="Definir datum"
                   disabled={!mapToolsEnabled}
                 >
                   🧲
@@ -1187,8 +1243,8 @@ function MapWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element 
                 <button
                   type="button"
                   onClick={() => selectTool("idle", "idle")}
-                  title="Close tools"
-                  aria-label="Close tools"
+                  title="Cerrar herramientas"
+                  aria-label="Cerrar herramientas"
                   disabled={!mapToolsEnabled}
                 >
                   ❌
@@ -1204,7 +1260,7 @@ function MapWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element 
               <iframe
                 className="camera-frame"
                 src={frameSrc}
-                title="Camera feed"
+                title="Vista de cámara"
                 loading="lazy"
                 onLoad={() => {
                   if (!(navigationService?.getState().cameraStreamConnected === true)) return;

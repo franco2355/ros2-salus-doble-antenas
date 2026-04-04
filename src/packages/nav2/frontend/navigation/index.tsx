@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import "./styles.css";
-import { NAV_EVENTS } from "../../../../core/events/topics";
+import { CollapsibleSection } from "../../../../app/layout/CollapsibleSection";
+import { CORE_EVENTS, NAV_EVENTS } from "../../../../core/events/topics";
 import type { CockpitModule, ModuleContext } from "../../../../core/types/module";
 import { RobotDispatcher } from "../../dispatcher/impl/RobotDispatcher";
 import { notify } from "../../../../platform/tauri/notifications";
@@ -19,6 +20,62 @@ const CONNECTION_SERVICE_ID = "service.connection";
 const MAP_SERVICE_ID = "service.map";
 const TELEMETRY_SERVICE_ID = "service.telemetry";
 const SENSOR_INFO_SERVICE_ID = "service.sensor-info";
+
+interface Nav2RuntimeConfig {
+  ws_real_host?: unknown;
+  ws_real_port?: unknown;
+  ws_sim_host?: unknown;
+  ws_sim_port?: unknown;
+  manual_linear_speed_default?: unknown;
+  manual_angular_speed_default?: unknown;
+  manual_loop_interval_ms?: unknown;
+}
+
+function readNav2Config(ctx: ModuleContext): Nav2RuntimeConfig {
+  return ctx.getPackageConfig<Record<string, unknown>>("nav2") as Nav2RuntimeConfig;
+}
+
+function parseHost(value: unknown, fallback: string): string {
+  const next = String(value ?? "").trim();
+  return next.length > 0 ? next : fallback;
+}
+
+function parsePort(value: unknown, fallback: string): string {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1 || parsed > 65535) return fallback;
+  return String(parsed);
+}
+
+function parseNumberInRange(value: unknown, fallback: number, min: number, max: number): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, parsed));
+}
+
+function parseLoopIntervalMs(value: unknown, fallback: number): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(20, Math.round(parsed));
+}
+
+function buildConnectionPresetDefaults(ctx: ModuleContext, config: Nav2RuntimeConfig): {
+  real: { host: string; port: string };
+  sim: { host: string; port: string };
+} {
+  const wsRealHostFallback = ctx.env.wsRealHost ?? "100.111.4.7";
+  const wsSimHostFallback = ctx.env.wsSimHost ?? "localhost";
+  const wsPortFallback = ctx.env.wsDefaultPort ?? "8766";
+  return {
+    real: {
+      host: parseHost(config.ws_real_host, wsRealHostFallback),
+      port: parsePort(config.ws_real_port, wsPortFallback)
+    },
+    sim: {
+      host: parseHost(config.ws_sim_host, wsSimHostFallback),
+      port: parsePort(config.ws_sim_port, wsPortFallback)
+    }
+  };
+}
 
 interface TelemetryServiceLike {
   getSnapshot: () => TelemetrySnapshot;
@@ -74,8 +131,7 @@ function ConnectionSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
 
   return (
     <div className="stack">
-      <div className="panel-card">
-        <h3>Connection</h3>
+      <CollapsibleSection title="Connection">
         <div className="stack">
           <select
             value={state.preset}
@@ -117,7 +173,7 @@ function ConnectionSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
           </div>
           {state.lastError ? <p className="muted">Error: {state.lastError}</p> : null}
         </div>
-      </div>
+      </CollapsibleSection>
     </div>
   );
 }
@@ -164,8 +220,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
 
   return (
     <div className="stack">
-      <div className="panel-card">
-        <h3>Navigation</h3>
+      <CollapsibleSection title="Navigation">
         <div className="nav-legacy-grid">
           <button
             type="button"
@@ -174,7 +229,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
               const enabled = service.toggleGoalMode();
               emitInfo(enabled ? "Goal mode enabled" : "Goal mode disabled");
             }}
-            title="Goal mode"
+            title="Modo objetivo"
           >
             📌
           </button>
@@ -185,7 +240,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
               emitInfo("Last waypoint removed");
             }}
             disabled={state.waypoints.length === 0}
-            title="Undo"
+            title="Deshacer"
           >
             ↩
           </button>
@@ -197,7 +252,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
               emitInfo("Waypoints cleared");
             }}
             disabled={state.waypoints.length === 0}
-            title="Clear waypoints"
+            title="Limpiar waypoints"
           >
             🗑
           </button>
@@ -211,7 +266,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
               }
             }}
             disabled={selectedCount === 0}
-            title="Remove selected"
+            title="Eliminar seleccionados"
           >
             🧹
           </button>
@@ -267,7 +322,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
                 });
               }
             }}
-            title="Save route"
+            title="Guardar ruta"
           >
             💾
           </button>
@@ -285,7 +340,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
                 });
               }
             }}
-            title="Load route"
+            title="Cargar ruta"
           >
             📂
           </button>
@@ -304,7 +359,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
               const connected = service.toggleCameraStream();
               emitInfo(connected ? "Camera stream connected" : "Camera stream disconnected");
             }}
-            title="Camera stream"
+            title="Flujo de cámara"
           >
             📸
           </button>
@@ -324,7 +379,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
                 });
               }
             }}
-            title="Manual mode"
+            title="Modo manual"
             disabled={state.controlLocked}
           >
             {state.manualMode ? "ON" : "OFF"}
@@ -344,7 +399,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
           {state.manualCommand.angularZ.toFixed(2)}
         </p>
         <p className="nav-legacy-text">{state.lastStatus}</p>
-      </div>
+      </CollapsibleSection>
       <ManualControlSidebarPanel runtime={runtime} />
       <ZonesSidebarSection runtime={runtime} />
       <CameraSidebarPanel runtime={runtime} />
@@ -360,8 +415,7 @@ function ManualControlSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX
 
   return (
     <div className="stack">
-      <div className="panel-card">
-        <h3>Speed limits</h3>
+      <CollapsibleSection title="Speed limits">
         <label className="range-row">
           Linear speed (m/s): {state.manualLinearSpeed.toFixed(2)}
           <input
@@ -384,7 +438,7 @@ function ManualControlSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX
             onChange={(event) => service.setManualAngularSpeed(Number(event.target.value))}
           />
         </label>
-      </div>
+      </CollapsibleSection>
     </div>
   );
 }
@@ -403,8 +457,7 @@ function ZonesSidebarSection({ runtime }: { runtime: ModuleContext }): JSX.Eleme
 
   return (
     <div className="stack">
-      <div className="panel-card">
-        <h3>Zones</h3>
+      <CollapsibleSection title="Zones">
         <div className="zones-legacy-grid">
           <button
             type="button"
@@ -498,9 +551,8 @@ function ZonesSidebarSection({ runtime }: { runtime: ModuleContext }): JSX.Eleme
           <input type="checkbox" checked={state.autoSync} onChange={(event) => mapService.setAutoSync(event.target.checked)} />
           Auto-sync edits
         </label>
-      </div>
-      <div className="panel-card">
-        <h3>Zone List</h3>
+      </CollapsibleSection>
+      <CollapsibleSection title="Zone List">
         {state.zones.length === 0 ? (
           <p className="muted">No zones.</p>
         ) : (
@@ -520,7 +572,7 @@ function ZonesSidebarSection({ runtime }: { runtime: ModuleContext }): JSX.Eleme
             ))}
           </ul>
         )}
-      </div>
+      </CollapsibleSection>
     </div>
   );
 }
@@ -556,8 +608,7 @@ function CameraSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.Elemen
 
   return (
     <div className="stack">
-      <div className="panel-card">
-        <h3>Camera PTZ</h3>
+      <CollapsibleSection title="Camera PTZ">
         <div className="ptz-grid">
           <button type="button" onClick={() => void pan(45)}>
             ⇖
@@ -600,7 +651,7 @@ function CameraSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.Elemen
             ⇘
           </button>
         </div>
-      </div>
+      </CollapsibleSection>
     </div>
   );
 }
@@ -1190,18 +1241,35 @@ function registerDispatcher(ctx: ModuleContext): RobotDispatcher {
 }
 
 function registerServices(ctx: ModuleContext, dispatcher: RobotDispatcher): NavigationService {
-  const navigationService = new NavigationService(dispatcher);
+  const config = readNav2Config(ctx);
+  const navigationService = new NavigationService(dispatcher, {
+    linearSpeed: parseNumberInRange(config.manual_linear_speed_default, 1.2, 1.0, 4.0),
+    angularSpeed: parseNumberInRange(config.manual_angular_speed_default, 0.4, 0.1, 1.2),
+    loopIntervalMs: parseLoopIntervalMs(config.manual_loop_interval_ms, 50)
+  });
   ctx.registries.serviceRegistry.registerService({
     id: NAVIGATION_SERVICE_ID,
     order: 10,
     service: navigationService
   });
 
-  const connectionService = new ConnectionService(ctx.transportManager, ctx.env, TRANSPORT_ID, ctx.eventBus);
+  const connectionService = new ConnectionService(
+    ctx.transportManager,
+    ctx.env,
+    TRANSPORT_ID,
+    ctx.eventBus,
+    buildConnectionPresetDefaults(ctx, config)
+  );
   ctx.registries.serviceRegistry.registerService({
     id: CONNECTION_SERVICE_ID,
     order: 11,
     service: connectionService
+  });
+  ctx.eventBus.on<{ packageId?: unknown; config?: unknown }>(CORE_EVENTS.packageConfigUpdated, (payload) => {
+    const packageId = typeof payload?.packageId === "string" ? payload.packageId : "";
+    if (packageId !== "nav2") return;
+    const nextConfig = (payload.config ?? {}) as Nav2RuntimeConfig;
+    connectionService.applyPresetDefaults(buildConnectionPresetDefaults(ctx, nextConfig));
   });
 
   const sensorInfoService = new SensorInfoService(dispatcher);

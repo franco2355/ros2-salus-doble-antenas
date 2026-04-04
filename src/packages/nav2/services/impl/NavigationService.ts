@@ -64,6 +64,12 @@ const DEFAULT_MANUAL_ANGULAR_SPEED = 0.4;
 const MANUAL_LOOP_INTERVAL_MS = 50;
 const navigationMemoryStorage = new Map<string, string>();
 
+export interface NavigationManualDefaults {
+  linearSpeed: number;
+  angularSpeed: number;
+  loopIntervalMs: number;
+}
+
 function getStorageAdapter(): {
   getItem: (key: string) => string | null;
   setItem: (key: string, value: string) => void;
@@ -128,6 +134,7 @@ export class NavigationService {
   private readonly listeners = new Set<NavigationListener>();
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private manualLoopTimer: ReturnType<typeof setInterval> | null = null;
+  private readonly manualLoopIntervalMs: number;
   private state: NavigationState = {
     waypoints: [],
     selectedWaypointIndexes: [],
@@ -156,7 +163,21 @@ export class NavigationService {
     lastSnapshot: null
   };
 
-  constructor(private readonly robotDispatcher: RobotDispatcher) {
+  constructor(private readonly robotDispatcher: RobotDispatcher, manualDefaults?: Partial<NavigationManualDefaults>) {
+    const linearSpeed = Number(manualDefaults?.linearSpeed);
+    const angularSpeed = Number(manualDefaults?.angularSpeed);
+    const loopIntervalMs = Number(manualDefaults?.loopIntervalMs);
+    const safeLinearSpeed = Number.isFinite(linearSpeed) ? linearSpeed : DEFAULT_MANUAL_LINEAR_SPEED;
+    const safeAngularSpeed = Number.isFinite(angularSpeed) ? angularSpeed : DEFAULT_MANUAL_ANGULAR_SPEED;
+    this.manualLoopIntervalMs =
+      Number.isFinite(loopIntervalMs) && loopIntervalMs > 0 ? Math.max(20, Math.round(loopIntervalMs)) : MANUAL_LOOP_INTERVAL_MS;
+
+    this.state = {
+      ...this.state,
+      manualLinearSpeed: safeLinearSpeed,
+      manualAngularSpeed: safeAngularSpeed
+    };
+
     const dispatcher = this.robotDispatcher as unknown as {
       subscribeState?: (callback: (message: Record<string, unknown>) => void) => () => void;
       subscribeNavTelemetry?: (callback: (message: Record<string, unknown>) => void) => () => void;
@@ -797,7 +818,7 @@ export class NavigationService {
       if (!this.manualLoopTimer) {
         this.manualLoopTimer = setInterval(() => {
           void this.manualControlTick();
-        }, MANUAL_LOOP_INTERVAL_MS);
+        }, this.manualLoopIntervalMs);
       }
       void this.manualControlTick();
       return;

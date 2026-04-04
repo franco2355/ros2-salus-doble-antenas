@@ -1,7 +1,97 @@
 {
-  "URL_CAMERA": "",
-  "URL_WS_BACKEND": "",
-  "THEME": "monokai",
-  "fontsize": 13,
-  "gps_topic": "/gps/fix"
+  "values": {
+    "ws_real_host": "100.111.4.7",
+    "ws_real_port": 8766,
+    "ws_sim_host": "localhost",
+    "ws_sim_port": 8766,
+    "camera_probe_timeout_ms": 3000,
+    "camera_load_timeout_ms": 7000,
+    "map_default_center_lat": -31.4201,
+    "map_default_center_lon": -64.1888,
+    "map_default_zoom": 16,
+    "manual_linear_speed_default": 1.2,
+    "manual_angular_speed_default": 0.4,
+    "manual_loop_interval_ms": 50
+  },
+  "settings": {
+    "title": "Nav2",
+    "fields": [
+      {
+        "key": "ws_real_host",
+        "label": "WS Real Host",
+        "type": "string",
+        "placeholder": "100.111.4.7",
+        "order": 10
+      },
+      {
+        "key": "ws_real_port",
+        "label": "WS Real Port",
+        "type": "number",
+        "placeholder": "8766",
+        "order": 20
+      },
+      {
+        "key": "ws_sim_host",
+        "label": "WS Sim Host",
+        "type": "string",
+        "placeholder": "localhost",
+        "order": 30
+      },
+      {
+        "key": "ws_sim_port",
+        "label": "WS Sim Port",
+        "type": "number",
+        "placeholder": "8766",
+        "order": 40
+      },
+      {
+        "key": "camera_probe_timeout_ms",
+        "label": "Camera Probe Timeout (ms)",
+        "type": "number",
+        "order": 50
+      },
+      {
+        "key": "camera_load_timeout_ms",
+        "label": "Camera Load Timeout (ms)",
+        "type": "number",
+        "order": 60
+      },
+      {
+        "key": "map_default_center_lat",
+        "label": "Map Default Center Lat",
+        "type": "number",
+        "order": 70
+      },
+      {
+        "key": "map_default_center_lon",
+        "label": "Map Default Center Lon",
+        "type": "number",
+        "order": 80
+      },
+      {
+        "key": "map_default_zoom",
+        "label": "Map Default Zoom",
+        "type": "number",
+        "order": 90
+      },
+      {
+        "key": "manual_linear_speed_default",
+        "label": "Manual Linear Speed Default",
+        "type": "number",
+        "order": 100
+      },
+      {
+        "key": "manual_angular_speed_default",
+        "label": "Manual Angular Speed Default",
+        "type": "number",
+        "order": 110
+      },
+      {
+        "key": "manual_loop_interval_ms",
+        "label": "Manual Loop Interval (ms)",
+        "type": "number",
+        "order": 120
+      }
+    ]
+  }
 }

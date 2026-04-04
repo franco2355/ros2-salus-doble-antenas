@@ -49,15 +49,20 @@ export function TopToolbar({ runtime, menus, openModal }: TopToolbarProps): JSX.
               <button
                 type="button"
                 className="toolbar-menu-trigger"
-                onClick={() => {
+                onClick={async () => {
+                  if (menu.onSelect) {
+                    setOpenMenuId(null);
+                    await menu.onSelect({ runtime, openModal });
+                    return;
+                  }
                   setOpenMenuId((current) => (current === menu.id ? null : menu.id));
                 }}
               >
                 {menu.label}
               </button>
-              {openMenuId === menu.id ? (
+              {openMenuId === menu.id && (menu.items?.length ?? 0) > 0 ? (
                 <div className="toolbar-dropdown">
-                  {menu.items.map((item) => (
+                  {(menu.items ?? []).map((item) => (
                     <button
                       key={item.id}
                       type="button"

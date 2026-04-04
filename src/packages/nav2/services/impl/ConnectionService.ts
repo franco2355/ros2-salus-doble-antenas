@@ -19,6 +19,11 @@ type ConnectionListener = (state: ConnectionState) => void;
 
 const CONNECTION_PRESET_STORAGE_KEY = "map_tools.connection_presets.v1";
 
+export interface ConnectionPresetDefaults {
+  real: { host: string; port: string };
+  sim: { host: string; port: string };
+}
+
 function getStorageAdapter(): {
   getItem: (key: string) => string | null;
   setItem: (key: string, value: string) => void;
@@ -59,7 +64,8 @@ export class ConnectionService {
     private readonly transportManager: TransportManager,
     private readonly env: EnvConfig,
     private readonly transportId: string,
-    private readonly eventBus: EventBus
+    private readonly eventBus: EventBus,
+    presetDefaults?: ConnectionPresetDefaults
   ) {
     const wsRealHost = env.wsRealHost ?? "100.111.4.7";
     const wsSimHost = env.wsSimHost ?? "localhost";
@@ -77,7 +83,17 @@ export class ConnectionService {
         port: wsDefaultPort
       }
     };
-    this.presetValues = this.readPresetStorage(defaults);
+    const mergedDefaults: Record<ConnectionPreset, { host: string; port: string }> = {
+      real: {
+        host: String(presetDefaults?.real?.host ?? defaults.real.host),
+        port: String(presetDefaults?.real?.port ?? defaults.real.port)
+      },
+      sim: {
+        host: String(presetDefaults?.sim?.host ?? defaults.sim.host),
+        port: String(presetDefaults?.sim?.port ?? defaults.sim.port)
+      }
+    };
+    this.presetValues = this.readPresetStorage(mergedDefaults);
     this.initialPreset = this.readStoredPreset();
     const initialTraffic = this.transportManager.getTrafficStats(this.transportId);
     this.state = {
@@ -235,6 +251,28 @@ export class ConnectionService {
 
   getCameraIframeUrl(): string {
     return this.isCameraEnabled() ? this.env.cameraIframeUrl.trim() : "";
+  }
+
+  applyPresetDefaults(defaults: ConnectionPresetDefaults): void {
+    const nextPresets: Record<ConnectionPreset, { host: string; port: string }> = {
+      real: {
+        host: String(defaults.real.host ?? this.presetValues.real.host),
+        port: String(defaults.real.port ?? this.presetValues.real.port)
+      },
+      sim: {
+        host: String(defaults.sim.host ?? this.presetValues.sim.host),
+        port: String(defaults.sim.port ?? this.presetValues.sim.port)
+      }
+    };
+    this.presetValues = nextPresets;
+    const activePreset = this.state.preset;
+    this.state = {
+      ...this.state,
+      host: nextPresets[activePreset].host,
+      port: nextPresets[activePreset].port
+    };
+    this.persistPresetStorage();
+    this.emit();
   }
 
   private emit(): void {

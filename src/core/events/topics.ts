@@ -4,3 +4,7 @@ export const NAV_EVENTS = {
   snapshotDownloadRequest: "navigation.snapshot.download.request",
   snapshotDownloadResult: "navigation.snapshot.download.result"
 } as const;
+
+export const CORE_EVENTS = {
+  packageConfigUpdated: "core.package-config.updated"
+} as const;

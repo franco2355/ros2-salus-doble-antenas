@@ -22,7 +22,10 @@ describe("package catalog", () => {
       {
         "../../packages/nav2/config.json": {
           default: {
-            key: "value"
+            values: { key: "value" },
+            settings: {
+              fields: [{ key: "key", label: "Key", type: "string" }]
+            }
           }
         }
       }
@@ -30,7 +33,7 @@ describe("package catalog", () => {
 
     expect(catalog).toHaveLength(1);
     expect(catalog[0].cockpitPackage.id).toBe("nav2");
-    expect(catalog[0].config).toEqual({ key: "value" });
+    expect(catalog[0].packageConfig.values).toEqual({ key: "value" });
   });
 
   it("ignores package when config.json is missing", () => {
@@ -55,6 +58,27 @@ describe("package catalog", () => {
       {
         "../../packages/nav2/config.json": {
           default: ["not-object"]
+        }
+      }
+    );
+    expect(catalog).toHaveLength(0);
+  });
+
+  it("ignores package when settings field key does not exist in values", () => {
+    const catalog = buildPackageCatalog(
+      {
+        "../../packages/nav2/index.tsx": {
+          createPackage: packageFactory("nav2")
+        }
+      },
+      {
+        "../../packages/nav2/config.json": {
+          default: {
+            values: { present: "ok" },
+            settings: {
+              fields: [{ key: "missing", label: "Missing", type: "string" }]
+            }
+          }
         }
       }
     );

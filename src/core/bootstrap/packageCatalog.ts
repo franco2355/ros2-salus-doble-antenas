@@ -1,4 +1,4 @@
-import { normalizePackageConfig } from "../config/packageConfigLoader";
+import { normalizePackageConfigSchema } from "../config/packageConfigLoader";
 import type { CockpitPackage, PackageCatalogEntry } from "../types/module";
 
 type PackageModuleExports = {
@@ -61,16 +61,18 @@ export function buildPackageCatalog(
       return;
     }
 
-    const normalizedConfig = normalizePackageConfig(configByPackageId.get(packageId));
+    const normalizedConfig = normalizePackageConfigSchema(configByPackageId.get(packageId));
     if (!normalizedConfig) {
-      console.error(`[package-catalog] Invalid config.json for package '${packageId}'. Root must be a JSON object.`);
+      console.error(
+        `[package-catalog] Invalid config.json for package '${packageId}'. Expected { values, settings.fields[] } schema.`
+      );
       return;
     }
 
     catalog.push({
       path,
       cockpitPackage,
-      config: normalizedConfig
+      packageConfig: normalizedConfig
     });
   });
 

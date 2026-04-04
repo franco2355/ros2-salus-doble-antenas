@@ -2,9 +2,92 @@ import { describe, expect, it, vi } from "vitest";
 import { MapService } from "../packages/nav2/services/impl/MapService";
 import { MissionService } from "../packages/nav2/services/impl/MissionService";
 import { NavigationService } from "../packages/nav2/services/impl/NavigationService";
+import { ConnectionService } from "../packages/nav2/services/impl/ConnectionService";
 import type { IncomingPacket } from "../core/types/message";
 
+function installStorageMock(seed: Record<string, string> = {}): void {
+  if (typeof window === "undefined") return;
+  const state = new Map<string, string>(Object.entries(seed));
+  Object.defineProperty(window, "localStorage", {
+    configurable: true,
+    value: {
+      getItem: (key: string) => (state.has(key) ? state.get(key)! : null),
+      setItem: (key: string, value: string) => {
+        state.set(key, value);
+      }
+    }
+  });
+}
+
 describe("services", () => {
+  it("uses config defaults for ConnectionService when localStorage is empty", () => {
+    installStorageMock();
+    const transportManager = {
+      getTrafficStats: vi.fn(() => ({ txBytes: 0, rxBytes: 0 })),
+      subscribeTraffic: vi.fn(),
+      connectTransport: vi.fn(),
+      disconnectTransport: vi.fn()
+    };
+    const env = {
+      appName: "test",
+      wsUrl: "ws://env-host:9999",
+      wsRealHost: "env-real",
+      wsSimHost: "env-sim",
+      wsDefaultPort: "9999",
+      rosbridgeUrl: "",
+      httpBaseUrl: "",
+      googleMapsApiKey: "",
+      cameraIframeUrl: ""
+    };
+    const eventBus = { emit: vi.fn() };
+    const service = new ConnectionService(transportManager as never, env as never, "transport.ws.core", eventBus as never, {
+      real: { host: "cfg-real", port: "8766" },
+      sim: { host: "cfg-sim", port: "17777" }
+    });
+    const state = service.getState();
+    expect(state.preset).toBe("real");
+    expect(state.host).toBe("cfg-real");
+    expect(state.port).toBe("8766");
+  });
+
+  it("prioritizes localStorage over config defaults for ConnectionService", () => {
+    installStorageMock({
+      "map_tools.connection_presets.v1": JSON.stringify({
+        preset: "sim",
+        presets: {
+          real: { host: "ls-real", port: "1111" },
+          sim: { host: "ls-sim", port: "2222" }
+        }
+      })
+    });
+    const transportManager = {
+      getTrafficStats: vi.fn(() => ({ txBytes: 0, rxBytes: 0 })),
+      subscribeTraffic: vi.fn(),
+      connectTransport: vi.fn(),
+      disconnectTransport: vi.fn()
+    };
+    const env = {
+      appName: "test",
+      wsUrl: "ws://env-host:9999",
+      wsRealHost: "env-real",
+      wsSimHost: "env-sim",
+      wsDefaultPort: "9999",
+      rosbridgeUrl: "",
+      httpBaseUrl: "",
+      googleMapsApiKey: "",
+      cameraIframeUrl: ""
+    };
+    const eventBus = { emit: vi.fn() };
+    const service = new ConnectionService(transportManager as never, env as never, "transport.ws.core", eventBus as never, {
+      real: { host: "cfg-real", port: "8766" },
+      sim: { host: "cfg-sim", port: "17777" }
+    });
+    const state = service.getState();
+    expect(state.preset).toBe("sim");
+    expect(state.host).toBe("ls-sim");
+    expect(state.port).toBe("2222");
+  });
+
   it("validates goal input in NavigationService", async () => {
     const dispatcher = {
       requestGoal: vi.fn<() => Promise<IncomingPacket>>().mockResolvedValue({
@@ -224,5 +307,26 @@ describe("services", () => {
     expect(Number(angularZ)).toBe(0);
     expect(brake).toBe(false);
     await service.setManualMode(false);
+  });
+
+  it("initializes manual defaults in NavigationService constructor", () => {
+    const dispatcher = {
+      requestGoal: vi.fn(),
+      requestCancelGoal: vi.fn(),
+      requestManualMode: vi.fn(),
+      requestManualCommand: vi.fn(),
+      requestSnapshot: vi.fn(),
+      requestCameraPan: vi.fn(),
+      requestCameraZoomToggle: vi.fn(),
+      requestCameraStatus: vi.fn()
+    };
+    const service = new NavigationService(dispatcher as never, {
+      linearSpeed: 2.4,
+      angularSpeed: 0.9,
+      loopIntervalMs: 70
+    });
+    const state = service.getState();
+    expect(state.manualLinearSpeed).toBe(2.4);
+    expect(state.manualAngularSpeed).toBe(0.9);
   });
 });

@@ -6,4 +6,3 @@ packages:
       telemetry: true
       map: true
       debug: true
-      settings: true

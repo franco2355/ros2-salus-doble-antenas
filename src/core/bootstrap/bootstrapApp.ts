@@ -9,6 +9,7 @@ import { createRegistries } from "../registries/createRegistries";
 import type { AppRuntime } from "../types/module";
 import { getPackageCatalog } from "./packageCatalog";
 import { PackageManager } from "./packageManager";
+import { registerCoreSettingsUi } from "./registerCoreSettingsUi";
 
 export async function bootstrapApp(): Promise<AppRuntime> {
   const env = loadEnvConfig();
@@ -42,6 +43,12 @@ export async function bootstrapApp(): Promise<AppRuntime> {
     },
     getPackageConfig<T extends Record<string, unknown>>(_packageId: string): T {
       return {} as T;
+    },
+    async setPackageConfig(_packageId: string, _config: Record<string, unknown>): Promise<void> {
+      return Promise.resolve();
+    },
+    async resetPackageConfig(_packageId: string): Promise<void> {
+      return Promise.resolve();
     }
   };
 
@@ -51,10 +58,18 @@ export async function bootstrapApp(): Promise<AppRuntime> {
     service: new DialogService()
   });
 
+  registerCoreSettingsUi(runtime);
+
   const packageCatalog = getPackageCatalog();
   const packageManager = new PackageManager(runtime, moduleConfig);
   runtime.getPackageConfig = <T extends Record<string, unknown>>(packageId: string): T =>
     packageManager.getPackageConfig<T>(packageId);
+  runtime.setPackageConfig = async (packageId: string, config: Record<string, unknown>): Promise<void> => {
+    await packageManager.setPackageConfig(packageId, config);
+  };
+  runtime.resetPackageConfig = async (packageId: string): Promise<void> => {
+    await packageManager.resetPackageConfig(packageId);
+  };
   const loadedPackages = await packageManager.registerPackages(packageCatalog);
   runtime.packages.splice(0, runtime.packages.length, ...loadedPackages);
 

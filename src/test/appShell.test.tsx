@@ -62,7 +62,9 @@ function createRuntime(): AppRuntime {
     registries,
     packages: [],
     getService: () => undefined as never,
-    getPackageConfig: <T extends Record<string, unknown>>() => ({}) as T
+    getPackageConfig: <T extends Record<string, unknown>>() => ({}) as T,
+    setPackageConfig: async () => undefined,
+    resetPackageConfig: async () => undefined
   };
 }
 
@@ -80,5 +82,19 @@ describe("AppShell", () => {
 
     expect(await screen.findByText("Test Modal")).toBeInTheDocument();
     expect(screen.getByText("Modal Body")).toBeInTheDocument();
+  });
+
+  it("opens modal directly from toolbar button without dropdown", async () => {
+    const runtime = createRuntime();
+    runtime.registries.toolbarMenuRegistry.registerToolbarMenu({
+      id: "toolbar.settings",
+      label: "Settings",
+      onSelect: ({ openModal }) => openModal("modal.test")
+    });
+
+    render(<AppShell runtime={runtime} />);
+
+    fireEvent.click(screen.getByText("Settings"));
+    expect(await screen.findByText("Test Modal")).toBeInTheDocument();
   });
 });

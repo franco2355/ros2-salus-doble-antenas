@@ -77,6 +77,22 @@ Regla de este repo:
 - Todo estilo específico del módulo va aquí.
 - `src/app/base.css` solo contiene estilos compartidos/globales (shell, tokens, utilidades comunes).
 
+## 1.2) Secciones colapsables del sidebar (contrato actual)
+
+Para sidebar, el colapsado ya no es implícito por `.panel-card + h3/h4`.
+
+Debés usar el componente global:
+
+```tsx
+import { CollapsibleSection } from ".../app/layout/CollapsibleSection";
+
+<CollapsibleSection title="Mi sección">
+  {/* contenido del paquete */}
+</CollapsibleSection>
+```
+
+El título/chevron y comportamiento de colapsado son globales (`app/base.css`), y el contenido sigue siendo propiedad del paquete.
+
 ## 2) Definir IDs consistentes
 
 Usá constantes para evitar colisiones:
