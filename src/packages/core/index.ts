@@ -1,4 +1,5 @@
 import type { CockpitModule, CockpitPackage, ModuleContext } from "../../core/types/module";
+import { createMetricsModule } from "./modules/metrics/frontend";
 import { createTerminalModule } from "./modules/terminal/frontend";
 
 // UI components
@@ -26,6 +27,7 @@ export { decodeLegacyIncoming, encodeLegacyOutgoing } from "./modules/runtime/tr
 export { DialogService, DIALOG_SERVICE_ID } from "./modules/runtime/service/impl/DialogService";
 export type { ActiveGlobalDialog } from "./modules/runtime/service/impl/DialogService";
 export { SystemNotificationService, SYSTEM_NOTIFICATION_SERVICE_ID } from "./modules/runtime/service/impl/SystemNotificationService";
+export { MetricsService, METRICS_SERVICE_ID } from "./modules/metrics/service/impl/MetricsService";
 export { TerminalService } from "./modules/terminal/service/impl/TerminalService";
 
 const uiModule: CockpitModule = {
@@ -47,6 +49,6 @@ export function createPackage(): CockpitPackage {
     id: "core",
     version: "1.0.0",
     enabledByDefault: true,
-    modules: [uiModule, runtimeModule, createTerminalModule()]
+    modules: [uiModule, runtimeModule, createMetricsModule(), createTerminalModule()]
   };
 }

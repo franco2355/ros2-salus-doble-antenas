@@ -189,41 +189,27 @@ pre {
   padding: 4px 6px;
 }
 
-.connection-footer {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--muted);
-  white-space: nowrap;
-}
-
-.connection-footer-status {
+.connection-footer-status-badge {
   display: inline-flex;
   align-items: center;
   min-height: 18px;
   padding: 1px 8px;
   border: 1px solid #000;
+  font-size: 11px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
-.connection-footer-status.connected {
+.connection-footer-status-badge.connected {
   background: #7fd35a;
   color: #0a0a0a;
 }
 
-.connection-footer-status.disconnected {
+.connection-footer-status-badge.disconnected {
   background: #b53030;
   color: #ffffff;
 }
 
-.connection-footer-metric {
-  color: #d4c7ca;
-}
-
-.connection-footer-total {
-  color: #a89ca0;
-}
 .modal-footer-split {
   width: 100%;
   min-width: 0;

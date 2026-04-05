@@ -35,6 +35,8 @@ export interface ConsoleTabDefinition {
 
 export interface FooterItemDefinition {
   id: string;
+  align?: "left" | "right";
+  beforeId?: string;
   render: (runtime: AppRuntime) => ReactNode;
 }
 

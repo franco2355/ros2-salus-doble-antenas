@@ -20,6 +20,13 @@ describe("integration", () => {
     await removeConfig("modules.yaml");
   });
 
+  it("registers global metrics footer in core and nav2 connection status badge footer", async () => {
+    const runtime = await bootstrapApp();
+    expect(runtime.registries.footerItemRegistry.has("core.footer.metrics")).toBe(true);
+    expect(runtime.registries.footerItemRegistry.has("nav2.footer.connection")).toBe(false);
+    expect(runtime.registries.footerItemRegistry.has("nav2.footer.connection-status")).toBe(true);
+  });
+
   it("loads package config from config.json and persists local overrides", async () => {
     await removeConfig("packages/nav2.json");
 

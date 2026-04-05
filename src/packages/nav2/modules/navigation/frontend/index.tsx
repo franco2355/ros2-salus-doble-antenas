@@ -125,13 +125,6 @@ function getMapService(runtime: ModuleContext): MapService | null {
   }
 }
 
-function formatBytes(bytes: number): string {
-  const value = Number.isFinite(bytes) ? Math.max(0, bytes) : 0;
-  if (value < 1024) return `${Math.floor(value)} B`;
-  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
-  return `${(value / (1024 * 1024)).toFixed(2)} MB`;
-}
-
 function formatInfoNumber(value: unknown, digits = 2): string {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return "n/a";
@@ -205,22 +198,16 @@ function ConnectionSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
   );
 }
 
-function ConnectionFooterItem({ runtime }: { runtime: ModuleContext }): JSX.Element {
+function ConnectionStatusFooterItem({ runtime }: { runtime: ModuleContext }): JSX.Element {
   const service = runtime.registries.serviceRegistry.getService<ConnectionService>(CONNECTION_SERVICE_ID);
   const [state, setState] = useState(service.getState());
-  const totalBytes = state.txBytes + state.rxBytes;
 
   useEffect(() => service.subscribe((next) => setState(next)), [service]);
 
   return (
-    <div className="connection-footer">
-      <span className={`connection-footer-status ${state.connected ? "connected" : "disconnected"}`}>
-        {state.connected ? "Conectado" : "Desconectado"}
-      </span>
-      <span className="connection-footer-metric">TX {formatBytes(state.txBytes)}</span>
-      <span className="connection-footer-metric">RX {formatBytes(state.rxBytes)}</span>
-      <span className="connection-footer-total">(Total {formatBytes(totalBytes)})</span>
-    </div>
+    <span className={`connection-footer-status-badge ${state.connected ? "connected" : "disconnected"}`}>
+      {state.connected ? "Conectado" : "Desconectado"}
+    </span>
   );
 }
 
@@ -1268,8 +1255,9 @@ function registerModals(ctx: ModuleContext): void {
 
 function registerFooterItems(ctx: ModuleContext): void {
   ctx.registries.footerItemRegistry.registerFooterItem({
-    id: "footer.connection",
-    render: (runtime) => <ConnectionFooterItem runtime={runtime} />
+    id: "footer.connection-status",
+    beforeId: "core.footer.metrics",
+    render: (runtime) => <ConnectionStatusFooterItem runtime={runtime} />
   });
 }
 

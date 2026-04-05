@@ -632,9 +632,12 @@ body,
   align-items: center;
 }
 
+.footer-item-right-anchor {
+  margin-left: auto;
+}
+
 
 .footer-console-toggle {
-  margin-left: auto;
   min-width: 28px;
   min-height: 28px;
   padding: 0 8px;
@@ -645,6 +648,10 @@ body,
   font-size: 12px;
   font-weight: 600;
   line-height: 1;
+}
+
+.footer-console-toggle--auto {
+  margin-left: auto;
 }
 
 .footer-console-toggle:hover:not(:disabled) {

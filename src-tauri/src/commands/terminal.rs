@@ -58,6 +58,20 @@ fn default_ssh_config_path() -> String {
   "~/.ssh/config".to_string()
 }
 
+fn resolve_term_env() -> String {
+  std::env::var("TERM")
+    .ok()
+    .map(|value| value.trim().to_string())
+    .filter(|value| !value.is_empty())
+    .unwrap_or_else(|| "xterm-256color".to_string())
+}
+
+fn apply_terminal_env(command: &mut CommandBuilder) {
+  // Desktop launchers (.desktop) often start without TERM, which breaks zsh
+  // key bindings based on $terminfo. Always provide a sane terminal type.
+  command.env("TERM", resolve_term_env());
+}
+
 fn expand_user_path(path: &str) -> PathBuf {
   if let Some(rest) = path.strip_prefix("~/") {
     if let Ok(home) = std::env::var("HOME") {
@@ -131,6 +145,7 @@ fn build_command(
   if is_localhost_alias(host) {
     let shell = resolve_shell(shell_override);
     let mut command = CommandBuilder::new(shell);
+    apply_terminal_env(&mut command);
     #[cfg(not(target_os = "windows"))]
     {
       command.arg("-i");
@@ -140,6 +155,7 @@ fn build_command(
   }
 
   let mut command = CommandBuilder::new("ssh");
+  apply_terminal_env(&mut command);
   let config_path = ssh_config_path.unwrap_or_else(default_ssh_config_path);
   let resolved_config_path = expand_user_path(config_path.trim());
   if !config_path.trim().is_empty() {
@@ -418,5 +434,28 @@ Host jump-host
     let argv = command.get_argv();
     assert_eq!(argv[0].to_string_lossy(), "/bin/bash");
     assert_eq!(argv[1].to_string_lossy(), "-i");
+  }
+
+  #[cfg(not(target_os = "windows"))]
+  #[test]
+  fn build_command_sets_term_for_local_shell() {
+    let command = build_command("Localhost", None, Some("/bin/bash".to_string()));
+    let term = command
+      .get_env("TERM")
+      .and_then(|value| value.to_str())
+      .unwrap_or_default()
+      .to_string();
+    assert!(!term.trim().is_empty());
+  }
+
+  #[test]
+  fn build_command_sets_term_for_ssh() {
+    let command = build_command("robot-a", Some("~/.ssh/config".to_string()), None);
+    let term = command
+      .get_env("TERM")
+      .and_then(|value| value.to_str())
+      .unwrap_or_default()
+      .to_string();
+    assert!(!term.trim().is_empty());
   }
 }
