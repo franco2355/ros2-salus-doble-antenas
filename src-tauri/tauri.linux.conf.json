@@ -14,8 +14,8 @@
       {
         "label": "main",
         "title": "Cockpit",
-        "width": 1440,
-        "height": 900,
+        "width": 1800,
+        "height": 1080,
         "resizable": true
       }
     ],
@@ -25,9 +25,8 @@
   },
   "bundle": {
     "active": true,
-    "icon": [
-      "icons/icon.ico",
-      "icons/icon.png"
+    "targets": [
+      "appimage"
     ]
   }
 }
