@@ -1051,9 +1051,9 @@
             </label>
             <input id="manualLinearSlider" type="range" min="1.0" max="4.0" step="0.01" value="1.20" />
             <label>
-              Angular speed (rad/s): <span id="manualAngularValue">0.40</span>
+              Steering angle (deg): <span id="manualAngularValue">18.0</span>
             </label>
-            <input id="manualAngularSlider" type="range" min="0.1" max="0.4" step="0.01" value="0.40" />
+            <input id="manualAngularSlider" type="range" min="1.0" max="30.0" step="0.5" value="18.0" />
           </div>
         </section>
 
@@ -1295,7 +1295,7 @@
       manualControl: { enabled: false, linear_x_cmd: 0.0, angular_z_cmd: 0.0, last_cmd_age_s: null },
       manualKeys: { w: false, a: false, s: false, d: false },
       manualBrakeHeld: false,
-      manualCmd: { linearX: 0.0, angularZ: 0.0 },
+      manualCmd: { linearX: 0.0, angularZ: 0.0, steerDeg: 0.0 },
       manualLoopTimer: null,
       nextClientReqId: 1,
       requestRegistry: new Map(),
@@ -1469,6 +1469,8 @@
 
     const MANUAL_LOOP_HZ = 20.0;
     const MANUAL_EMERGENCY_BRAKE_PCT = 100;
+    const MANUAL_WHEELBASE_M = 0.94;
+    const MANUAL_STEERING_FALLBACK_SPEED_MPS = 0.5;
     const NAV_GOAL_STATUS = {
       UNKNOWN: 0,
       ACCEPTED: 1,
@@ -3323,9 +3325,22 @@
 
     function updateManualSliderLabels() {
       const linear = Number(document.getElementById('manualLinearSlider').value || 1.2);
-      const angular = Number(document.getElementById('manualAngularSlider').value || 0.4);
+      const steeringDeg = Number(document.getElementById('manualAngularSlider').value || 18.0);
       document.getElementById('manualLinearValue').textContent = linear.toFixed(2);
-      document.getElementById('manualAngularValue').textContent = angular.toFixed(2);
+      document.getElementById('manualAngularValue').textContent = steeringDeg.toFixed(1);
+    }
+
+    function ackermannYawRateFromSteering(linearX, steerDeg) {
+      const signedSpeed = Number(linearX || 0.0);
+      const requestedSteerDeg = Number(steerDeg || 0.0);
+      if (!Number.isFinite(signedSpeed) || !Number.isFinite(requestedSteerDeg)) return 0.0;
+      if (Math.abs(requestedSteerDeg) <= 1e-3) return 0.0;
+
+      const steeringRad = requestedSteerDeg * Math.PI / 180.0;
+      const referenceSpeed = Math.abs(signedSpeed) > 1e-3
+        ? signedSpeed
+        : MANUAL_STEERING_FALLBACK_SPEED_MPS;
+      return referenceSpeed * Math.tan(steeringRad) / MANUAL_WHEELBASE_M;
     }
 
     function renderManualStatus() {
@@ -3338,9 +3353,10 @@
       btn.setAttribute('aria-label', btn.title);
 
       const vx = Number(state.manualCmd.linearX || 0).toFixed(2);
+      const steer = Number(state.manualCmd.steerDeg || 0).toFixed(1);
       const wz = Number(state.manualCmd.angularZ || 0).toFixed(2);
       const status = document.getElementById('manualStatus');
-      status.textContent = `Manual: ${enabled ? 'ON' : 'OFF'} · keys=${manualKeysSummary()} · vx_cmd=${vx} · wz_cmd=${wz}`;
+      status.textContent = `Manual: ${enabled ? 'ON' : 'OFF'} · keys=${manualKeysSummary()} · vx_cmd=${vx} · steer_cmd=${steer}deg · wz_cmd=${wz}`;
       status.className = enabled ? 'status good' : 'status';
     }
 
@@ -3359,6 +3375,7 @@
       state.manualBrakeHeld = false;
       state.manualCmd.linearX = 0.0;
       state.manualCmd.angularZ = 0.0;
+      state.manualCmd.steerDeg = 0.0;
     }
 
     function resetNavTelemetryState() {
@@ -3393,9 +3410,10 @@
 
       if (state.manualBrakeHeld) {
         targetBrake = MANUAL_EMERGENCY_BRAKE_PCT;
+        state.manualCmd.steerDeg = 0.0;
       } else {
         const linearMax = Number(document.getElementById('manualLinearSlider').value || 1.2);
-        const angularMax = Number(document.getElementById('manualAngularSlider').value || 0.4);
+        const steeringMaxDeg = Number(document.getElementById('manualAngularSlider').value || 18.0);
 
         const forward = state.manualKeys.w;
         const reverse = state.manualKeys.s;
@@ -3404,13 +3422,17 @@
 
         if (forward && !reverse) targetLinear = linearMax;
         if (reverse && !forward) targetLinear = -linearMax;
-        if (left && !right) targetAngular = angularMax;
-        if (right && !left) targetAngular = -angularMax;
-        if (targetLinear < 0.0) targetAngular = -targetAngular;
+        let targetSteerDeg = 0.0;
+        if (left && !right) targetSteerDeg = steeringMaxDeg;
+        if (right && !left) targetSteerDeg = -steeringMaxDeg;
+        if (targetLinear < 0.0) targetSteerDeg = -targetSteerDeg;
+        targetAngular = ackermannYawRateFromSteering(targetLinear, targetSteerDeg);
+        state.manualCmd.steerDeg = targetSteerDeg;
       }
 
       state.manualCmd.linearX = targetLinear;
       state.manualCmd.angularZ = targetAngular;
+      if (!state.manualBrakeHeld && Math.abs(targetAngular) <= 1e-3) state.manualCmd.steerDeg = 0.0;
 
       if (Math.abs(state.manualCmd.linearX) < 1e-3) state.manualCmd.linearX = 0.0;
       if (Math.abs(state.manualCmd.angularZ) < 1e-3) state.manualCmd.angularZ = 0.0;
