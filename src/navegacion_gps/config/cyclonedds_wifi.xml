@@ -17,8 +17,5 @@
       <ParticipantIndex>auto</ParticipantIndex>
       <MaxAutoParticipantIndex>120</MaxAutoParticipantIndex>
     </Discovery>
-    <Internal>
-      <SocketReceiveBufferSize min="1MiB" />
-    </Internal>
   </Domain>
 </CycloneDDS>
