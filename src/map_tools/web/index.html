@@ -3425,7 +3425,6 @@
         let targetSteerDeg = 0.0;
         if (left && !right) targetSteerDeg = steeringMaxDeg;
         if (right && !left) targetSteerDeg = -steeringMaxDeg;
-        if (targetLinear < 0.0) targetSteerDeg = -targetSteerDeg;
         targetAngular = ackermannYawRateFromSteering(targetLinear, targetSteerDeg);
         state.manualCmd.steerDeg = targetSteerDeg;
       }
