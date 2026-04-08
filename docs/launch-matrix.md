@@ -27,8 +27,8 @@ Fuente de verdad: `src/**/launch/*.launch.py` y `tools/*.sh`
 | Perfil | Launch | Helper | Destino | Estado |
 | --- | --- | --- | --- | --- |
 | Sim global Ackermann | `ros2 launch navegacion_gps sim_global_v2.launch.py` | `./tools/launch_sim_global_v2.sh` | contenedor | vigente |
-| Real global Ackermann | `ros2 launch navegacion_gps real_global_v2.launch.py` | `./tools/launch_real_global_v2.sh` | robot/contenedor | vigente |
-| RViz real global V2 | `ros2 launch navegacion_gps rviz_real_global_v2.launch.py` | `./tools/launch_real_global_v2_rviz.sh` | PC local | vigente |
+| Real global Ackermann | `ros2 launch navegacion_gps real_global_v2.launch.py` | `./tools/launch_real_global_v2.sh` | robot/contenedor | vigente, con perfil CycloneDDS Wi‑Fi |
+| RViz real global V2 | `ros2 launch navegacion_gps rviz_real_global_v2.launch.py` | `./tools/launch_real_global_v2_rviz.sh` | PC local | vigente, con perfil CycloneDDS Wi‑Fi |
 | Replay offline localización global | `ros2 launch navegacion_gps replay_localization_global_v2.launch.py` | `./tools/run_localization_replay_compare.sh <bag_dir>` | contenedor | soporte |
 
 ## Build y regeneracion

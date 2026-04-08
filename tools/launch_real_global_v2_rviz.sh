@@ -11,7 +11,9 @@ set -euo pipefail
 # It does not launch sensors, controllers, or navigation on the robot.
 # It only opens the RViz profile for `real_global_v2`.
 #
-# Cyclone DDS and ROS_DOMAIN_ID are exported explicitly because that is the
-# middleware/domain currently used to join the robot's ROS 2 graph from the
-# local workstation.
-./tools/exec.sh "source /opt/ros/humble/setup.bash; source /ros2_ws/install/setup.bash; export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp; export ROS_DOMAIN_ID=0; export ROS_LOCALHOST_ONLY=0; ros2 launch navegacion_gps rviz_real_global_v2.launch.py custom_urdf:=/ros2_ws/src/navegacion_gps/models/cuatri_real.urdf rviz_config:=/ros2_ws/src/navegacion_gps/config/rviz_global_v2.rviz"
+# Cyclone DDS, ROS_DOMAIN_ID y el perfil XML se exportan explícitamente para
+# priorizar discovery liviano y payloads más chicos cuando el operador se une
+# por Wi‑Fi a la navegación real del robot.
+CYCLONEDDS_WIFI_URI="file:///ros2_ws/src/navegacion_gps/config/cyclonedds_wifi.xml"
+
+./tools/exec.sh "source /opt/ros/humble/setup.bash; source /ros2_ws/install/setup.bash; export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp; export ROS_DOMAIN_ID=0; export ROS_LOCALHOST_ONLY=0; export CYCLONEDDS_URI=${CYCLONEDDS_WIFI_URI}; ros2 launch navegacion_gps rviz_real_global_v2.launch.py custom_urdf:=/ros2_ws/src/navegacion_gps/models/cuatri_real.urdf rviz_config:=/ros2_ws/src/navegacion_gps/config/rviz_global_v2.rviz"
