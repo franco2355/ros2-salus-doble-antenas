@@ -60,6 +60,13 @@ def test_rosbag_topics_for_profile_matches_declared_profiles():
     topics = _FakeNode._rosbag_topics_for_profile("core")
 
     assert topics == ROSBAG_TOPIC_PROFILES["core"]
+    assert "/global_position/raw/fix" in topics
+    assert "/gps/rtk_status_mavros" in topics
+    assert "/gps/odometry_map" in topics
+    assert "/gps/course_heading" in topics
+    assert "/gps/course_heading/debug" in topics
+    assert "/odometry/global" in topics
+    assert "/controller/drive_telemetry" in topics
     assert "/diagnostics" in topics
     assert "/nav_command_server/events" in topics
     assert _FakeNode._rosbag_topics_for_profile("missing") is None

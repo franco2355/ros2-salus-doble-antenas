@@ -29,6 +29,7 @@ Fuente de verdad: `src/**/launch/*.launch.py` y `tools/*.sh`
 | Sim global Ackermann | `ros2 launch navegacion_gps sim_global_v2.launch.py` | `./tools/launch_sim_global_v2.sh` | contenedor | vigente |
 | Real global Ackermann | `ros2 launch navegacion_gps real_global_v2.launch.py` | `./tools/launch_real_global_v2.sh` | robot/contenedor | vigente |
 | RViz real global V2 | `ros2 launch navegacion_gps rviz_real_global_v2.launch.py` | `./tools/launch_real_global_v2_rviz.sh` | PC local | vigente |
+| Replay offline localización global | `ros2 launch navegacion_gps replay_localization_global_v2.launch.py` | `./tools/run_localization_replay_compare.sh <bag_dir>` | contenedor | soporte |
 
 ## Build y regeneracion
 | Tarea | Comando | Nota |
@@ -50,7 +51,8 @@ Fuente de verdad: `src/**/launch/*.launch.py` y `tools/*.sh`
 ## Operación y diagnóstico
 | Herramienta | Comando | Estado |
 | --- | --- | --- |
-| Rosbag debug navegación | `./tools/record_nav_debug_bag.sh` | vigente |
+| Rosbag debug navegación | `./tools/record_nav_debug_bag.sh` | vigente, ahora graba GPS crudo/procesado + RTK para replay offline |
+| Replay + compare de bag localización | `./tools/run_localization_replay_compare.sh <bag_dir>` | soporte |
 | Generador loop tipo cuadra | `./tools/generate_block_loop_benchmark.sh` | vigente |
 | Healthcheck LiDAR | `./tools/healthcheck-lidar.sh` | vigente |
 | Envío de path V2 | `./tools/send_follow_path_v2.sh` | soporte |

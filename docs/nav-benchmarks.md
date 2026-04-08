@@ -289,8 +289,13 @@ Metricas utiles para este problema:
 
 `./tools/record_nav_debug_bag.sh` ahora incluye:
 
+- `/global_position/raw/fix`
 - `/odometry/global`
+- `/gps/rtk_status`
+- `/gps/rtk_status_mavros`
+- `/gps/odometry_map`
+- `/gps/course_heading`
 - `/controller/drive_telemetry`
 - `/gps/course_heading/debug`
 
-Eso permite correlacionar un benchmark fallido con el estado del heading y la telemetria del controlador.
+Eso permite correlacionar un benchmark fallido con el estado del heading y la telemetria del controlador, y ademas rearmar offline la cadena global usando el fix GPS crudo y el estado RTK real.

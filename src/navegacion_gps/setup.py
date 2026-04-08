@@ -50,6 +50,7 @@ setup(
             'nav_snapshot_server = navegacion_gps.nav_snapshot_server:main',
             'nav_observability = navegacion_gps.nav_observability:main',
             'polygon_stamped_republisher = navegacion_gps.polygon_stamped_republisher:main',
+            'replay_localization_compare = navegacion_gps.replay_localization_compare:main',
             'sim_drive_telemetry = navegacion_gps.sim_drive_telemetry:main',
             'sim_sensor_normalizer_v2 = navegacion_gps.sim_sensor_normalizer_v2:main',
             'sim_localization_benchmark = navegacion_gps.sim_localization_benchmark:main',

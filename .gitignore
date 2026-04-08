@@ -3,6 +3,7 @@
 /install/
 /log/
 /artifacts/
+/bags/
 
 # Python caches
 **/__pycache__/

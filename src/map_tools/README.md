@@ -37,6 +37,14 @@ Los tres nodos de `navegacion_gps` se pueden desactivar por argumento si ya est�
 - arrancar/parar rosbag de debug
 - persistir waypoints YAML
 
+Los perfiles de rosbag del backend web incluyen la cadena GPS necesaria para replay offline de localización global:
+- `/global_position/raw/fix`
+- `/gps/fix`
+- `/gps/rtk_status_mavros`
+- `/gps/odometry_map`
+- `/gps/course_heading`
+- `/gps/course_heading/debug`
+
 ## Parámetros y contratos importantes
 - Parámetros:
   - `ws_host`

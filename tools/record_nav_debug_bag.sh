@@ -9,11 +9,19 @@ STAMP="$(date +%Y%m%d_%H%M%S)"
 OUT_DIR="${WS}/bags/nav_debug_${PROFILE}_${STAMP}"
 
 CORE_TOPICS=(
+  /global_position/raw/fix
   /gps/fix
+  /gps/rtk_status
+  /gps/rtk_status_mavros
+  /gps/odometry_map
+  /gps/course_heading
   /odometry/local
   /odometry/gps
+  /odometry/local_global
+  /odometry/local_yaw_hold
   /odometry/global
   /imu/data
+  /imu/data_global
   /scan
   /cmd_vel
   /cmd_vel_safe
