@@ -6,6 +6,7 @@ import { MissionDispatcher } from "../dispatcher/impl/MissionDispatcher";
 import { MissionService } from "../service/impl/MissionService";
 import type { RosbagStatus } from "../dispatcher/impl/MissionDispatcher";
 import { RosBridgeTransport } from "../transport/impl/RosBridgeTransport";
+import { NavigationCommands } from "../../navigation/commands";
 
 const TRANSPORT_ID = "transport.rosbridge";
 const DISPATCHER_ID = "dispatcher.mission";
@@ -14,7 +15,6 @@ const OPEN_RECORD_MODAL_COMMAND_ID = "nav2.debug.openRecordModal";
 
 function RecordModal({ runtime }: { runtime: ModuleContext }): JSX.Element {
   const missionService = runtime.services.getService<MissionService>(SERVICE_ID);
-  const [profile, setProfile] = useState("core");
   const [status, setStatus] = useState<RosbagStatus>({
     active: false,
     profile: "core",
@@ -24,6 +24,9 @@ function RecordModal({ runtime }: { runtime: ModuleContext }): JSX.Element {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    const unsubscribe = missionService.subscribeRosbagStatus((next) => {
+      setStatus(next);
+    });
     void missionService
       .getRosbagStatus()
       .then((next) => {
@@ -32,77 +35,38 @@ function RecordModal({ runtime }: { runtime: ModuleContext }): JSX.Element {
       .catch(() => {
         // Optional backend capability.
       });
+    return unsubscribe;
   }, [missionService]);
 
+  const stateText = status.active ? "grabando" : "detenido";
+  const stateClassName = status.active ? "record-toggle-btn recording" : "record-toggle-btn stopped";
+
   return (
-    <div className="stack">
-      <div className="panel-card">
-        <h3>Record</h3>
-        <p className="muted">
-          Rosbag manual para debugging de navegacion. El bag queda grabado dentro del workspace ROS del backend.
-        </p>
-        <div className={`status-pill ${status.active ? "ok" : ""}`}>
-          Rosbag: {status.active ? `recording (${status.profile})` : "idle"}
-        </div>
-        <div className="key-value-grid">
-          <span>Output path</span>
-          <code>{status.outputPath}</code>
-          <span>Log path</span>
-          <code>{status.logPath}</code>
-        </div>
-        <div className="row">
-          <label className="grow">
-            Profile
-            <select value={profile} onChange={(event) => setProfile(event.target.value)}>
-              <option value="core">core</option>
-              <option value="navigation">navigation</option>
-              <option value="full">full</option>
-            </select>
-          </label>
-        </div>
-        <div className="action-grid">
-          <button
-            type="button"
-            onClick={async () => {
-              setError("");
-              try {
-                const next = await missionService.startRosbag(profile);
-                setStatus(next);
-                runtime.eventBus.emit("console.event", {
-                  level: "info",
-                  text: `Rosbag started (${profile})`,
-                  timestamp: Date.now()
-                });
-              } catch (cause) {
-                setError(String(cause));
-              }
-            }}
-          >
-            Start bag
-          </button>
-          <button
-            type="button"
-            className="danger-btn"
-            onClick={async () => {
-              setError("");
-              try {
-                const next = await missionService.stopRosbag();
-                setStatus(next);
-                runtime.eventBus.emit("console.event", {
-                  level: "warn",
-                  text: "Rosbag stopped",
-                  timestamp: Date.now()
-                });
-              } catch (cause) {
-                setError(String(cause));
-              }
-            }}
-          >
-            Stop bag
-          </button>
-        </div>
-        {error ? <p className="muted">Error: {error}</p> : null}
-      </div>
+    <div className="record-modal">
+      <button
+        type="button"
+        className={stateClassName}
+        onClick={async () => {
+          setError("");
+          try {
+            const next = status.active ? await missionService.stopRosbag() : await missionService.startRosbag();
+            setStatus(next);
+            runtime.eventBus.emit("console.event", {
+              level: status.active ? "warn" : "info",
+              text: status.active ? "Grabación detenida" : "Grabación iniciada",
+              timestamp: Date.now()
+            });
+          } catch (cause) {
+            setError(String(cause));
+          }
+        }}
+      >
+        {status.active ? "grabando" : "detenido"}
+      </button>
+      <p className={`record-status-legend ${status.active ? "recording" : "stopped"}`}>
+        Estado: {stateText}
+      </p>
+      {error ? <p className="muted">Error: {error}</p> : null}
     </div>
   );
 }
@@ -150,8 +114,13 @@ export function createDebugModule(): CockpitModule {
         items: [
           {
             id: "debug.open-record-modal",
-            label: "Open record modal",
+            label: "Grabación",
             commandId: OPEN_RECORD_MODAL_COMMAND_ID
+          },
+          {
+            id: "debug.open-info-modal",
+            label: "Información",
+            commandId: NavigationCommands.openInfoModal
           }
         ]
       });

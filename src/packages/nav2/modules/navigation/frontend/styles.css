@@ -29,6 +29,7 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  padding-bottom: 10px;
 }
 
 .modal-tab {
@@ -310,6 +311,41 @@ pre {
 .nav-legacy-grid button:last-child {
   font-size: 15px;
   font-weight: 700;
+}
+
+.nav-lock-grid {
+  grid-template-columns: 1fr;
+}
+
+.nav-lock-btn {
+  grid-column: 1 / -1;
+  min-height: 112px;
+  height: auto;
+  padding: 14px 12px;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  align-content: center;
+  text-align: center;
+  background: linear-gradient(180deg, #7a5330, #5f3920);
+  border-color: #a56a3e;
+  color: #fff3e5;
+}
+
+.nav-lock-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #8b623a, #71462a);
+}
+
+.nav-lock-btn-label {
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.nav-lock-btn-reason {
+  font-size: 12px;
+  line-height: 1.35;
+  color: #f7d9c0;
 }
 
 .nav-legacy-send-btn {

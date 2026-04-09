@@ -119,6 +119,19 @@ function getTelemetryService(runtime: ModuleContext): TelemetryServiceLike | nul
   }
 }
 
+function formatControlLockReason(reason: string): string {
+  const normalized = reason.trim();
+  if (!normalized) return "Robot bloqueado";
+  const labels: Record<string, string> = {
+    STARTUP_LOCKED: "Robot bloqueado al iniciar",
+    UI_LOCK_REQUEST: "Robot bloqueado desde UI",
+    UI_HEARTBEAT_TIMEOUT: "Robot bloqueado por heartbeat ausente",
+    DISCONNECTED: "Robot bloqueado hasta confirmar backend",
+    LOCKED: "Robot bloqueado"
+  };
+  return labels[normalized] ?? `Robot bloqueado: ${normalized}`;
+}
+
 function getMapService(runtime: ModuleContext): MapService | null {
   try {
     return runtime.services.getService<MapService>(MAP_SERVICE_ID);
@@ -215,14 +228,9 @@ function ConnectionStatusFooterItem({ runtime }: { runtime: ModuleContext }): JS
 
 function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.Element {
   const service = runtime.services.getService<NavigationService>(NAVIGATION_SERVICE_ID);
-  let connectionService: ConnectionService | null = null;
-  try {
-    connectionService = runtime.services.getService<ConnectionService>(CONNECTION_SERVICE_ID);
-  } catch {
-    connectionService = null;
-  }
   const [state, setState] = useState<NavigationState>(service.getState());
   const selectedCount = state.selectedWaypointIndexes.length;
+  const lockReasonText = formatControlLockReason(state.controlLockReason);
 
   useEffect(() => service.subscribe((next) => setState(next)), [service]);
 
@@ -237,170 +245,184 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
   return (
     <div className="stack">
       <PanelSection title="Navigation">
-        <div className="nav-legacy-grid">
-          <button
-            type="button"
-            className={state.goalMode ? "active" : ""}
-            onClick={() => {
-              const enabled = service.toggleGoalMode();
-              emitInfo(enabled ? "Goal mode enabled" : "Goal mode disabled");
-            }}
-            title="Modo objetivo"
-          >
-            📌
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              service.removeLastWaypoint();
-              emitInfo("Last waypoint removed");
-            }}
-            disabled={state.waypoints.length === 0}
-            title="Deshacer"
-          >
-            ↩
-          </button>
-          <button
-            type="button"
-            className="danger-btn"
-            onClick={() => {
-              service.clearWaypoints();
-              emitInfo("Waypoints cleared");
-            }}
-            disabled={state.waypoints.length === 0}
-            title="Limpiar waypoints"
-          >
-            🗑
-          </button>
-          <button
-            type="button"
-            className="danger-btn"
-            onClick={() => {
-              const removed = service.removeSelectedWaypoints();
-              if (removed > 0) {
-                emitInfo(`Removed ${removed} selected waypoint${removed > 1 ? "s" : ""}`);
-              }
-            }}
-            disabled={selectedCount === 0}
-            title="Eliminar seleccionados"
-          >
-            🧹
-          </button>
-          <button
-            type="button"
-            className="nav-legacy-send-btn"
-            onClick={async () => {
-              try {
-                const sent = await service.sendQueuedGoal();
-                const sentCount = sent.sentCount;
-                emitInfo(`Goal dispatch sent (${sentCount} waypoint${sentCount > 1 ? "s" : ""})`);
-              } catch (error) {
-                runtime.eventBus.emit("console.event", {
-                  level: "error",
-                  text: `Goal failed: ${String(error)}`,
-                  timestamp: Date.now()
-                });
-              }
-            }}
-            disabled={state.waypoints.length === 0 || state.controlLocked}
-          >
-            ➤ Send
-          </button>
-          <button
-            type="button"
-            className="danger-btn nav-legacy-cancel-btn"
-            onClick={async () => {
-              try {
-                await service.cancelGoal();
-                emitInfo("Goal cancelled");
-              } catch (error) {
-                runtime.eventBus.emit("console.event", {
-                  level: "error",
-                  text: `Cancel failed: ${String(error)}`,
-                  timestamp: Date.now()
-                });
-              }
-            }}
-          >
-            ⊗ Cancel
-          </button>
-          <button
-            type="button"
-            onClick={async () => {
-              try {
-                const count = await service.saveWaypointsFile();
-                emitInfo(`Saved ${count} waypoints`);
-              } catch (error) {
-                runtime.eventBus.emit("console.event", {
-                  level: "error",
-                  text: `Save waypoints failed: ${String(error)}`,
-                  timestamp: Date.now()
-                });
-              }
-            }}
-            title="Guardar ruta"
-          >
-            💾
-          </button>
-          <button
-            type="button"
-            onClick={async () => {
-              try {
-                const count = await service.loadWaypointsFile();
-                emitInfo(`Loaded ${count} waypoints`);
-              } catch (error) {
-                runtime.eventBus.emit("console.event", {
-                  level: "error",
-                  text: `Load waypoints failed: ${String(error)}`,
-                  timestamp: Date.now()
-                });
-              }
-            }}
-            title="Cargar ruta"
-          >
-            📂
-          </button>
-          <button
-            type="button"
-            className={state.cameraStreamConnected ? "active" : ""}
-            onClick={() => {
-              if (!connectionService?.isCameraEnabled()) {
-                runtime.eventBus.emit("console.event", {
-                  level: "warn",
-                  text: "Camera disabled in current preset",
-                  timestamp: Date.now()
-                });
-                return;
-              }
-              const connected = service.toggleCameraStream();
-              emitInfo(connected ? "Camera stream connected" : "Camera stream disconnected");
-            }}
-            title="Flujo de cámara"
-          >
-            📸
-          </button>
-          <button
-            type="button"
-            className={state.manualMode ? "active" : ""}
-            onClick={async () => {
-              const next = !state.manualMode;
-              try {
-                await service.setManualMode(next);
-                emitInfo(next ? "Manual mode enabled" : "Manual mode disabled");
-              } catch (error) {
-                runtime.eventBus.emit("console.event", {
-                  level: "error",
-                  text: `Manual mode failed: ${String(error)}`,
-                  timestamp: Date.now()
-                });
-              }
-            }}
-            title="Modo manual"
-            disabled={state.controlLocked}
-          >
-            {state.manualMode ? "ON" : "OFF"}
-          </button>
-        </div>
+        {state.controlLocked ? (
+          <div className="nav-legacy-grid nav-lock-grid">
+            <button
+              type="button"
+              className="nav-lock-btn"
+              title={lockReasonText}
+              onClick={async () => {
+                try {
+                  await service.unlockControls();
+                  emitInfo("Controls unlocked");
+                } catch (error) {
+                  runtime.eventBus.emit("console.event", {
+                    level: "error",
+                    text: `Unlock failed: ${String(error)}`,
+                    timestamp: Date.now()
+                  });
+                }
+              }}
+            >
+              <span className="nav-lock-btn-label">🔒 Desbloquear robot</span>
+              <span className="nav-lock-btn-reason">{lockReasonText}</span>
+            </button>
+          </div>
+        ) : (
+          <div className="nav-legacy-grid">
+            <button
+              type="button"
+              className={state.goalMode ? "active" : ""}
+              onClick={() => {
+                const enabled = service.toggleGoalMode();
+                emitInfo(enabled ? "Goal mode enabled" : "Goal mode disabled");
+              }}
+              title="Modo objetivo"
+            >
+              📌
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                service.removeLastWaypoint();
+                emitInfo("Last waypoint removed");
+              }}
+              disabled={state.waypoints.length === 0}
+              title="Deshacer"
+            >
+              ↩
+            </button>
+            <button
+              type="button"
+              className="danger-btn"
+              onClick={() => {
+                service.clearWaypoints();
+                emitInfo("Waypoints cleared");
+              }}
+              disabled={state.waypoints.length === 0}
+              title="Limpiar waypoints"
+            >
+              🗑
+            </button>
+            <button
+              type="button"
+              className="danger-btn"
+              onClick={() => {
+                const removed = service.removeSelectedWaypoints();
+                if (removed > 0) {
+                  emitInfo(`Removed ${removed} selected waypoint${removed > 1 ? "s" : ""}`);
+                }
+              }}
+              disabled={selectedCount === 0}
+              title="Eliminar seleccionados"
+            >
+              🧹
+            </button>
+            <button
+              type="button"
+              className="nav-legacy-send-btn"
+              onClick={async () => {
+                try {
+                  const sent = await service.sendQueuedGoal();
+                  const sentCount = sent.sentCount;
+                  emitInfo(`Goal dispatch sent (${sentCount} waypoint${sentCount > 1 ? "s" : ""})`);
+                } catch (error) {
+                  runtime.eventBus.emit("console.event", {
+                    level: "error",
+                    text: `Goal failed: ${String(error)}`,
+                    timestamp: Date.now()
+                  });
+                }
+              }}
+              disabled={state.waypoints.length === 0}
+            >
+              ➤ Send
+            </button>
+            <button
+              type="button"
+              className="danger-btn nav-legacy-cancel-btn"
+              onClick={async () => {
+                try {
+                  await service.cancelGoal();
+                  emitInfo("Goal cancelled");
+                } catch (error) {
+                  runtime.eventBus.emit("console.event", {
+                    level: "error",
+                    text: `Cancel failed: ${String(error)}`,
+                    timestamp: Date.now()
+                  });
+                }
+              }}
+            >
+              ⊗ Cancel
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const count = await service.saveWaypointsFile();
+                  emitInfo(`Saved ${count} waypoints`);
+                } catch (error) {
+                  runtime.eventBus.emit("console.event", {
+                    level: "error",
+                    text: `Save waypoints failed: ${String(error)}`,
+                    timestamp: Date.now()
+                  });
+                }
+              }}
+              title="Guardar ruta"
+            >
+              💾
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const count = await service.loadWaypointsFile();
+                  emitInfo(`Loaded ${count} waypoints`);
+                } catch (error) {
+                  runtime.eventBus.emit("console.event", {
+                    level: "error",
+                    text: `Load waypoints failed: ${String(error)}`,
+                    timestamp: Date.now()
+                  });
+                }
+              }}
+              title="Cargar ruta"
+            >
+              📂
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                void runtime.commands.execute(NavigationCommands.openSnapshotModal);
+              }}
+              title="Snapshot"
+            >
+              📸
+            </button>
+            <button
+              type="button"
+              className={state.manualMode ? "active" : ""}
+              onClick={async () => {
+                const next = !state.manualMode;
+                try {
+                  await service.setManualMode(next);
+                  emitInfo(next ? "Manual mode enabled" : "Manual mode disabled");
+                } catch (error) {
+                  runtime.eventBus.emit("console.event", {
+                    level: "error",
+                    text: `Manual mode failed: ${String(error)}`,
+                    timestamp: Date.now()
+                  });
+                }
+              }}
+              title="Modo manual"
+            >
+              {state.manualMode ? "ON" : "OFF"}
+            </button>
+          </div>
+        )}
         <label className="check-row nav-loop-check">
           <input
             type="checkbox"
@@ -1436,26 +1458,6 @@ function registerCommands(ctx: ModuleContext, navigationService: NavigationServi
   ctx.keybindings.register({ key: "escape", commandId: NavigationCommands.dismissEscape, source: "default", when: "!modalOpen", weight: -1 });
 }
 
-function registerToolbarMenu(ctx: ModuleContext): void {
-  ctx.contributions.register({
-    id: "toolbar.navigation",
-    slot: "toolbar",
-    label: "Navigation",
-    items: [
-      {
-        id: "navigation.open-snapshot-modal",
-        label: "Captura",
-        commandId: NavigationCommands.openSnapshotModal
-      },
-      {
-        id: "navigation.open-info-modal",
-        label: "Información",
-        commandId: NavigationCommands.openInfoModal
-      }
-    ]
-  });
-}
-
 export function createNavigationModule(): CockpitModule {
   return {
     id: "navigation",
@@ -1469,7 +1471,6 @@ export function createNavigationModule(): CockpitModule {
       registerSidebarPanels(ctx);
       registerModals(ctx);
       registerFooterItems(ctx);
-      registerToolbarMenu(ctx);
     }
   };
 }

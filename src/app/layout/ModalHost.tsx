@@ -20,8 +20,8 @@ export function ModalHost({ dialogs, modalId, closeModal }: ModalHostProps): JSX
         {headerContent ? (
           <div className="modal-header">{headerContent}</div>
         ) : (
-          <div className="modal-header">
-            <strong>{dialog.title}</strong>
+          <div className="modal-header modal-header-default">
+            <strong className="modal-title">{dialog.title}</strong>
             <button type="button" className="modal-close-btn" onClick={closeModal} aria-label="Cerrar">
               ⛌
             </button>

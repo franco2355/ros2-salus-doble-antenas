@@ -127,11 +127,13 @@ describe("services", () => {
   });
 
   it("marks connection as lost on unexpected transport disconnect", async () => {
-    let onStatus: ((status: { connected: boolean; intentional: boolean; reason: string }) => void) | null = null;
+    let subscribed = false;
+    let onStatus: (status: { connected: boolean; intentional: boolean; reason: string }) => void = () => undefined;
     const transportManager = {
       getTrafficStats: vi.fn(() => ({ txBytes: 0, rxBytes: 0 })),
       subscribeTraffic: vi.fn(() => () => undefined),
       subscribeStatus: vi.fn((_transportId: string, listener: (status: { connected: boolean; intentional: boolean; reason: string }) => void) => {
+        subscribed = true;
         onStatus = listener;
         return () => undefined;
       }),
@@ -153,7 +155,10 @@ describe("services", () => {
     const service = new ConnectionService(transportManager as never, env as never, "transport.ws.core", eventBus as never);
 
     await service.connect();
-    onStatus?.({
+    if (!subscribed) {
+      throw new Error("status listener not registered");
+    }
+    onStatus({
       connected: false,
       intentional: false,
       reason: "backend dropped"
@@ -325,7 +330,7 @@ describe("services", () => {
     await expect(service.startMission({ missionId: "", robotId: "r1" })).rejects.toThrow("required");
   });
 
-  it("validates rosbag profile input in MissionService", async () => {
+  it("starts rosbag recording in MissionService", async () => {
     const dispatcher = {
       startMission: vi.fn<() => Promise<Nav2IncomingMessage>>().mockResolvedValue({
         op: "mission.start.result",
@@ -342,8 +347,7 @@ describe("services", () => {
       subscribeRosbagStatus: vi.fn(() => () => undefined)
     };
     const service = new MissionService(dispatcher as never);
-    await expect(service.startRosbag("core")).resolves.toMatchObject({ active: true, profile: "core" });
-    await expect(service.startRosbag("")).rejects.toThrow("required");
+    await expect(service.startRosbag()).resolves.toMatchObject({ active: true, profile: "core" });
   });
 
   it("runs manual command loop when keys are pressed", async () => {

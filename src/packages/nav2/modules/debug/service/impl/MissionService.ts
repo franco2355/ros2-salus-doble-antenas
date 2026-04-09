@@ -22,11 +22,8 @@ export class MissionService {
     });
   }
 
-  async startRosbag(profile: string): Promise<RosbagStatus> {
-    if (!profile.trim()) {
-      throw new Error("profile is required");
-    }
-    const response = await this.missionDispatcher.startRosbag(profile.trim());
+  async startRosbag(): Promise<RosbagStatus> {
+    const response = await this.missionDispatcher.startRosbag();
     if (response.ok === false) {
       throw new Error(response.error ?? "Start rosbag failed");
     }

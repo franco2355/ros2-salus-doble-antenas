@@ -17,6 +17,8 @@ Tu objetivo principal es **extender el sistema mediante paquetes/módulos**, sig
 
 No debes hacer código de compatibilidad ya que este proyecto está en etapa de desarrollo
 
+Cuando termines de implementar un cambio haz `npm run build` y `npm run test`. No compiles para tauri
+
 ## 3) Frontera de cambio (crítico)
 
 Esta sección define explícitamente qué cosas son **inmutables** (objetivo del producto) y qué cosas son **evolutivas** (implementación actual).

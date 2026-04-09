@@ -114,19 +114,6 @@ function geodesicArea(points: L.LatLng[]): number {
   return Math.abs(area / 2);
 }
 
-function formatControlLockReason(reason: string): string {
-  const normalized = reason.trim();
-  if (!normalized) return "Robot bloqueado";
-  const labels: Record<string, string> = {
-    STARTUP_LOCKED: "Robot bloqueado al iniciar",
-    UI_LOCK_REQUEST: "Robot bloqueado desde la UI",
-    UI_HEARTBEAT_TIMEOUT: "Robot bloqueado por ausencia de heartbeat de la UI",
-    DISCONNECTED: "Robot bloqueado hasta que el backend confirme el desbloqueo",
-    LOCKED: "Robot bloqueado"
-  };
-  return labels[normalized] ?? `Robot bloqueado: ${normalized}`;
-}
-
 function normalizeYawDeg(yawDeg: number): number {
   let yaw = Number(yawDeg || 0);
   while (yaw <= -180) yaw += 360;
@@ -228,11 +215,14 @@ function LeafletMapCanvas({
   const goalCreateSessionRef = useRef<{ active: boolean; hasMoved: boolean }>({ active: false, hasMoved: false });
   const waypointDragEndMsRef = useRef(0);
   const waypointRenderKeyRef = useRef("");
-  const measureLayerRef = useRef<L.LayerGroup | null>(null);
+  const toolDraftLayerRef = useRef<L.LayerGroup | null>(null);
+  const toolDrawingsLayerRef = useRef<L.LayerGroup | null>(null);
   const measureTooltipRef = useRef<L.Tooltip | null>(null);
   const mapToolPreviewLatLngRef = useRef<L.LatLng | null>(null);
   const centerRequestHandledRef = useRef(0);
   const measurePointsRef = useRef<L.LatLng[]>([]);
+  const rulerDrawingCountRef = useRef(0);
+  const areaDrawingCountRef = useRef(0);
   const inspectCopyHandlersRef = useRef<Array<() => void>>([]);
   const goalModeRef = useRef(goalMode);
   const toolModeRef = useRef(state.toolMode);
@@ -320,9 +310,109 @@ function LeafletMapCanvas({
     }
   };
 
+  const setToolLegend = (mode: MapToolMode): void => {
+    if (mode === "ruler") {
+      mapService.setToolInfo(`Regla activa. Rectas ${rulerDrawingCountRef.current}. Click agrega, doble click cierra.`);
+      return;
+    }
+    if (mode === "area") {
+      mapService.setToolInfo(`Area activa. Poligonos ${areaDrawingCountRef.current}. Click agrega, doble click cierra.`);
+      return;
+    }
+    if (mode === "inspect") {
+      mapService.setToolInfo("Inspeccion activa. Click inspecciona coordenadas.");
+      return;
+    }
+  };
+
+  const clearMeasureDraft = (): void => {
+    mapToolPreviewLatLngRef.current = null;
+    measurePointsRef.current = [];
+    clearMeasureTooltip();
+    toolDraftLayerRef.current?.clearLayers();
+  };
+
+  const clearToolDrawings = (): void => {
+    clearMeasureDraft();
+    toolDrawingsLayerRef.current?.clearLayers();
+    rulerDrawingCountRef.current = 0;
+    areaDrawingCountRef.current = 0;
+  };
+
+  const collectMeasurePoints = (closingPoint: L.LatLng | null): L.LatLng[] => {
+    const map = mapRef.current;
+    const next = [...measurePointsRef.current];
+    if (!closingPoint) return next;
+    const last = next[next.length - 1];
+    if (!last || !map || map.distance(last, closingPoint) >= 0.05) {
+      next.push(closingPoint);
+    }
+    return next;
+  };
+
+  const finalizeRulerMeasure = (closingPoint: L.LatLng | null): void => {
+    const map = mapRef.current;
+    const layer = toolDrawingsLayerRef.current;
+    if (!map || !layer) return;
+    const points = collectMeasurePoints(closingPoint);
+    if (points.length < 2) return;
+    points.forEach((point) => {
+      layer.addLayer(
+        L.circleMarker(point, {
+          radius: 3,
+          color: "#fbd47f",
+          weight: 1.5,
+          fillColor: "#fbd47f",
+          fillOpacity: 0.9,
+          interactive: false
+        })
+      );
+    });
+    layer.addLayer(
+      L.polyline(points, {
+        color: "#fbd47f",
+        weight: 2.5,
+        interactive: false
+      })
+    );
+    rulerDrawingCountRef.current += 1;
+    clearMeasureDraft();
+    setToolLegend("ruler");
+  };
+
+  const finalizeAreaMeasure = (closingPoint: L.LatLng | null): void => {
+    const layer = toolDrawingsLayerRef.current;
+    if (!layer) return;
+    const points = collectMeasurePoints(closingPoint);
+    if (points.length < 3) return;
+    points.forEach((point) => {
+      layer.addLayer(
+        L.circleMarker(point, {
+          radius: 3,
+          color: "#8dd8ff",
+          weight: 1.5,
+          fillColor: "#8dd8ff",
+          fillOpacity: 0.9,
+          interactive: false
+        })
+      );
+    });
+    layer.addLayer(
+      L.polygon(points, {
+        color: "#8dd8ff",
+        weight: 2.5,
+        fillOpacity: 0.18,
+        interactive: false
+      })
+    );
+    areaDrawingCountRef.current += 1;
+    clearMeasureDraft();
+    setToolLegend("area");
+  };
+
   const renderRulerMeasure = (preview: L.LatLng | null): void => {
     const map = mapRef.current;
-    const layer = measureLayerRef.current;
+    const layer = toolDraftLayerRef.current;
     if (!map || !layer) return;
     const points = [...measurePointsRef.current];
     layer.clearLayers();
@@ -358,7 +448,7 @@ function LeafletMapCanvas({
 
   const renderAreaMeasure = (preview: L.LatLng | null): void => {
     const map = mapRef.current;
-    const layer = measureLayerRef.current;
+    const layer = toolDraftLayerRef.current;
     if (!map || !layer) return;
     const points = [...measurePointsRef.current];
     layer.clearLayers();
@@ -415,17 +505,20 @@ function LeafletMapCanvas({
     const drawnItems = new L.FeatureGroup();
     const waypointLayer = L.layerGroup();
     const draftLayer = L.layerGroup();
-    const measureLayer = L.layerGroup();
+    const toolDraftLayer = L.layerGroup();
+    const toolDrawingsLayer = L.layerGroup();
     map.addLayer(drawnItems);
     map.addLayer(waypointLayer);
     map.addLayer(draftLayer);
-    map.addLayer(measureLayer);
+    map.addLayer(toolDraftLayer);
+    map.addLayer(toolDrawingsLayer);
     mapRef.current = map;
     drawnItemsRef.current = drawnItems;
     waypointLayerRef.current = waypointLayer;
     waypointRenderKeyRef.current = "";
     draftLayerRef.current = draftLayer;
-    measureLayerRef.current = measureLayer;
+    toolDraftLayerRef.current = toolDraftLayer;
+    toolDrawingsLayerRef.current = toolDrawingsLayer;
 
     const drawControl = new L.Control.Draw({
       edit: {
@@ -492,6 +585,8 @@ function LeafletMapCanvas({
     map.on("click", (evt: L.LeafletMouseEvent) => {
       if (!interactiveRef.current) return;
       const mode = toolModeRef.current;
+      const domEvent = evt.originalEvent as MouseEvent | undefined;
+      if (domEvent?.detail && domEvent.detail > 1) return;
       if (mode === "inspect") {
         mapService.setInspectCoords(evt.latlng.lat, evt.latlng.lng);
         const coordsText = `${evt.latlng.lat.toFixed(6)}, ${evt.latlng.lng.toFixed(6)}`;
@@ -523,19 +618,29 @@ function LeafletMapCanvas({
         return;
       }
       if (mode === "ruler") {
-        const points = [...measurePointsRef.current, evt.latlng];
-        measurePointsRef.current = points;
+        measurePointsRef.current = collectMeasurePoints(evt.latlng);
         mapToolPreviewLatLngRef.current = null;
         renderRulerMeasure(null);
         return;
       }
       if (mode === "area") {
-        const points = [...measurePointsRef.current, evt.latlng];
-        measurePointsRef.current = points;
+        measurePointsRef.current = collectMeasurePoints(evt.latlng);
         mapToolPreviewLatLngRef.current = null;
         renderAreaMeasure(null);
         return;
       }
+    });
+
+    map.on("dblclick", (evt: L.LeafletMouseEvent) => {
+      if (!interactiveRef.current) return;
+      const mode = toolModeRef.current;
+      if (mode !== "ruler" && mode !== "area") return;
+      L.DomEvent.stop(evt.originalEvent);
+      if (mode === "ruler") {
+        finalizeRulerMeasure(evt.latlng);
+        return;
+      }
+      finalizeAreaMeasure(evt.latlng);
     });
 
     map.on("mousedown", (evt: L.LeafletMouseEvent) => {
@@ -602,7 +707,7 @@ function LeafletMapCanvas({
 
     return () => {
       clearGoalDraft();
-      clearMeasureTooltip();
+      clearToolDrawings();
       inspectCopyHandlersRef.current.forEach((cleanup) => cleanup());
       inspectCopyHandlersRef.current = [];
       map.remove();
@@ -611,7 +716,8 @@ function LeafletMapCanvas({
       waypointLayerRef.current = null;
       waypointRenderKeyRef.current = "";
       draftLayerRef.current = null;
-      measureLayerRef.current = null;
+      toolDraftLayerRef.current = null;
+      toolDrawingsLayerRef.current = null;
       robotMarkerRef.current = null;
       draftMarkerRef.current = null;
       measurePointsRef.current = [];
@@ -797,10 +903,12 @@ function LeafletMapCanvas({
     if (state.toolMode !== "idle") {
       clearGoalDraft();
     }
-    mapToolPreviewLatLngRef.current = null;
-    clearMeasureTooltip();
-    measurePointsRef.current = [];
-    measureLayerRef.current?.clearLayers();
+    if (state.toolMode === "idle") {
+      clearToolDrawings();
+      return;
+    }
+    clearMeasureDraft();
+    setToolLegend(state.toolMode);
   }, [state.toolMode]);
 
   useEffect(() => {
@@ -963,7 +1071,6 @@ function MapWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element 
   const initialCenterLon = initialCenter[1];
   const initialZoom = parseZoom(nav2Config);
   const cameraStreamConnected = navigationState?.cameraStreamConnected === true;
-  const controlsLocked = navigationState?.controlLocked ?? true;
   const mapInteractive = mainIsMap;
   const mapToolsEnabled = mainIsMap;
 
@@ -1093,7 +1200,7 @@ function MapWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element 
           : frameReady
         ? ""
         : "camera connecting";
-  const lockReasonText = formatControlLockReason(navigationState?.controlLockReason ?? "");
+  const toolStatusText = mainIsMap ? state.toolInfo : "Herramientas disponibles con mapa principal";
 
   const selectTool = (tool: MapToolMode, infoLabel: string): void => {
     if (!mapToolsEnabled) {
@@ -1172,6 +1279,97 @@ function MapWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element 
 
   return (
     <div className="map-workspace-root">
+      <div className="map-workspace-toolbar">
+        <div className="map-workspace-toolbar-left">
+          <div className="map-toolbar map-toolbar-icons">
+            <button
+              type="button"
+              className={toolButtonClass(state.toolMode, "ruler")}
+              onClick={() => selectTool("ruler", "ruler")}
+              title="Regla"
+              aria-label="Regla"
+              disabled={!mapToolsEnabled}
+            >
+              📏
+            </button>
+            <button
+              type="button"
+              className={toolButtonClass(state.toolMode, "area")}
+              onClick={() => selectTool("area", "area")}
+              title="Área"
+              aria-label="Área"
+              disabled={!mapToolsEnabled}
+            >
+              📐
+            </button>
+            <button
+              type="button"
+              className={toolButtonClass(state.toolMode, "inspect")}
+              onClick={() => selectTool("inspect", "inspect")}
+              title="Inspeccionar"
+              aria-label="Inspeccionar"
+              disabled={!mapToolsEnabled}
+            >
+              📍
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setCenterRequestKey((value) => value + 1);
+                mapService.centerRobot();
+                runtime.eventBus.emit("console.event", {
+                  level: "info",
+                  text: "Map centered on robot",
+                  timestamp: Date.now()
+                });
+              }}
+              title="Centrar robot"
+              aria-label="Centrar robot"
+              disabled={!mapToolsEnabled}
+            >
+              🎯
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                void mapService
+                  .setDatumOnBackend()
+                  .then(() => {
+                    runtime.eventBus.emit("console.event", {
+                      level: "info",
+                      text: "Datum updated from robot pose",
+                      timestamp: Date.now()
+                    });
+                  })
+                  .catch((error) => {
+                    runtime.eventBus.emit("console.event", {
+                      level: "error",
+                      text: `Set datum failed: ${String(error)}`,
+                      timestamp: Date.now()
+                    });
+                  });
+              }}
+              title="Definir datum"
+              aria-label="Definir datum"
+              disabled={!mapToolsEnabled}
+            >
+              🧲
+            </button>
+            <button
+              type="button"
+              onClick={() => selectTool("idle", "idle")}
+              title="Cerrar herramientas"
+              aria-label="Cerrar herramientas"
+              disabled={!mapToolsEnabled}
+            >
+              ❌
+            </button>
+          </div>
+        </div>
+        <div className="map-workspace-toolbar-right">
+          <div className="map-tool-status">{toolStatusText}</div>
+        </div>
+      </div>
       <div className={`stage map-stage ${mainIsMap ? "mode-gps-main" : "mode-camera-main"}`}>
         <section className={`stage-pane ${mainIsMap ? "main" : "mini"} map-stage-pane`}>
           <div className="map-canvas map-pane-canvas">
@@ -1192,93 +1390,6 @@ function MapWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element 
               initialCenterLon={initialCenterLon}
               initialZoom={initialZoom}
             />
-            <div className={`map-overlay-tools ${mainIsMap ? "" : "hidden"}`}>
-              <div className="map-tool-status">{state.toolInfo}</div>
-              <div className="map-toolbar map-toolbar-icons">
-                <button
-                  type="button"
-                  className={toolButtonClass(state.toolMode, "ruler")}
-                  onClick={() => selectTool("ruler", "ruler")}
-                  title="Regla"
-                  aria-label="Regla"
-                  disabled={!mapToolsEnabled}
-                >
-                  📏
-                </button>
-                <button
-                  type="button"
-                  className={toolButtonClass(state.toolMode, "area")}
-                  onClick={() => selectTool("area", "area")}
-                  title="Área"
-                  aria-label="Área"
-                  disabled={!mapToolsEnabled}
-                >
-                  📐
-                </button>
-                <button
-                  type="button"
-                  className={toolButtonClass(state.toolMode, "inspect")}
-                  onClick={() => selectTool("inspect", "inspect")}
-                  title="Inspeccionar"
-                  aria-label="Inspeccionar"
-                  disabled={!mapToolsEnabled}
-                >
-                  📍
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCenterRequestKey((value) => value + 1);
-                    mapService.centerRobot();
-                    runtime.eventBus.emit("console.event", {
-                      level: "info",
-                      text: "Map centered on robot",
-                      timestamp: Date.now()
-                    });
-                  }}
-                  title="Centrar robot"
-                  aria-label="Centrar robot"
-                  disabled={!mapToolsEnabled}
-                >
-                  🎯
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    void mapService
-                      .setDatumOnBackend()
-                      .then(() => {
-                        runtime.eventBus.emit("console.event", {
-                          level: "info",
-                          text: "Datum updated from robot pose",
-                          timestamp: Date.now()
-                        });
-                      })
-                      .catch((error) => {
-                        runtime.eventBus.emit("console.event", {
-                          level: "error",
-                          text: `Set datum failed: ${String(error)}`,
-                          timestamp: Date.now()
-                        });
-                      });
-                  }}
-                  title="Definir datum"
-                  aria-label="Definir datum"
-                  disabled={!mapToolsEnabled}
-                >
-                  🧲
-                </button>
-                <button
-                  type="button"
-                  onClick={() => selectTool("idle", "idle")}
-                  title="Cerrar herramientas"
-                  aria-label="Cerrar herramientas"
-                  disabled={!mapToolsEnabled}
-                >
-                  ❌
-                </button>
-              </div>
-            </div>
           </div>
         </section>
         {cameraPaneAvailable ? (
@@ -1318,36 +1429,6 @@ function MapWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element 
           {cameraPaneAvailable ? (
             <button type="button" className="swap-btn" onClick={() => setMainPane(mainIsMap ? "camera" : "map")}>
               🔄
-            </button>
-          ) : null}
-          {controlsLocked ? (
-            <button
-              type="button"
-              className="view-stage-unlock-btn"
-              disabled={!navigationService}
-              title={lockReasonText}
-              onClick={async () => {
-                if (!navigationService) return;
-                try {
-                  await navigationService.unlockControls();
-                  runtime.eventBus.emit("console.event", {
-                    level: "info",
-                    text: "Controls unlocked",
-                    timestamp: Date.now()
-                  });
-                } catch (error) {
-                  runtime.eventBus.emit("console.event", {
-                    level: "error",
-                    text: `Unlock failed: ${String(error)}`,
-                    timestamp: Date.now()
-                  });
-                }
-              }}
-            >
-              <span className="view-stage-unlock-icon" aria-hidden="true">
-                🔒
-              </span>
-              <span>Desbloquear</span>
             </button>
           ) : null}
         </div>

@@ -25,6 +25,15 @@ describe("integration", () => {
     expect(runtime.contributions.has("core.footer.metrics")).toBe(true);
     expect(runtime.contributions.has("nav2.footer.connection")).toBe(false);
     expect(runtime.contributions.has("nav2.footer.connection-status")).toBe(true);
+    expect(runtime.contributions.has("nav2.toolbar.navigation")).toBe(false);
+    expect(runtime.contributions.has("nav2.toolbar.debug")).toBe(true);
+
+    const debugToolbar = runtime.contributions.get("nav2.toolbar.debug");
+    expect(debugToolbar?.slot).toBe("toolbar");
+    expect(debugToolbar && "items" in debugToolbar ? debugToolbar.items?.map((item) => item.label) : []).toEqual([
+      "Grabación",
+      "Información"
+    ]);
   });
 
   it("loads package config from config.json and persists local overrides", async () => {
