@@ -1,4 +1,4 @@
-![Cockpit Logo](./logo.png)
+![Cockpit Logo](./logo2.png)
 
 # Cockpit Modular Desktop
 

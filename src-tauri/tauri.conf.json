@@ -26,8 +26,8 @@
   "bundle": {
     "active": true,
     "icon": [
-      "icons/icon.ico",
-      "icons/icon.png"
+      "icons/icon2.ico",
+      "icons/icon2.png"
     ]
   }
 }

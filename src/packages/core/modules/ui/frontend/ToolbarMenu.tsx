@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ToolbarContribution } from "../../../../../core/contributions/types";
 import type { AppRuntime } from "../../../../../core/types/module";
-import logo from "../../../../../../logo-app.png";
+import logo from "../../../../../../icon2-backgroundless.png";
 import { ToolbarMenuItem } from "./ToolbarMenuItem";
 
 interface ToolbarMenuProps {
