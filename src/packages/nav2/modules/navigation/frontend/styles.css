@@ -300,6 +300,7 @@ pre {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  height: 100%;
 }
 
 .nav-legacy-grid button.active {
@@ -314,13 +315,16 @@ pre {
 }
 
 .nav-lock-grid {
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(3, 40px);
 }
 
 .nav-lock-btn {
   grid-column: 1 / -1;
-  min-height: 112px;
-  height: auto;
+  grid-row: 1 / -1;
+  min-height: calc((40px * 3) + (8px * 2));
+  height: 100%;
+  width: 100%;
   padding: 14px 12px;
   display: grid;
   gap: 10px;
@@ -334,6 +338,8 @@ pre {
 
 .nav-lock-btn:hover:not(:disabled) {
   background: linear-gradient(180deg, #8b623a, #71462a);
+  width: 100%;
+  height: 100%;
 }
 
 .nav-lock-btn-label {
@@ -581,7 +587,7 @@ pre {
 .control-pad button,
 .ptz-grid button,
 .modal-tab {
-  background: #4a4040;
+  background: #EBECF0;
   border: 1px solid var(--line);
   color: var(--text);
 }
@@ -589,7 +595,7 @@ pre {
 .control-pad button:hover:not(:disabled),
 .ptz-grid button:hover:not(:disabled),
 .modal-tab:hover:not(:disabled) {
-  background: #5b4f4f;
+  background: #F3F4F6;
 }
 
 .modal-tab.active {
@@ -602,7 +608,7 @@ pre {
 .ptz-grid button:disabled,
 .modal-tab:disabled {
   background: #352d2d;
-  border-color: #4a4040;
+  border-color: #EBECF0;
   color: #9a8c8f;
   opacity: 1;
 }
@@ -617,4 +623,119 @@ pre {
     grid-template-columns: 1fr;
     grid-template-rows: minmax(180px, 42%) minmax(0, 1fr);
   }
+}
+
+/* GitHub Light Default overrides */
+
+.modal-preview,
+.snapshot-image,
+.code-block,
+pre,
+.zone-list,
+.waypoint-list-wrap,
+.info-topics-list,
+.info-topics-selected-badge {
+  background: var(--panel);
+  border-color: var(--line);
+  color: var(--text);
+}
+
+.modal-preview {
+  background: var(--panel-muted);
+}
+
+.connection-preset-select {
+  appearance: auto;
+  -webkit-appearance: menulist;
+  -moz-appearance: menulist;
+  background-image: none;
+  background-color: var(--panel);
+  padding-right: 8px;
+}
+
+.modal-tabs .modal-tab,
+.control-pad button,
+.ptz-grid button,
+.nav-legacy-grid button,
+.zones-legacy-grid button {
+  background: var(--panel-inset);
+  border-color: var(--line);
+  color: #24292f;
+}
+
+.modal-tabs .modal-tab.active,
+.control-pad button.active,
+.ptz-grid button.active,
+.nav-legacy-grid button.active,
+.info-topics-list .feed-item > button.active {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.control-pad button:hover:not(:disabled),
+.ptz-grid button:hover:not(:disabled),
+.modal-tabs .modal-tab:hover:not(:disabled),
+.nav-legacy-grid button:hover:not(:disabled),
+.zones-legacy-grid button:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.danger-btn,
+.nav-legacy-cancel-btn {
+  background: #cf222e;
+  border-color: #cf222e;
+  color: #ffffff;
+}
+
+.danger-btn:hover:not(:disabled),
+.nav-legacy-cancel-btn:hover:not(:disabled) {
+  background: #a40e26;
+}
+
+.nav-legacy-send-btn {
+  background: #1f883d;
+  border-color: #1f883d;
+  color: #ffffff;
+}
+
+.nav-legacy-send-btn:hover:not(:disabled) {
+  background: #1a7f37;
+}
+
+.nav-lock-btn {
+  background: var(--warn-subtle);
+  border-color: #d4a72c;
+  color: #7d4e00;
+}
+
+.nav-lock-btn:hover:not(:disabled) {
+  background: #fff1b8;
+}
+
+.nav-lock-btn-reason,
+.nav-legacy-text,
+.nav-loop-check {
+  color: var(--muted);
+}
+
+.connection-footer-status-badge.connected {
+  background: #1f883d;
+  color: #ffffff;
+}
+
+.connection-footer-status-badge.disconnected {
+  background: #cf222e;
+  color: #ffffff;
+}
+
+.zone-item,
+.info-topics-list,
+.info-topics-selected-badge {
+  background: var(--panel);
+  color: var(--text);
+}
+
+.info-topics-list .feed-item {
+  background: var(--panel);
 }

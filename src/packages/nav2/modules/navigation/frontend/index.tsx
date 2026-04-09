@@ -169,6 +169,7 @@ function ConnectionSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
       <PanelSection title="Connection">
         <div className="stack">
           <select
+            className="connection-preset-select"
             value={state.preset}
             onChange={(event) => service.setPreset(event.target.value === "sim" ? "sim" : "real")}
           >
@@ -250,7 +251,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
             <button
               type="button"
               className="nav-lock-btn"
-              title={lockReasonText}
+              title="Desbloquea el robot para permitir controlarlo"
               onClick={async () => {
                 try {
                   await service.unlockControls();
@@ -265,7 +266,6 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
               }}
             >
               <span className="nav-lock-btn-label">🔒 Desbloquear robot</span>
-              <span className="nav-lock-btn-reason">{lockReasonText}</span>
             </button>
           </div>
         ) : (

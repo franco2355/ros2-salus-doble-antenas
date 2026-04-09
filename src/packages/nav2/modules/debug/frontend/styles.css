@@ -17,15 +17,15 @@
 }
 
 .record-toggle-btn.stopped {
-  background: #7f1d1d;
-  border-color: #b91c1c;
-  color: #ffe7e7;
+  background: #cf222e;
+  border-color: #cf222e;
+  color: #ffffff;
 }
 
 .record-toggle-btn.recording {
-  background: #166534;
-  border-color: #16a34a;
-  color: #eafff1;
+  background: #1f883d;
+  border-color: #1f883d;
+  color: #ffffff;
 }
 
 .record-status-legend {
@@ -35,9 +35,9 @@
 }
 
 .record-status-legend.stopped {
-  color: #fca5a5;
+  color: #cf222e;
 }
 
 .record-status-legend.recording {
-  color: #86efac;
+  color: #1a7f37;
 }

@@ -55,8 +55,10 @@ export function GlobalDialogHost({ runtime }: GlobalDialogHostProps): JSX.Elemen
   return (
     <div className="global-dialog-overlay" role="dialog" aria-modal="true" onClick={() => dialogService.dismiss()}>
       <div className="global-dialog-card" onClick={(event) => event.stopPropagation()}>
-        <header className="global-dialog-header">
-          <strong>{activeDialog.title}</strong>
+        <div className="global-dialog-header-shell">
+          <header className="global-dialog-header">
+            <strong>{activeDialog.title}</strong>
+          </header>
           <button
             type="button"
             className="global-dialog-close-btn"
@@ -65,7 +67,7 @@ export function GlobalDialogHost({ runtime }: GlobalDialogHostProps): JSX.Elemen
           >
             ⛌
           </button>
-        </header>
+        </div>
         <div className="global-dialog-body">
           <p className="global-dialog-message">{activeDialog.message}</p>
           {activeDialog.kind === "prompt" ? (

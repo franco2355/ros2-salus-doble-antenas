@@ -286,7 +286,7 @@
   padding: 2px 8px;
   font-size: 12px;
   border: 1px solid var(--line);
-  background: #4a4040;
+  background: #EBECF0;
   color: var(--text);
 }
 
@@ -485,7 +485,7 @@
 .map-toolbar button,
 .swap-btn,
 .view-stage-unlock-btn {
-  background: #4a4040;
+  background: #EBECF0;
   border: 1px solid var(--line);
   color: var(--text);
 }
@@ -493,7 +493,7 @@
 .map-toolbar button:hover:not(:disabled),
 .swap-btn:hover:not(:disabled),
 .view-stage-unlock-btn:hover:not(:disabled) {
-  background: #5b4f4f;
+  background: #F3F4F6;
 }
 
 .map-toolbar button.active {
@@ -506,7 +506,7 @@
 .swap-btn:disabled,
 .view-stage-unlock-btn:disabled {
   background: #352d2d;
-  border-color: #4a4040;
+  border-color: #EBECF0;
   color: #9a8c8f;
   opacity: 1;
 }
@@ -524,4 +524,81 @@
   .map-tool-status {
     width: 100%;
   }
+}
+
+/* GitHub Light Default overrides */
+
+.map-workspace-toolbar,
+.map-workspace-root .map-stage,
+.map-workspace-root .map-stage .stage-pane,
+.map-canvas,
+.camera-frame-wrap,
+.camera-frame {
+  background: var(--panel);
+  border-color: var(--line);
+}
+
+.map-workspace-toolbar {
+  background: var(--panel-muted);
+}
+
+.map-tool-status,
+.map-measure-tooltip,
+.leaflet-popup.map-inspect-leaflet-popup .leaflet-popup-content-wrapper,
+.leaflet-popup.map-inspect-leaflet-popup .leaflet-popup-tip {
+  background: var(--panel);
+  border-color: var(--line);
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+}
+
+.map-inspect-popup .coords,
+.stage-gps-mini-badge {
+  color: var(--text);
+}
+
+.stage-gps-mini-badge {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: var(--line);
+}
+
+.map-inspect-copy,
+.map-workspace-toolbar .map-toolbar button,
+.swap-btn,
+.view-stage-unlock-btn {
+  background: var(--panel-inset);
+  border-color: var(--line);
+  color: #24292f;
+}
+
+.map-inspect-copy:hover:not(:disabled),
+.map-workspace-toolbar .map-toolbar button:hover:not(:disabled),
+.swap-btn:hover:not(:disabled),
+.view-stage-unlock-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.map-workspace-toolbar .map-toolbar button.active {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.map-workspace-toolbar .map-toolbar button:disabled,
+.swap-btn:disabled,
+.view-stage-unlock-btn:disabled {
+  background: #f6f8fa;
+  border-color: var(--line);
+  color: #8c959f;
+}
+
+.camera-overlay {
+  color: var(--text);
+  background: rgba(246, 248, 250, 0.82);
+}
+
+.wp-icon .wp-index {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.96);
+  border-color: var(--line);
 }

@@ -116,26 +116,26 @@ function TerminalConsoleTab({ runtime }: { runtime: ModuleContext }): JSX.Elemen
         scrollback: service.getScrollback(),
         fontFamily: "Consolas, Menlo, Monaco, 'Courier New', monospace",
         theme: {
-          background: "#1e1b1b",
-          foreground: "#f4ecee",
-          cursor: "#ff8095",
-          selectionBackground: "#4b3f3f",
-          black: "#1e1b1b",
-          red: "#ff6f8d",
-          green: "#badf8a",
-          yellow: "#fbd47f",
-          blue: "#7ab6ff",
-          magenta: "#ff9cb2",
-          cyan: "#80d8ff",
-          white: "#f4ecee",
-          brightBlack: "#5b4f4f",
-          brightRed: "#ff7a98",
-          brightGreen: "#c6e99e",
-          brightYellow: "#ffe29a",
-          brightBlue: "#9ac6ff",
-          brightMagenta: "#ffb0c2",
-          brightCyan: "#a7ebff",
-          brightWhite: "#fff8fa"
+          background: "#ffffff",
+          foreground: "#1f2328",
+          cursor: "#0969da",
+          selectionBackground: "#ddf4ff",
+          black: "#24292f",
+          red: "#cf222e",
+          green: "#116329",
+          yellow: "#4d2d00",
+          blue: "#0969da",
+          magenta: "#8250df",
+          cyan: "#1b7c83",
+          white: "#6e7781",
+          brightBlack: "#57606a",
+          brightRed: "#a40e26",
+          brightGreen: "#1a7f37",
+          brightYellow: "#633c01",
+          brightBlue: "#218bff",
+          brightMagenta: "#a475f9",
+          brightCyan: "#3192aa",
+          brightWhite: "#8c959f"
         }
       });
       const fitAddon = new FitAddon();
@@ -286,6 +286,7 @@ function TerminalConsoleTab({ runtime }: { runtime: ModuleContext }): JSX.Elemen
         </div>
         <div className="terminal-session-actions">
           <select
+            className="terminal-host-select"
             value={hostSelection}
             onChange={(event) => {
               setHostSelection(event.target.value);

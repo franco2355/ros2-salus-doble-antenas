@@ -18,10 +18,17 @@ export function ModalHost({ dialogs, modalId, closeModal }: ModalHostProps): JSX
     <div className="modal-overlay" role="dialog" aria-modal="true" onClick={closeModal}>
       <div className={dialogClassName} onClick={(event) => event.stopPropagation()}>
         {headerContent ? (
-          <div className="modal-header">{headerContent}</div>
+          <div className="modal-header-shell">
+            <div className="modal-header">{headerContent}</div>
+            <button type="button" className="modal-close-btn" onClick={closeModal} aria-label="Cerrar">
+              ⛌
+            </button>
+          </div>
         ) : (
-          <div className="modal-header modal-header-default">
-            <strong className="modal-title">{dialog.title}</strong>
+          <div className="modal-header-shell">
+            <div className="modal-header modal-header-default">
+              <strong className="modal-title">{dialog.title}</strong>
+            </div>
             <button type="button" className="modal-close-btn" onClick={closeModal} aria-label="Cerrar">
               ⛌
             </button>

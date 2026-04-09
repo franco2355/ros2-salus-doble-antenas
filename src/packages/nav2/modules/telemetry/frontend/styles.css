@@ -24,26 +24,26 @@
 }
 
 .feed-item.alert-recent {
-  background: rgba(251, 180, 94, 0.22);
-  border-color: rgba(251, 180, 94, 0.6);
+  background: rgba(212, 167, 44, 0.16);
+  border-color: rgba(212, 167, 44, 0.4);
   animation: telemetry-alert-recent-fade 5s linear forwards;
 }
 
 @keyframes telemetry-alert-recent-fade {
   0%,
   70% {
-    background: rgba(251, 180, 94, 0.22);
-    border-color: rgba(251, 180, 94, 0.6);
+    background: rgba(212, 167, 44, 0.16);
+    border-color: rgba(212, 167, 44, 0.4);
   }
 
   100% {
-    background: #352d2d;
+    background: var(--panel);
     border-color: var(--line);
   }
 }
 
 .status-board {
-  background: #352d2d;
+  background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 0;
   padding: 10px 12px;

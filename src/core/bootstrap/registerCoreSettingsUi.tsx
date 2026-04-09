@@ -281,9 +281,6 @@ function SettingsModalHeader({ runtime, close }: { runtime: AppRuntime; close: (
           </button>
         ))}
       </div>
-      <button type="button" className="modal-close-btn" onClick={close} aria-label="Cerrar">
-        ⛌
-      </button>
     </div>
   );
 }
