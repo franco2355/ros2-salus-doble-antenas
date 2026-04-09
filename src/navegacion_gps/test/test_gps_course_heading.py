@@ -19,6 +19,7 @@ def test_normalize_rtk_status_label_accepts_bridge_and_pixhawk_variants() -> Non
     assert normalize_rtk_status_label("RTK_FIXED") == "rtk_fixed"
     assert normalize_rtk_status_label("rtk_fix") == "rtk_fix"
     assert normalize_rtk_status_label(" RTK-FLOAT ") == "rtk_float"
+    assert normalize_rtk_status_label("rtcm_ok") == "rtcm_ok"
 
 
 def test_parse_allowed_rtk_statuses_deduplicates_and_normalizes() -> None:
@@ -28,8 +29,9 @@ def test_parse_allowed_rtk_statuses_deduplicates_and_normalizes() -> None:
 
 
 def test_is_rtk_status_allowed_matches_normalized_statuses() -> None:
-    allowed = parse_allowed_rtk_statuses("RTK_FIXED,RTK_FIX")
+    allowed = parse_allowed_rtk_statuses("RTK_FIXED,RTK_FIX,RTCM_OK")
 
     assert is_rtk_status_allowed("RTK_FIXED", allowed) is True
     assert is_rtk_status_allowed("rtk_fix", allowed) is True
+    assert is_rtk_status_allowed("RTCM_OK", allowed) is True
     assert is_rtk_status_allowed("RTK_FLOAT", allowed) is False

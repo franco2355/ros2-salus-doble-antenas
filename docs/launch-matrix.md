@@ -33,6 +33,7 @@ Fuente de verdad: `src/**/launch/*.launch.py` y `tools/*.sh`
 
 Nota operativa:
 el perfil CycloneDDS Wi‑Fi busca mejorar la unión RViz<->robot en redes débiles, pero no garantiza visualización de LiDAR remoto por Wi‑Fi. Para `/scan` y `/scan_3d`, Ethernet sigue siendo la referencia operativa.
+En `real_global_v2` queda disponible `/scan_wifi_debug` como `LaserScan` reducido para observación remota liviana por Wi‑Fi, manteniendo `/scan` local para navegación.
 
 ## Build y regeneracion
 | Tarea | Comando | Nota |

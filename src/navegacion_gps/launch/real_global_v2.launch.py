@@ -86,6 +86,11 @@ def generate_launch_description():
     web_app_port = LaunchConfiguration("web_app_port")
     use_rviz = LaunchConfiguration("use_rviz")
     rviz_config = LaunchConfiguration("rviz_config")
+    enable_scan_wifi_debug = LaunchConfiguration("enable_scan_wifi_debug")
+    scan_wifi_debug_topic = LaunchConfiguration("scan_wifi_debug_topic")
+    scan_wifi_debug_publish_hz = LaunchConfiguration("scan_wifi_debug_publish_hz")
+    scan_wifi_debug_beam_stride = LaunchConfiguration("scan_wifi_debug_beam_stride")
+    scan_wifi_debug_range_max_m = LaunchConfiguration("scan_wifi_debug_range_max_m")
     vx_deadband_mps = LaunchConfiguration("vx_deadband_mps")
     vx_min_effective_mps = LaunchConfiguration("vx_min_effective_mps")
     invert_steer_from_cmd_vel = LaunchConfiguration("invert_steer_from_cmd_vel")
@@ -183,6 +188,19 @@ def generate_launch_description():
             DeclareLaunchArgument("web_app_port", default_value="8766"),
             DeclareLaunchArgument("use_rviz", default_value="False"),
             DeclareLaunchArgument("rviz_config", default_value=default_rviz),
+            DeclareLaunchArgument("enable_scan_wifi_debug", default_value="True"),
+            DeclareLaunchArgument(
+                "scan_wifi_debug_topic", default_value="/scan_wifi_debug"
+            ),
+            DeclareLaunchArgument(
+                "scan_wifi_debug_publish_hz", default_value="2.0"
+            ),
+            DeclareLaunchArgument(
+                "scan_wifi_debug_beam_stride", default_value="4"
+            ),
+            DeclareLaunchArgument(
+                "scan_wifi_debug_range_max_m", default_value="12.0"
+            ),
             DeclareLaunchArgument("vx_deadband_mps", default_value="0.01"),
             DeclareLaunchArgument("vx_min_effective_mps", default_value="0.5"),
             DeclareLaunchArgument("invert_steer_from_cmd_vel", default_value="True"),
@@ -247,7 +265,10 @@ def generate_launch_description():
             DeclareLaunchArgument("gps_course_heading_require_rtk", default_value="True"),
             DeclareLaunchArgument(
                 "gps_course_heading_allowed_rtk_statuses",
-                default_value="RTK_FIXED,RTK_FIX,RTK_FLOAT",
+                # `/gps/rtk_status_mavros` puede reportar `rtcm_ok` mientras
+                # ya hay correcciones frescas pero MAVROS todavia no elevo la
+                # solucion a `rtk_float`/`rtk_fixed`.
+                default_value="RTK_FIXED,RTK_FIX,RTK_FLOAT,RTCM_OK",
             ),
             DeclareLaunchArgument(
                 "gps_course_heading_rtk_status_max_age_s",
@@ -323,6 +344,30 @@ def generate_launch_description():
                         ),
                         "invert_steer_from_cmd_vel": ParameterValue(
                             invert_steer_from_cmd_vel, value_type=bool
+                        ),
+                    }
+                ],
+            ),
+            Node(
+                package="navegacion_gps",
+                executable="scan_wifi_debug",
+                name="scan_wifi_debug",
+                output="screen",
+                condition=IfCondition(enable_scan_wifi_debug),
+                parameters=[
+                    {
+                        "source_topic": "/scan",
+                        "output_topic": scan_wifi_debug_topic,
+                        "publish_hz": ParameterValue(
+                            scan_wifi_debug_publish_hz, value_type=float
+                        ),
+                        "beam_stride": ParameterValue(
+                            scan_wifi_debug_beam_stride, value_type=int
+                        ),
+                        "crop_angle_min_rad": -1.57079632679,
+                        "crop_angle_max_rad": 1.57079632679,
+                        "output_range_max_m": ParameterValue(
+                            scan_wifi_debug_range_max_m, value_type=float
                         ),
                     }
                 ],

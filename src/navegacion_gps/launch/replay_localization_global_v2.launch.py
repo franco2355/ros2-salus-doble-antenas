@@ -114,7 +114,7 @@ def generate_launch_description():
             DeclareLaunchArgument("gps_course_heading_require_rtk", default_value="false"),
             DeclareLaunchArgument(
                 "gps_course_heading_allowed_rtk_statuses",
-                default_value="RTK_FIXED,RTK_FIX,RTK_FLOAT",
+                default_value="RTK_FIXED,RTK_FIX,RTK_FLOAT,RTCM_OK",
             ),
             DeclareLaunchArgument(
                 "gps_course_heading_rtk_status_max_age_s",

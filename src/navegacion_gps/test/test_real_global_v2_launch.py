@@ -43,6 +43,11 @@ def test_real_global_v2_launch_reuses_real_stack_with_global_navigation() -> Non
     assert 'DeclareLaunchArgument("datum_yaw_deg", default_value="0.0")' in launch_contents
     assert 'DeclareLaunchArgument("use_rviz", default_value="False")' in launch_contents
     assert 'DeclareLaunchArgument("rviz_config", default_value=default_rviz)' in launch_contents
+    assert 'DeclareLaunchArgument("enable_scan_wifi_debug", default_value="True")' in launch_contents
+    assert 'DeclareLaunchArgument(\n                "scan_wifi_debug_topic", default_value="/scan_wifi_debug"' in launch_contents
+    assert 'DeclareLaunchArgument(\n                "scan_wifi_debug_publish_hz", default_value="2.0"' in launch_contents
+    assert 'DeclareLaunchArgument(\n                "scan_wifi_debug_beam_stride", default_value="4"' in launch_contents
+    assert 'DeclareLaunchArgument(\n                "scan_wifi_debug_range_max_m", default_value="12.0"' in launch_contents
     assert "rviz_global_v2.rviz" in launch_contents
     assert 'DeclareLaunchArgument("enable_rtk", default_value="True")' in launch_contents
     assert map_gps_enable_arg in launch_contents
@@ -67,12 +72,19 @@ def test_real_global_v2_launch_reuses_real_stack_with_global_navigation() -> Non
     assert 'DeclareLaunchArgument("gps_course_heading_publish_hz", default_value="5.0")' in launch_contents
     assert 'default_value="4.0"' in launch_contents
     assert 'DeclareLaunchArgument("gps_course_heading_require_rtk", default_value="True")' in launch_contents
-    assert 'default_value="RTK_FIXED,RTK_FIX,RTK_FLOAT"' in launch_contents
+    assert 'default_value="RTK_FIXED,RTK_FIX,RTK_FLOAT,RTCM_OK"' in launch_contents
     assert "effective_enable_rtk = PythonExpression(" in launch_contents
     assert "'enable_rtk': effective_enable_rtk".replace("'", '"') in launch_contents
     assert 'DeclareLaunchArgument(\n                "gps_rtk_status_topic",' in launch_contents
     assert 'default_value="/gps/rtk_status_mavros"' in launch_contents
     assert 'executable="gps_course_heading"' in launch_contents
+    assert 'executable="scan_wifi_debug"' in launch_contents
+    assert 'condition=IfCondition(enable_scan_wifi_debug)' in launch_contents
+    assert '"source_topic": "/scan"' in launch_contents
+    assert '"output_topic": scan_wifi_debug_topic' in launch_contents
+    assert '"publish_hz": ParameterValue(' in launch_contents
+    assert '"beam_stride": ParameterValue(' in launch_contents
+    assert '"output_range_max_m": ParameterValue(' in launch_contents
     assert 'condition=IfCondition(enable_gps_course_heading)' in launch_contents
     assert '"rtk_status_topic": gps_rtk_status_topic' in launch_contents
     assert '"gps_status_topic": gps_rtk_status_topic' in launch_contents
@@ -135,3 +147,13 @@ def test_rviz_real_global_v2_launch_targets_global_config_for_local_pc() -> None
     assert launch_rsp_arg in launch_contents
     assert "condition=IfCondition(launch_robot_state_publisher)" in launch_contents
     assert 'executable="rviz2"' in launch_contents
+
+
+def test_rviz_global_v2_prefers_wifi_debug_scan_for_remote_use() -> None:
+    rviz_contents = _read("config/rviz_global_v2.rviz")
+
+    assert "Name: Lidar Points" in rviz_contents
+    assert "Value: /scan_3d" in rviz_contents
+    assert "Enabled: false" in rviz_contents
+    assert "Name: LaserScan" in rviz_contents
+    assert "Value: /scan_wifi_debug" in rviz_contents

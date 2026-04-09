@@ -68,6 +68,7 @@ En los perfiles globales actuales, la corrección absoluta del EKF de `map` entr
   - `/nav_command_server/telemetry`
   - `/nav_command_server/events`
   - `/diagnostics`
+  - `/scan_wifi_debug`
 
 ## Helpers del workspace
 - `./tools/launch_real_nav.sh`
@@ -83,3 +84,4 @@ En los perfiles globales actuales, la corrección absoluta del EKF de `map` entr
 - Si buscás una guía operativa corta, usá este README y la matriz de launches.
 - Si necesitás wiring fino o tuning de V2, usá los documentos específicos de V2.
 - Si encontrás decisiones escritas en futuro o en tono de propuesta, tratarlas como documentación histórica, no como fuente de verdad del checkout actual.
+- En `real_global_v2`, el nodo `scan_wifi_debug` publica un `LaserScan` de debug para Wi‑Fi en `/scan_wifi_debug` sin reemplazar `/scan`; el objetivo es visualización remota liviana, no alimentar Nav2.
