@@ -660,7 +660,7 @@ pre,
 .zones-legacy-grid button {
   background: var(--panel-inset);
   border-color: var(--line);
-  color: #24292f;
+  color: #000000;
 }
 
 .modal-tabs .modal-tab.active,
@@ -669,8 +669,8 @@ pre,
 .nav-legacy-grid button.active,
 .info-topics-list .feed-item > button.active {
   background: var(--accent-subtle);
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: #000000;
+  color: #000000;
 }
 
 .control-pad button:hover:not(:disabled),
@@ -678,7 +678,7 @@ pre,
 .modal-tabs .modal-tab:hover:not(:disabled),
 .nav-legacy-grid button:hover:not(:disabled),
 .zones-legacy-grid button:hover:not(:disabled) {
-  background: #f3f4f6;
+  background: #dcdcdc;
 }
 
 .danger-btn,
@@ -705,8 +705,8 @@ pre,
 
 .nav-lock-btn {
   background: var(--warn-subtle);
-  border-color: #d4a72c;
-  color: #7d4e00;
+  border-color: #000000;
+  color: #000000;
 }
 
 .nav-lock-btn:hover:not(:disabled) {
@@ -716,7 +716,7 @@ pre,
 .nav-lock-btn-reason,
 .nav-legacy-text,
 .nav-loop-check {
-  color: var(--muted);
+  color: var(--text);
 }
 
 .connection-footer-status-badge.connected {

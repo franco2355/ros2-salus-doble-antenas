@@ -27,6 +27,9 @@ describe("integration", () => {
     expect(runtime.contributions.has("nav2.footer.connection-status")).toBe(true);
     expect(runtime.contributions.has("nav2.toolbar.navigation")).toBe(false);
     expect(runtime.contributions.has("nav2.toolbar.debug")).toBe(true);
+    expect(runtime.contributions.has("nav2.toolbar.processes")).toBe(true);
+    expect(runtime.contributions.has("nav2.modal.processes")).toBe(true);
+    expect(runtime.commands.has("nav2.processes.openModal")).toBe(true);
 
     const debugToolbar = runtime.contributions.get("nav2.toolbar.debug");
     expect(debugToolbar?.slot).toBe("toolbar");
@@ -34,6 +37,12 @@ describe("integration", () => {
       "Grabación",
       "Información"
     ]);
+
+    const processesToolbar = runtime.contributions.get("nav2.toolbar.processes");
+    expect(processesToolbar?.slot).toBe("toolbar");
+    expect(processesToolbar && "commandId" in processesToolbar ? processesToolbar.commandId : "").toBe(
+      "nav2.processes.openModal"
+    );
   });
 
   it("loads package config from config.json and persists local overrides", async () => {

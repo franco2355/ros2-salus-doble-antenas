@@ -1,22 +1,22 @@
 :root {
-  --bg: #f6f8fa;
+  --bg: #f4f4f4;
   --panel: #ffffff;
-  --panel-muted: #f6f8fa;
-  --panel-inset: #ebecf0;
-  --line: #d0d7de;
-  --line-strong: #8c959f;
-  --text: #1f2328;
-  --muted: #656d76;
-  --accent: #0969da;
-  --accent-subtle: #ddf4ff;
+  --panel-muted: #efefef;
+  --panel-inset: #e3e3e3;
+  --line: #000000;
+  --line-strong: #000000;
+  --text: #000000;
+  --muted: #111111;
+  --accent: #0056d6;
+  --accent-subtle: #dbe8ff;
   --good: #1a7f37;
   --good-subtle: #dafbe1;
   --warn: #9a6700;
   --warn-subtle: #fff8c5;
   --bad: #cf222e;
   --bad-subtle: #ffebe9;
-  --overlay: rgba(31, 35, 40, 0.38);
-  --shadow-soft: 0 8px 24px rgba(140, 149, 159, 0.2);
+  --overlay: rgba(0, 0, 0, 0.42);
+  --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.14);
 }
 
 * {
@@ -1346,7 +1346,7 @@ textarea::placeholder {
   font-size: 18px;
   line-height: 1;
   font-weight: 500;
-  border-top-right-radius: 11px;
+  border-top-right-radius: 5px;
 }
 
 .modal-close-btn:hover:not(:disabled),
@@ -1484,17 +1484,17 @@ body,
 button {
   background: var(--panel-inset);
   border: 1px solid var(--line);
-  color: #24292f;
+  color: #000000;
   box-shadow: none;
 }
 
 button:hover:not(:disabled) {
-  background: #f3f4f6;
+  background: #dcdcdc;
 }
 
 button:disabled {
-  background: #f6f8fa;
-  color: #8c959f;
+  background: #f1f1f1;
+  color: #3b3b3b;
   border-color: var(--line);
   opacity: 1;
 }
@@ -1519,7 +1519,7 @@ optgroup {
 
 input::placeholder,
 textarea::placeholder {
-  color: #6e7781;
+  color: #303030;
 }
 
 select {
@@ -1617,7 +1617,7 @@ select {
 .modal-header button,
 .modal-footer button,
 .global-dialog-actions button {
-  color: var(--muted);
+  color: var(--text);
 }
 
 .toolbar-menu-trigger:hover,
@@ -1629,13 +1629,14 @@ select {
 .modal-header button:hover:not(:disabled),
 .modal-footer button:hover:not(:disabled),
 .global-dialog-actions button:hover:not(:disabled) {
-  background: rgba(31, 35, 40, 0.08);
+  background: #dcdcdc;
   color: var(--text);
 }
 
 .modal-close-btn,
 .global-dialog-close-btn {
   color: #ffffff;
+  border-left-color: #000000;
 }
 
 .toolbar-dropdown,
@@ -1656,7 +1657,7 @@ select {
 }
 
 .toolbar-dropdown button:hover:not(:disabled) {
-  background: rgba(175, 184, 193, 0.2);
+  background: #dcdcdc;
 }
 
 .sidebar-selector {
@@ -1670,18 +1671,12 @@ select {
 .settings-header-tabs button[aria-selected="true"],
 .modal-tab.active {
   background: var(--panel);
-  color: var(--text);
-  border-color: var(--accent);
+  color: #000000;
+  border-color: #000000;
 }
 
 .sidebar-selector button.active {
   background: var(--accent-subtle);
-}
-
-.workspace-selector,
-.console-host,
-.shell-footer {
-  border-top: 0;
 }
 
 .workspace-selector {
@@ -1714,16 +1709,16 @@ select {
 
 .status-pill.ok,
 .status-ok {
-  color: var(--good);
+  color: #000000;
   background: var(--good-subtle);
-  border-color: rgba(26, 127, 55, 0.24);
+  border-color: #000000;
 }
 
 .status-pill.bad,
 .status-bad {
-  color: var(--bad);
+  color: #000000;
   background: var(--bad-subtle);
-  border-color: rgba(207, 34, 46, 0.2);
+  border-color: #000000;
 }
 
 .danger-btn,
@@ -1749,7 +1744,7 @@ select {
 
 .modal-card,
 .global-dialog-card {
-  border-radius: 12px;
+  border-radius: 6px;
   box-shadow: var(--shadow-soft);
 }
 

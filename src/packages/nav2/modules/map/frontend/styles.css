@@ -568,28 +568,28 @@
 .view-stage-unlock-btn {
   background: var(--panel-inset);
   border-color: var(--line);
-  color: #24292f;
+  color: #000000;
 }
 
 .map-inspect-copy:hover:not(:disabled),
 .map-workspace-toolbar .map-toolbar button:hover:not(:disabled),
 .swap-btn:hover:not(:disabled),
 .view-stage-unlock-btn:hover:not(:disabled) {
-  background: #f3f4f6;
+  background: #dcdcdc;
 }
 
 .map-workspace-toolbar .map-toolbar button.active {
   background: var(--accent-subtle);
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: #000000;
+  color: #000000;
 }
 
 .map-workspace-toolbar .map-toolbar button:disabled,
 .swap-btn:disabled,
 .view-stage-unlock-btn:disabled {
-  background: #f6f8fa;
+  background: #f1f1f1;
   border-color: var(--line);
-  color: #8c959f;
+  color: #3b3b3b;
 }
 
 .camera-overlay {

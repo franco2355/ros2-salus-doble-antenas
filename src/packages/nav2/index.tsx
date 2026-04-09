@@ -2,6 +2,7 @@ import type { CockpitPackage } from "../../core/types/module";
 import { createDebugModule } from "./modules/debug/frontend";
 import { createMapModule } from "./modules/map/frontend";
 import { createNavigationModule } from "./modules/navigation/frontend";
+import { createProcessesModule } from "./modules/processes/frontend";
 import { createTelemetryModule } from "./modules/telemetry/frontend";
 
 export function createPackage(): CockpitPackage {
@@ -12,6 +13,7 @@ export function createPackage(): CockpitPackage {
     modules: [
       createNavigationModule(),
       createTelemetryModule(),
+      createProcessesModule(),
       createMapModule(),
       createDebugModule()
     ]
