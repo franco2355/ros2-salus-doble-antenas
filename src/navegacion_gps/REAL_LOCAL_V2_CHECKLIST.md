@@ -1,5 +1,7 @@
 # Checklist de Validacion Antes de Usar `real_local_v2`
 
+Estado: LEGACY / referencia tecnica. No usar como navegacion real operativa; usar `real_global_v2`.
+
 ## Preparacion
 - Confirmar que no haya otra navegacion corriendo en el robot.
 - Confirmar que Pixhawk, RS16 y controlador esten conectados.

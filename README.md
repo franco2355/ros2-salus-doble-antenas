@@ -25,20 +25,17 @@ Todos los paquetes bajo `src/` viven dentro de este mismo repositorio git.
 - Arquitectura runtime y flujo de tópicos: [docs/runtime-architecture.md](/home/leo/codigo/ROS2_SALUS/docs/runtime-architecture.md)
 - Históricos, transiciones y third-party: [docs/archive/README.md](/home/leo/codigo/ROS2_SALUS/docs/archive/README.md)
 
-## Launches canónicos
-- Mainline actual:
-  - `ros2 launch navegacion_gps simulacion.launch.py`
-  - `ros2 launch navegacion_gps real.launch.py`
-  - `ros2 launch navegacion_gps rviz_real.launch.py`
+## Launches operativos
+- Navegacion vigente:
+  - `ros2 launch navegacion_gps sim_global_v2.launch.py`
+  - `ros2 launch navegacion_gps real_global_v2.launch.py`
+- Infraestructura:
   - `ros2 launch sensores pixhawk.launch.py`
   - `ros2 launch sensores rs16.launch.py`
   - `ros2 launch map_tools no_go_editor.launch.py`
   - `ros2 launch controller_server controller_server.launch.py`
-- Perfil V2:
-  - `ros2 launch navegacion_gps sim_local_v2.launch.py`
-  - `ros2 launch navegacion_gps real_local_v2.launch.py`
-  - `ros2 launch navegacion_gps sim_global_v2.launch.py`
-  - `ros2 launch navegacion_gps real_global_v2.launch.py`
+
+Los perfiles `simulacion.launch.py`, `real.launch.py`, `sim_local_v2.launch.py` y `real_local_v2.launch.py` quedan como LEGACY o referencia tecnica. No son la navegacion operativa actual.
 
 ## Arquitectura operativa
 - Nav2 publica `/cmd_vel`.
@@ -72,16 +69,18 @@ docker compose up -d --build
 - `./tools/exec.sh`
 - `./tools/root-exec.sh`
 - `./tools/compile-ros.sh`
-- `./tools/launch_real_nav.sh`
-- `./tools/launch_real_rviz.sh`
 - `./tools/launch_controller.sh`
 - `./tools/launch_no_go_editor.sh`
-- `./tools/launch_sim_local_v2.sh`
-- `./tools/launch_real_local_v2.sh`
 - `./tools/launch_sim_global_v2.sh`
 - `./tools/launch_real_global_v2.sh`
 - `./tools/record_nav_debug_bag.sh`
 - `./tools/healthcheck-lidar.sh`
+
+Scripts legacy o de referencia:
+- `./tools/launch_real_nav.sh`
+- `./tools/launch_real_rviz.sh`
+- `./tools/launch_sim_local_v2.sh`
+- `./tools/launch_real_local_v2.sh`
 
 ## Notas
 - `rslidar_sdk` y `rslidar_msg` son dependencias vendorizadas. Su documentación upstream no es la fuente de verdad del proyecto Salus.

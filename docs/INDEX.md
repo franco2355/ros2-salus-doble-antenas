@@ -22,21 +22,24 @@ Fuente de verdad: launches, scripts, nodos y tests del checkout actual
   - [src/navegacion_gps/README.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/README.md)
   - [src/sensores/README.md](/home/leo/codigo/ROS2_SALUS/src/sensores/README.md)
 
-## Documentación V2 vigente
-- Navegación local V2:
-  - [src/navegacion_gps/LOCAL_NAV_V2.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/LOCAL_NAV_V2.md)
-  - [src/navegacion_gps/SIM_LOCAL_V2_FIDELITY.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/SIM_LOCAL_V2_FIDELITY.md)
-  - [src/navegacion_gps/REAL_LOCAL_V2_CHECKLIST.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/REAL_LOCAL_V2_CHECKLIST.md)
+## Documentación de navegación vigente
 - Navegación global V2:
   - [src/navegacion_gps/REAL_GLOBAL_V2_CHECKLIST.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/REAL_GLOBAL_V2_CHECKLIST.md)
   - [docs/nav-benchmarks.md](/home/leo/codigo/ROS2_SALUS/docs/nav-benchmarks.md)
+- Base local V2 usada por Global V2:
+  - [src/navegacion_gps/LOCAL_NAV_V2.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/LOCAL_NAV_V2.md)
 
-## Legacy vigente
+## Legacy / referencia
 - Mainline de navegación:
   - [src/navegacion_gps/README.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/README.md)
   - `simulacion.launch.py`
   - `real.launch.py`
   - `rviz_real.launch.py`
+- Launches locales standalone:
+  - [src/navegacion_gps/SIM_LOCAL_V2_FIDELITY.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/SIM_LOCAL_V2_FIDELITY.md)
+  - [src/navegacion_gps/REAL_LOCAL_V2_CHECKLIST.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/REAL_LOCAL_V2_CHECKLIST.md)
+  - `sim_local_v2.launch.py`
+  - `real_local_v2.launch.py`
 - Compatibilidad MAVROS legacy:
   - [src/sensores/README.md](/home/leo/codigo/ROS2_SALUS/src/sensores/README.md)
 

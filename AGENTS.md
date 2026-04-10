@@ -29,9 +29,16 @@
   - `src/rslidar_sdk`
 
 ## Canonical launch entry points
-- `ros2 launch navegacion_gps simulacion.launch.py`
-- `ros2 launch navegacion_gps real.launch.py`
-- `ros2 launch navegacion_gps rviz_real.launch.py`
+- Navigation currently used:
+  - `ros2 launch navegacion_gps sim_global_v2.launch.py`
+  - `ros2 launch navegacion_gps real_global_v2.launch.py`
+  - `ros2 launch navegacion_gps rviz_real_global_v2.launch.py`
+- Legacy/reference navigation only:
+  - `ros2 launch navegacion_gps simulacion.launch.py`
+  - `ros2 launch navegacion_gps real.launch.py`
+  - `ros2 launch navegacion_gps rviz_real.launch.py`
+  - `ros2 launch navegacion_gps sim_local_v2.launch.py`
+  - `ros2 launch navegacion_gps real_local_v2.launch.py`
 - `ros2 launch sensores pixhawk.launch.py`
 - `ros2 launch sensores rs16.launch.py`
 - `ros2 launch map_tools no_go_editor.launch.py`
@@ -59,8 +66,8 @@
 ## Practical scripts
 - `./tools/exec.sh`
 - `./tools/compile-ros.sh`
-- `./tools/launch_real_nav.sh`
-- `./tools/launch_real_rviz.sh`
+- `./tools/launch_real_global_v2.sh`
+- `./tools/launch_real_global_v2_rviz.sh`
 - `./tools/launch_controller.sh`
 - `./tools/launch_no_go_editor.sh`
 - `./tools/healthcheck-lidar.sh`
@@ -69,4 +76,4 @@
 - `ROS2_SALUS` is a single git repository rooted at `/home/leo/codigo/ROS2_SALUS`.
 - `src/*` are regular package directories inside the monorepo, not nested git repositories.
 - `rslidar_sdk` and `rslidar_msg` are vendored third-party code; prefer local wrappers/docs over patching upstream files unless explicitly requested.
-- Some historical docs and helper scripts still mention removed launches or commands. Use the launch list above as the source of truth for this checkout.
+- Some historical docs and helper scripts still mention old navigation profiles. Treat every navigation other than `real_global_v2` and `sim_global_v2` as legacy/reference unless explicitly requested.

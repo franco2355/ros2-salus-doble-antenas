@@ -1,3 +1,10 @@
+"""LEGACY dynamic datum setter.
+
+The current global navigation profiles use a fixed datum per operating site.
+Keep this node only for historical tooling/debugging; do not enable it in
+normal `real_global_v2` or `sim_global_v2` operation.
+"""
+
 import math
 import threading
 import time
@@ -115,8 +122,9 @@ class DatumSetterNode(Node):
             callback_group=self._service_group,
         )
 
-        self.get_logger().info(
-            "Datum setter ready "
+        self.get_logger().warning(
+            "LEGACY datum_setter ready; fixed site datum is the current "
+            "operational path. "
             f"(set_service={self.set_datum_service}, get_service={self.get_datum_service}, "
             f"gps_topic={self.gps_topic}, imu_topic={self.imu_topic}, "
             f"rtk_status_topic={self.rtk_status_topic}, "

@@ -1,5 +1,7 @@
 # Sim Local V2
 
+Estado: LEGACY / referencia tecnica. No usar como simulacion operativa vigente; usar `sim_global_v2`.
+
 ## Objetivo
 `sim_local_v2` es el perfil de simulacion de la navegacion local `v2` para el robot Ackermann.
 

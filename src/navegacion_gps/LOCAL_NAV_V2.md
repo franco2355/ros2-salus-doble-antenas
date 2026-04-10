@@ -1,5 +1,7 @@
 # Navegacion Local V2 Ackermann
 
+Estado: base tecnica vigente de Global V2. La navegacion operativa final del robot es `real_global_v2`; la simulacion operativa final es `sim_global_v2`.
+
 ## Resumen
 La `v2` es una base de navegacion local para el robot Ackermann que corre completamente en `odom`.
 La capa local actual ya no usa `goal_pose_to_follow_path_v2` ni `velocity_smoother`: hoy la navegacion se apoya en un stack Nav2 nativo sobre `odom`, con localizacion Ackermann + EKF local + planner + smoother + BT + costmaps rolling + collision monitor.

@@ -245,6 +245,8 @@ def generate_launch_description():
     map_gps_fromll_service = LaunchConfiguration("map_gps_fromll_service")
     map_gps_fromll_service_fallback = LaunchConfiguration("map_gps_fromll_service_fallback")
     map_gps_fromll_wait_timeout_s = LaunchConfiguration("map_gps_fromll_wait_timeout_s")
+    # LEGACY: dynamic datum setting is intentionally disabled in current
+    # global profiles. Keep the launch switch only for historical tooling.
     datum_setter = LaunchConfiguration("datum_setter")
 
     return LaunchDescription(
@@ -494,6 +496,8 @@ def generate_launch_description():
                 executable="datum_setter",
                 name="datum_setter",
                 output="screen",
+                # LEGACY: do not enable in normal operation. Datum is fixed by
+                # site launch arguments so maps, goals and keepout stay stable.
                 condition=IfCondition(
                     PythonExpression(["'", datum_setter, "'.lower() == 'true'"])
                 ),

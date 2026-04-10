@@ -5,7 +5,8 @@ Role
 - Prefer small, safe changes and keep launch arguments, YAML params, topics, and frames aligned.
 
 Quick map
-- `launch/`: canonical entry points are `simulacion.launch.py`, `real.launch.py`, `rviz_real.launch.py`.
+- `launch/`: current navigation entry points are `sim_global_v2.launch.py`, `real_global_v2.launch.py`, `rviz_real_global_v2.launch.py`.
+- `simulacion.launch.py`, `real.launch.py`, `rviz_real.launch.py`, `sim_local_v2.launch.py`, and `real_local_v2.launch.py` are legacy/reference navigation profiles.
 - `navegacion_gps/`: active nodes are `gazebo_utils.py`, `zones_manager.py`, `nav_command_server.py`, `nav_snapshot_server.py`.
 - `config/`: Nav2, collision monitor, robot_localization, keepout mask assets, RViz.
 - `models/`, `worlds/`: simulation assets.
@@ -18,9 +19,10 @@ Runtime truth
 - Localization stack expects `/imu/data`, `/gps/fix`, `/odom` and publishes `/odometry/local`, `/odometry/gps`.
 
 Launch guidance
-- `simulacion.launch.py` is the full simulation entry point.
-- `real.launch.py` is the real-robot bringup entry point.
-- `rviz_real.launch.py` is visualization only.
+- `sim_global_v2.launch.py` is the current simulation navigation entry point.
+- `real_global_v2.launch.py` is the current real-robot navigation bringup.
+- `rviz_real_global_v2.launch.py` is the current real-robot visualization entry point.
+- Do not use legacy navigation profiles for operational guidance unless the user explicitly asks for legacy/reference analysis.
 - Do not reintroduce references to removed launches such as `navegacion.launch.py`, `dual_ekf_navsat.launch.py`, or `mapviz.launch.py`.
 
 Editing guidance
@@ -34,5 +36,5 @@ Editing guidance
 Validation
 - Preferred validation path is inside the Docker workspace:
   - `./tools/compile-ros.sh navegacion_gps`
-  - `ros2 launch navegacion_gps real.launch.py --show-args`
-  - `ros2 launch navegacion_gps simulacion.launch.py --show-args`
+  - `ros2 launch navegacion_gps real_global_v2.launch.py --show-args`
+  - `ros2 launch navegacion_gps sim_global_v2.launch.py --show-args`

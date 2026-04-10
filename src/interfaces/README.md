@@ -36,6 +36,7 @@ Fuente de verdad: `msg/`, `srv/` y paquetes consumidores
 - Datum:
   - `SetDatum.srv`
   - `GetDatum.srv`
+  - LEGACY: estos servicios pertenecen al flujo viejo de datum dinamico. La navegacion global vigente usa datum fijo por sitio operativo.
 - Cámara:
   - `CameraPan.srv`
   - `CameraStatus.srv`

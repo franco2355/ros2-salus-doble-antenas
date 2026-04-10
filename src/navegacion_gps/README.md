@@ -9,8 +9,9 @@ Fuente de verdad: `launch/`, `config/`, `setup.py` y tests del paquete
 ## Documentación del paquete
 - Resumen de perfiles y launches: [docs/launch-matrix.md](/home/leo/codigo/ROS2_SALUS/docs/launch-matrix.md)
 - Arquitectura runtime: [docs/runtime-architecture.md](/home/leo/codigo/ROS2_SALUS/docs/runtime-architecture.md)
-- Navegación local V2:
+- Base local V2 usada por Global V2:
   - [LOCAL_NAV_V2.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/LOCAL_NAV_V2.md)
+- Launches locales standalone de referencia:
   - [SIM_LOCAL_V2_FIDELITY.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/SIM_LOCAL_V2_FIDELITY.md)
   - [REAL_LOCAL_V2_CHECKLIST.md](/home/leo/codigo/ROS2_SALUS/src/navegacion_gps/REAL_LOCAL_V2_CHECKLIST.md)
 - Navegación global V2:
@@ -22,27 +23,27 @@ Fuente de verdad: `launch/`, `config/`, `setup.py` y tests del paquete
   - clasificación recomendada: histórico / transición
 
 ## Perfiles operativos
-### Mainline actual
-- `ros2 launch navegacion_gps simulacion.launch.py`
-- `ros2 launch navegacion_gps real.launch.py`
-- `ros2 launch navegacion_gps rviz_real.launch.py`
-
-Este perfil mantiene la navegación principal del checkout y sigue siendo la referencia operativa general fuera de la familia V2.
-
-### V2 local
-- `ros2 launch navegacion_gps sim_local_v2.launch.py`
-- `ros2 launch navegacion_gps real_local_v2.launch.py`
-- `ros2 launch navegacion_gps rviz_real_local_v2.launch.py`
-
-La V2 local usa odometría Ackermann derivada de `DriveTelemetry`, EKF local en `odom` y Nav2 local nativo sobre `odom`.
-
-### V2 global
+### Navegacion vigente
 - `ros2 launch navegacion_gps sim_global_v2.launch.py`
 - `ros2 launch navegacion_gps real_global_v2.launch.py`
 - `ros2 launch navegacion_gps rviz_real_global_v2.launch.py`
 
+`real_global_v2` y `sim_global_v2` son las unicas navegaciones operativas vigentes del paquete.
+
 La V2 global agrega la capa `map -> odom` sobre la base local Ackermann, con `navsat_transform`, EKF global, datum configurable y goals LL en `map`.
 En los perfiles globales actuales, la corrección absoluta del EKF de `map` entra como `/gps/odometry_map` en frame `map` obtenido vía `fromLL`, y el heading global puede asistir al filtro mediante `/gps/course_heading`.
+La base local V2 sigue vigente como bloque interno: `ackermann_odometry`, `localization_v2` y `/odometry/local` sostienen la capa global.
+El datum de V2 global es fijo por sitio operativo. Los mecanismos para setear datum automaticamente quedan como LEGACY y no forman parte de los bringups vigentes.
+
+### Navegacion LEGACY / referencia
+- `ros2 launch navegacion_gps simulacion.launch.py`
+- `ros2 launch navegacion_gps real.launch.py`
+- `ros2 launch navegacion_gps rviz_real.launch.py`
+- `ros2 launch navegacion_gps sim_local_v2.launch.py`
+- `ros2 launch navegacion_gps real_local_v2.launch.py`
+- `ros2 launch navegacion_gps rviz_real_local_v2.launch.py`
+
+Estos perfiles viejos pueden servir para consultar implementaciones puntuales, pero no deben usarse como navegacion vigente.
 
 ## Nodos propios más relevantes
 - `zones_manager`
@@ -53,6 +54,18 @@ En los perfiles globales actuales, la corrección absoluta del EKF de `map` entr
 - `gazebo_utils`
 - `sim_sensor_normalizer_v2`
 - `gps_course_heading`
+
+## Componentes LEGACY
+- Perfiles mainline viejos:
+  - `simulacion.launch.py`, `real.launch.py`, `rviz_real.launch.py`
+- Launches locales standalone:
+  - `sim_local_v2.launch.py`, `real_local_v2.launch.py`, `rviz_real_local_v2.launch.py`
+  - Son referencia para validar la base local V2, pero no perfiles operativos finales.
+- `datum_setter`
+  - Nodo historico para setear datum automaticamente o por servicio.
+  - No usar en operacion normal de `real_global_v2` / `sim_global_v2`; el datum vigente debe salir de la configuracion fija del sitio.
+- `interfaces/srv/SetDatum.srv` y `interfaces/srv/GetDatum.srv`
+  - Contratos conservados por compatibilidad con tooling viejo.
 
 ## Contratos públicos más usados
 - Control:
@@ -71,9 +84,6 @@ En los perfiles globales actuales, la corrección absoluta del EKF de `map` entr
   - `/scan_wifi_debug`
 
 ## Helpers del workspace
-- `./tools/launch_real_nav.sh`
-- `./tools/launch_sim_local_v2.sh`
-- `./tools/launch_real_local_v2.sh`
 - `./tools/launch_sim_global_v2.sh`
 - `./tools/launch_real_global_v2.sh`
 - `./tools/record_nav_debug_bag.sh`
