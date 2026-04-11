@@ -70,6 +70,7 @@ function normalizeTopicHistoryText(snapshot: Record<string, unknown>, current: s
 
 export class SensorInfoService {
   private readonly listeners = new Set<Listener>();
+  private openConsumers = 0;
   private state: SensorInfoState = {
     activeTab: "general",
     open: false,
@@ -146,6 +147,8 @@ export class SensorInfoService {
   }
 
   async open(): Promise<void> {
+    this.openConsumers += 1;
+    if (this.state.open) return;
     this.state = {
       ...this.state,
       open: true
@@ -155,6 +158,11 @@ export class SensorInfoService {
   }
 
   async close(): Promise<void> {
+    if (this.openConsumers > 0) {
+      this.openConsumers -= 1;
+    }
+    if (this.openConsumers > 0) return;
+    if (!this.state.open) return;
     this.state = {
       ...this.state,
       open: false,

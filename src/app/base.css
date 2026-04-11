@@ -1,4 +1,26 @@
+@font-face {
+  font-family: 'Roboto Nerd Font';
+  src: url('./assets/fonts/RobotoMonoNerdFont_Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ubuntu Nerd Font';
+  src: url('./assets/fonts/UbuntuNerdFont_Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.nerd-text {
+  font-family: 'Ubuntu Nerd Font';
+}
+
 :root {
+  /* --font-ui: "Roboto Nerd Font", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; */
+  --font-ui: "Ubuntu Nerd Font", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
   --bg: #f4f4f4;
   --panel: #ffffff;
   --panel-muted: #efefef;
@@ -30,7 +52,7 @@ body,
   width: 100%;
   height: 100%;
   color: var(--text);
-  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-ui);
   background: var(--bg);
   user-select: none;
   -webkit-user-select: none;
@@ -126,7 +148,7 @@ summary:focus-visible {
   position: relative;
 }
 
-.toolbar-menu > summary {
+.toolbar-menu>summary {
   list-style: none;
   cursor: pointer;
   border: 1px solid #5d7590;
@@ -138,7 +160,7 @@ summary:focus-visible {
   min-height: 36px;
 }
 
-.toolbar-menu > summary::-webkit-details-marker {
+.toolbar-menu>summary::-webkit-details-marker {
   display: none;
 }
 
@@ -390,11 +412,11 @@ summary:focus-visible {
   width: 100%;
 }
 
-.row > * {
+.row>* {
   min-width: 0;
 }
 
-.row > *:only-child {
+.row>*:only-child {
   grid-column: 1 / -1;
 }
 
@@ -1174,7 +1196,7 @@ textarea::placeholder {
   min-height: 0;
 }
 
-.settings-modal-layout > .panel-card {
+.settings-modal-layout>.panel-card {
   flex: 1;
   min-height: 0;
   overflow: auto;
@@ -1485,7 +1507,7 @@ body,
 #root {
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-family: var(--font-ui);
 }
 
 button {

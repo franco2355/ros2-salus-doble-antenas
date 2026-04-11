@@ -7,7 +7,7 @@ export interface MapData {
   originLon: number;
 }
 
-export type MapToolMode = "idle" | "ruler" | "area" | "inspect";
+export type MapToolMode = "idle" | "ruler" | "area" | "protractor" | "inspect";
 
 export interface ZoneEntry {
   id: string;
@@ -147,7 +147,9 @@ export class MapService {
           ? "Ruler mode active. Click points to measure distance."
           : mode === "area"
             ? "Area mode active. Draw a polygon to estimate area."
-            : "Inspect mode active. Click map to inspect coordinates.";
+            : mode === "protractor"
+              ? "Protractor mode active. Click vertex and rays to measure angle."
+              : "Inspect mode active. Click map to inspect coordinates.";
 
     this.state = {
       ...this.state,

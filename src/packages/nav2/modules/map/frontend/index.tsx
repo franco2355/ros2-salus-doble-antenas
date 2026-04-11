@@ -12,6 +12,7 @@ import { MapService, type MapToolMode, type MapWorkspaceState } from "../service
 import { NavigationService, type NavigationState } from "../../navigation/service/impl/NavigationService";
 import type { SensorInfoService, SensorInfoState } from "../../navigation/service/impl/SensorInfoService";
 import type { TelemetrySnapshot } from "../../telemetry/service/impl/TelemetryService";
+import { calculateProtractorAngleDeg, snapToCartesianAxis } from "./protractor";
 
 const TRANSPORT_ID = "transport.ws.core";
 const DISPATCHER_ID = "dispatcher.map";
@@ -25,6 +26,9 @@ const GPS_DEFAULT_ZOOM = GPS_NATIVE_MAX_ZOOM - 3;
 const GPS_DEFAULT_CENTER: L.LatLngTuple = [-31.4201, -64.1888];
 const MAP_WHEEL_PX_PER_ZOOM_LEVEL = 160;
 const MAP_WHEEL_DEBOUNCE_MS = 80;
+const MAP_TOOL_COLOR = "#55ff7f";
+const PROTRACTOR_MIN_ARM_METERS = 0.05;
+const PROTRACTOR_SNAP_THRESHOLD_DEG = 12;
 
 interface Nav2MapConfig {
   map_default_center_lat?: unknown;
@@ -116,6 +120,52 @@ function geodesicArea(points: L.LatLng[]): number {
   return Math.abs(area / 2);
 }
 
+function formatAngleDegrees(angleDeg: number): string {
+  if (!Number.isFinite(angleDeg)) return "n/a";
+  return `${angleDeg.toFixed(1)}°`;
+}
+
+function buildProtractorArcGeometry(
+  vertex: L.LatLng,
+  armA: L.LatLng,
+  armB: L.LatLng
+): { arcPoints: L.LatLng[]; labelLatLng: L.LatLng | null } {
+  const origin = L.CRS.EPSG3857.project(vertex);
+  const first = L.CRS.EPSG3857.project(armA);
+  const second = L.CRS.EPSG3857.project(armB);
+
+  const firstVec = { x: first.x - origin.x, y: first.y - origin.y };
+  const secondVec = { x: second.x - origin.x, y: second.y - origin.y };
+  const firstLen = Math.hypot(firstVec.x, firstVec.y);
+  const secondLen = Math.hypot(secondVec.x, secondVec.y);
+  if (firstLen < PROTRACTOR_MIN_ARM_METERS || secondLen < PROTRACTOR_MIN_ARM_METERS) {
+    return { arcPoints: [], labelLatLng: null };
+  }
+
+  const startAngle = Math.atan2(firstVec.y, firstVec.x);
+  const endAngle = Math.atan2(secondVec.y, secondVec.x);
+  let delta = endAngle - startAngle;
+  while (delta <= -Math.PI) delta += Math.PI * 2;
+  while (delta > Math.PI) delta -= Math.PI * 2;
+
+  const radius = Math.max(1, Math.min(firstLen, secondLen) * 0.45);
+  const stepCount = Math.max(8, Math.ceil(Math.abs(delta) / (Math.PI / 24)));
+  const arcPoints: L.LatLng[] = [];
+  for (let index = 0; index <= stepCount; index += 1) {
+    const angle = startAngle + (delta * index) / stepCount;
+    const point = new L.Point(origin.x + Math.cos(angle) * radius, origin.y + Math.sin(angle) * radius);
+    arcPoints.push(L.CRS.EPSG3857.unproject(point));
+  }
+
+  const labelAngle = startAngle + delta / 2;
+  const labelRadius = Math.max(1, radius * 0.65);
+  const labelPoint = new L.Point(origin.x + Math.cos(labelAngle) * labelRadius, origin.y + Math.sin(labelAngle) * labelRadius);
+  return {
+    arcPoints,
+    labelLatLng: L.CRS.EPSG3857.unproject(labelPoint)
+  };
+}
+
 function normalizeYawDeg(yawDeg: number): number {
   let yaw = Number(yawDeg || 0);
   while (yaw <= -180) yaw += 360;
@@ -165,7 +215,7 @@ function buildRobotIcon(headingDeg: number | null | undefined): L.DivIcon {
 function buildDatumIcon(): L.DivIcon {
   return L.divIcon({
     className: "",
-    html: '<div class="datum-icon"><span class="datum-glyph">◎</span><span class="datum-label">DATUM</span></div>',
+    html: '<div class="datum-icon"><span class="datum-glyph">⯂</span></div>',
     iconSize: [40, 40],
     iconAnchor: [20, 20]
   });
@@ -236,8 +286,10 @@ function LeafletMapCanvas({
   const mapToolPreviewLatLngRef = useRef<L.LatLng | null>(null);
   const centerRequestHandledRef = useRef(0);
   const measurePointsRef = useRef<L.LatLng[]>([]);
-  const rulerDrawingCountRef = useRef(0);
-  const areaDrawingCountRef = useRef(0);
+  const protractorVertexRef = useRef<L.LatLng | null>(null);
+  const protractorArm1Ref = useRef<L.LatLng | null>(null);
+  const hasCompletedDrawingRef = useRef(false);
+  const completedDrawingToolRef = useRef<"ruler" | "area" | "protractor" | null>(null);
   const inspectCopyHandlersRef = useRef<Array<() => void>>([]);
   const goalModeRef = useRef(goalMode);
   const toolModeRef = useRef(state.toolMode);
@@ -327,15 +379,19 @@ function LeafletMapCanvas({
 
   const setToolLegend = (mode: MapToolMode): void => {
     if (mode === "ruler") {
-      mapService.setToolInfo(`Regla activa. Rectas ${rulerDrawingCountRef.current}. Click agrega, doble click cierra.`);
+      mapService.setToolInfo("Regla activa. Click agrega, doble click cierra.");
       return;
     }
     if (mode === "area") {
-      mapService.setToolInfo(`Area activa. Poligonos ${areaDrawingCountRef.current}. Click agrega, doble click cierra.`);
+      mapService.setToolInfo("Area activa. Click agrega, doble click cierra.");
       return;
     }
     if (mode === "inspect") {
       mapService.setToolInfo("Inspeccion activa. Click inspecciona coordenadas.");
+      return;
+    }
+    if (mode === "protractor") {
+      mapService.setToolInfo("Transportador activo. Click define vertice. Shift alinea ejes.");
       return;
     }
   };
@@ -343,6 +399,8 @@ function LeafletMapCanvas({
   const clearMeasureDraft = (): void => {
     mapToolPreviewLatLngRef.current = null;
     measurePointsRef.current = [];
+    protractorVertexRef.current = null;
+    protractorArm1Ref.current = null;
     clearMeasureTooltip();
     toolDraftLayerRef.current?.clearLayers();
   };
@@ -350,8 +408,8 @@ function LeafletMapCanvas({
   const clearToolDrawings = (): void => {
     clearMeasureDraft();
     toolDrawingsLayerRef.current?.clearLayers();
-    rulerDrawingCountRef.current = 0;
-    areaDrawingCountRef.current = 0;
+    hasCompletedDrawingRef.current = false;
+    completedDrawingToolRef.current = null;
   };
 
   const collectMeasurePoints = (closingPoint: L.LatLng | null): L.LatLng[] => {
@@ -365,19 +423,32 @@ function LeafletMapCanvas({
     return next;
   };
 
+  const resolveProtractorPoint = (latLng: L.LatLng, shiftPressed: boolean): L.LatLng => {
+    if (!shiftPressed) return latLng;
+    const vertex = protractorVertexRef.current;
+    if (!vertex) return latLng;
+    return snapToCartesianAxis(vertex, latLng, PROTRACTOR_SNAP_THRESHOLD_DEG, PROTRACTOR_MIN_ARM_METERS);
+  };
+
+  const markSingleDrawing = (tool: "ruler" | "area" | "protractor"): void => {
+    hasCompletedDrawingRef.current = true;
+    completedDrawingToolRef.current = tool;
+  };
+
   const finalizeRulerMeasure = (closingPoint: L.LatLng | null): void => {
     const map = mapRef.current;
     const layer = toolDrawingsLayerRef.current;
     if (!map || !layer) return;
     const points = collectMeasurePoints(closingPoint);
     if (points.length < 2) return;
+    layer.clearLayers();
     points.forEach((point) => {
       layer.addLayer(
         L.circleMarker(point, {
           radius: 3,
-          color: "#fbd47f",
+          color: MAP_TOOL_COLOR,
           weight: 1.5,
-          fillColor: "#fbd47f",
+          fillColor: MAP_TOOL_COLOR,
           fillOpacity: 0.9,
           interactive: false
         })
@@ -385,12 +456,12 @@ function LeafletMapCanvas({
     });
     layer.addLayer(
       L.polyline(points, {
-        color: "#fbd47f",
+        color: MAP_TOOL_COLOR,
         weight: 2.5,
         interactive: false
       })
     );
-    rulerDrawingCountRef.current += 1;
+    markSingleDrawing("ruler");
     clearMeasureDraft();
     setToolLegend("ruler");
   };
@@ -400,13 +471,14 @@ function LeafletMapCanvas({
     if (!layer) return;
     const points = collectMeasurePoints(closingPoint);
     if (points.length < 3) return;
+    layer.clearLayers();
     points.forEach((point) => {
       layer.addLayer(
         L.circleMarker(point, {
           radius: 3,
-          color: "#8dd8ff",
+          color: MAP_TOOL_COLOR,
           weight: 1.5,
-          fillColor: "#8dd8ff",
+          fillColor: MAP_TOOL_COLOR,
           fillOpacity: 0.9,
           interactive: false
         })
@@ -414,15 +486,83 @@ function LeafletMapCanvas({
     });
     layer.addLayer(
       L.polygon(points, {
-        color: "#8dd8ff",
+        color: MAP_TOOL_COLOR,
         weight: 2.5,
         fillOpacity: 0.18,
         interactive: false
       })
     );
-    areaDrawingCountRef.current += 1;
+    markSingleDrawing("area");
     clearMeasureDraft();
     setToolLegend("area");
+  };
+
+  const finalizeProtractorMeasure = (closingPoint: L.LatLng | null): void => {
+    const layer = toolDrawingsLayerRef.current;
+    const vertex = protractorVertexRef.current;
+    const arm1 = protractorArm1Ref.current;
+    if (!layer || !vertex || !arm1 || !closingPoint) return;
+    const angle = calculateProtractorAngleDeg(vertex, arm1, closingPoint, PROTRACTOR_MIN_ARM_METERS);
+    if (angle === null) {
+      mapService.setToolInfo("Transportador invalido. Brazo demasiado corto.");
+      return;
+    }
+    const angleText = formatAngleDegrees(angle);
+    const { arcPoints, labelLatLng } = buildProtractorArcGeometry(vertex, arm1, closingPoint);
+    layer.clearLayers();
+    layer.addLayer(
+      L.circleMarker(vertex, {
+        radius: 3,
+        color: MAP_TOOL_COLOR,
+        weight: 1.5,
+        fillColor: MAP_TOOL_COLOR,
+        fillOpacity: 0.9,
+        interactive: false
+      })
+    );
+    layer.addLayer(
+      L.polyline([vertex, arm1], {
+        color: MAP_TOOL_COLOR,
+        weight: 2.5,
+        interactive: false
+      })
+    );
+    layer.addLayer(
+      L.polyline([vertex, closingPoint], {
+        color: MAP_TOOL_COLOR,
+        weight: 2.5,
+        interactive: false
+      })
+    );
+    if (arcPoints.length > 1) {
+      layer.addLayer(
+        L.polyline(arcPoints, {
+          color: MAP_TOOL_COLOR,
+          weight: 2,
+          interactive: false
+        })
+      );
+    }
+    if (labelLatLng) {
+      layer.addLayer(
+        L.marker(labelLatLng, {
+          interactive: false,
+          icon: L.divIcon({
+            className: "",
+            html: `<div class="map-protractor-label">${angleText}</div>`,
+            iconSize: [72, 20],
+            iconAnchor: [36, 10]
+          })
+        })
+      );
+    }
+    markSingleDrawing("protractor");
+    protractorVertexRef.current = null;
+    protractorArm1Ref.current = null;
+    mapToolPreviewLatLngRef.current = null;
+    clearMeasureTooltip();
+    toolDraftLayerRef.current?.clearLayers();
+    setToolLegend("protractor");
   };
 
   const renderRulerMeasure = (preview: L.LatLng | null): void => {
@@ -434,19 +574,19 @@ function LeafletMapCanvas({
     points.forEach((point) => {
       L.circleMarker(point, {
         radius: 3,
-        color: "#fbd47f",
+        color: MAP_TOOL_COLOR,
         weight: 1.5,
-        fillColor: "#fbd47f",
+        fillColor: MAP_TOOL_COLOR,
         fillOpacity: 0.9
       }).addTo(layer);
     });
 
     const displayPoints = preview && points.length > 0 ? [...points, preview] : points;
     if (points.length > 1) {
-      L.polyline(points, { color: "#fbd47f", weight: 2 }).addTo(layer);
+      L.polyline(points, { color: MAP_TOOL_COLOR, weight: 2 }).addTo(layer);
     }
     if (preview && points.length > 0) {
-      L.polyline([points[points.length - 1], preview], { color: "#fbd47f", weight: 2, dashArray: "5 5" }).addTo(layer);
+      L.polyline([points[points.length - 1], preview], { color: MAP_TOOL_COLOR, weight: 2, dashArray: "5 5" }).addTo(layer);
     }
 
     let meters = 0;
@@ -470,18 +610,18 @@ function LeafletMapCanvas({
     points.forEach((point) => {
       L.circleMarker(point, {
         radius: 3,
-        color: "#8dd8ff",
+        color: MAP_TOOL_COLOR,
         weight: 1.5,
-        fillColor: "#8dd8ff",
+        fillColor: MAP_TOOL_COLOR,
         fillOpacity: 0.9
       }).addTo(layer);
     });
 
     const drawPoints = preview && points.length > 0 ? [...points, preview] : points;
     if (drawPoints.length > 2) {
-      L.polygon(drawPoints, { color: "#8dd8ff", weight: 2, fillOpacity: 0.2 }).addTo(layer);
+      L.polygon(drawPoints, { color: MAP_TOOL_COLOR, weight: 2, fillOpacity: 0.2 }).addTo(layer);
     } else if (drawPoints.length > 1) {
-      L.polyline(drawPoints, { color: "#8dd8ff", weight: 2 }).addTo(layer);
+      L.polyline(drawPoints, { color: MAP_TOOL_COLOR, weight: 2 }).addTo(layer);
     }
 
     let perimeter = 0;
@@ -498,6 +638,67 @@ function LeafletMapCanvas({
     } else {
       clearMeasureTooltip();
     }
+  };
+
+  const renderProtractorMeasure = (preview: L.LatLng | null): void => {
+    const layer = toolDraftLayerRef.current;
+    const vertex = protractorVertexRef.current;
+    const arm1 = protractorArm1Ref.current;
+    if (!layer) return;
+    layer.clearLayers();
+    clearMeasureTooltip();
+    if (!vertex) {
+      mapService.setToolInfo("Transportador activo. Click define vertice. Shift alinea ejes.");
+      clearMeasureTooltip();
+      return;
+    }
+    L.circleMarker(vertex, {
+      radius: 3,
+      color: MAP_TOOL_COLOR,
+      weight: 1.5,
+      fillColor: MAP_TOOL_COLOR,
+      fillOpacity: 0.9
+    }).addTo(layer);
+    if (!arm1) {
+      if (preview) {
+        L.polyline([vertex, preview], { color: MAP_TOOL_COLOR, weight: 2, dashArray: "5 5" }).addTo(layer);
+      }
+      mapService.setToolInfo("Transportador activo. Click define brazo referencia.");
+      return;
+    }
+
+    L.polyline([vertex, arm1], { color: MAP_TOOL_COLOR, weight: 2 }).addTo(layer);
+    const arm2 = preview ?? mapToolPreviewLatLngRef.current;
+    if (!arm2) {
+      mapService.setToolInfo("Transportador activo. Click final define angulo.");
+      return;
+    }
+
+    const isPreview = preview !== null;
+    L.polyline([vertex, arm2], { color: MAP_TOOL_COLOR, weight: 2, dashArray: isPreview ? "5 5" : undefined }).addTo(layer);
+    const angle = calculateProtractorAngleDeg(vertex, arm1, arm2, PROTRACTOR_MIN_ARM_METERS);
+    if (angle === null) {
+      mapService.setToolInfo("Transportador activo. Brazo final invalido.");
+      return;
+    }
+
+    const angleText = formatAngleDegrees(angle);
+    const { arcPoints, labelLatLng } = buildProtractorArcGeometry(vertex, arm1, arm2);
+    if (arcPoints.length > 1) {
+      L.polyline(arcPoints, { color: MAP_TOOL_COLOR, weight: 2 }).addTo(layer);
+    }
+    if (labelLatLng) {
+      L.marker(labelLatLng, {
+        interactive: false,
+        icon: L.divIcon({
+          className: "",
+          html: `<div class="map-protractor-label">${angleText}</div>`,
+          iconSize: [72, 20],
+          iconAnchor: [36, 10]
+        })
+      }).addTo(layer);
+    }
+    mapService.setToolInfo(`Transportador ${angleText}. Click cierra. Shift alinea ejes.`);
   };
 
   useEffect(() => {
@@ -644,15 +845,39 @@ function LeafletMapCanvas({
         renderAreaMeasure(null);
         return;
       }
+      if (mode === "protractor") {
+        const shiftPressed = Boolean((evt.originalEvent as MouseEvent | undefined)?.shiftKey);
+        if (!protractorVertexRef.current) {
+          protractorVertexRef.current = evt.latlng;
+          protractorArm1Ref.current = null;
+          mapToolPreviewLatLngRef.current = null;
+          renderProtractorMeasure(null);
+          return;
+        }
+        const snappedLatLng = resolveProtractorPoint(evt.latlng, shiftPressed);
+        if (!protractorArm1Ref.current) {
+          protractorArm1Ref.current = snappedLatLng;
+          mapToolPreviewLatLngRef.current = null;
+          renderProtractorMeasure(null);
+          return;
+        }
+        finalizeProtractorMeasure(snappedLatLng);
+        return;
+      }
     });
 
     map.on("dblclick", (evt: L.LeafletMouseEvent) => {
       if (!interactiveRef.current) return;
       const mode = toolModeRef.current;
-      if (mode !== "ruler" && mode !== "area") return;
+      if (mode !== "ruler" && mode !== "area" && mode !== "protractor") return;
       L.DomEvent.stop(evt.originalEvent);
       if (mode === "ruler") {
         finalizeRulerMeasure(evt.latlng);
+        return;
+      }
+      if (mode === "protractor") {
+        const shiftPressed = Boolean((evt.originalEvent as MouseEvent | undefined)?.shiftKey);
+        finalizeProtractorMeasure(resolveProtractorPoint(evt.latlng, shiftPressed));
         return;
       }
       finalizeAreaMeasure(evt.latlng);
@@ -703,6 +928,13 @@ function LeafletMapCanvas({
       if (mode === "area") {
         mapToolPreviewLatLngRef.current = evt.latlng;
         renderAreaMeasure(evt.latlng);
+        return;
+      }
+      if (mode === "protractor") {
+        const shiftPressed = Boolean((evt.originalEvent as MouseEvent | undefined)?.shiftKey);
+        const previewPoint = resolveProtractorPoint(evt.latlng, shiftPressed);
+        mapToolPreviewLatLngRef.current = previewPoint;
+        renderProtractorMeasure(previewPoint);
       }
     });
 
@@ -715,7 +947,7 @@ function LeafletMapCanvas({
     });
 
     map.on("mouseout", () => {
-      if (toolModeRef.current === "ruler" || toolModeRef.current === "area") {
+      if (toolModeRef.current === "ruler" || toolModeRef.current === "area" || toolModeRef.current === "protractor") {
         clearMeasureTooltip();
       }
     });
@@ -737,6 +969,8 @@ function LeafletMapCanvas({
       datumMarkerRef.current = null;
       draftMarkerRef.current = null;
       measurePointsRef.current = [];
+      protractorVertexRef.current = null;
+      protractorArm1Ref.current = null;
     };
   }, [initialCenterLat, initialCenterLon, initialZoom, mapService, runtime.eventBus]);
 
@@ -1054,6 +1288,13 @@ function MapWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element 
     return sensorInfoService.subscribe((next) => setSensorInfoState(next));
   }, [sensorInfoService]);
   useEffect(() => {
+    if (!sensorInfoService) return;
+    void sensorInfoService.open();
+    return () => {
+      void sensorInfoService.close();
+    };
+  }, [sensorInfoService]);
+  useEffect(() => {
     const connected = connectionState?.connected === true;
     const previous = wasConnectedRef.current;
     wasConnectedRef.current = connected;
@@ -1334,6 +1575,11 @@ function MapWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element 
       if (event.code === "Digit3") {
         selectTool("inspect", "inspect");
         event.preventDefault();
+        return;
+      }
+      if (event.code === "Digit4") {
+        selectTool("protractor", "protractor");
+        event.preventDefault();
       }
     };
     window.addEventListener("keydown", onKeyDown);
@@ -1376,6 +1622,16 @@ function MapWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX.Element 
               disabled={!mapToolsEnabled}
             >
               📍
+            </button>
+            <button
+              type="button"
+              className={toolButtonClass(state.toolMode, "protractor")}
+              onClick={() => selectTool("protractor", "protractor")}
+              title="Transportador"
+              aria-label="Transportador"
+              disabled={!mapToolsEnabled}
+            >
+              ∠
             </button>
             <button
               type="button"

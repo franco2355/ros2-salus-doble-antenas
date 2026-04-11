@@ -118,9 +118,9 @@
 }
 
 .map-toolbar button.active {
-  background: #facc15;
-  border-color: #ca8a04;
-  color: #1f2937;
+  background: #55ff7f;
+  border-color: #000000;
+  color: #000000;
 }
 
 .map-canvas {
@@ -359,7 +359,7 @@
 }
 
 .robot-icon .robot-glyph {
-  color: #0ea5e9;
+  color: #ffff00;
   font-size: 30px;
   line-height: 1;
   text-shadow: 0 0 2px rgba(2, 6, 23, 0.75);
@@ -380,7 +380,7 @@
 }
 
 .datum-glyph {
-  color: #d97706;
+  color: #ff00ff;
   font-size: 18px;
   line-height: 1;
   text-shadow: 0 0 1px rgba(2, 6, 23, 0.6);
@@ -481,6 +481,23 @@
   border-top-color: rgba(35, 30, 30, 0.96);
 }
 
+.map-protractor-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  padding: 1px 6px;
+  border: 1px solid #000000;
+  border-radius: 999px;
+  background: #55ff7f;
+  color: #000000;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+  pointer-events: none;
+}
+
 .camera-frame-wrap {
   border: 1px solid var(--line);
   border-radius: 0;
@@ -576,6 +593,10 @@
   box-shadow: var(--shadow-soft);
 }
 
+.map-measure-tooltip {
+  border-color: #55ff7f;
+}
+
 .map-inspect-popup .coords,
 .stage-gps-mini-badge {
   color: var(--text);
@@ -603,7 +624,7 @@
 }
 
 .map-workspace-toolbar .map-toolbar button.active {
-  background: var(--accent-subtle);
+  background: #55ff7f;
   border-color: #000000;
   color: #000000;
 }
