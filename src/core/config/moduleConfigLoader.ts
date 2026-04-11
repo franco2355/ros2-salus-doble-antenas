@@ -1,7 +1,7 @@
 import { parse } from "yaml";
 import type { CockpitModule } from "../types/module";
 import type { CockpitPackage } from "../types/module";
-import { readConfig } from "../../platform/tauri/configFs";
+import { readConfig } from "../../platform/host/configFs";
 
 const DEFAULT_MODULES_YAML = `packages:
   nav2:
@@ -21,7 +21,7 @@ export interface PackageToggleConfig {
 export interface ModuleConfig {
   modules: Record<string, boolean>;
   packages: Record<string, PackageToggleConfig>;
-  source: "tauri-config" | "public-config" | "default";
+  source: "host-config" | "public-config" | "default";
 }
 
 interface ParsedModulesYaml {
@@ -85,9 +85,9 @@ async function readModulesFromPublicConfig(): Promise<string | null> {
 }
 
 export async function loadModuleConfig(): Promise<ModuleConfig> {
-  const tauriText = await readConfig("modules.yaml");
-  if (tauriText) {
-    return { ...parseModulesYaml(tauriText), source: "tauri-config" };
+  const hostText = await readConfig("modules.yaml");
+  if (hostText) {
+    return { ...parseModulesYaml(hostText), source: "host-config" };
   }
 
   const publicText = await readModulesFromPublicConfig();

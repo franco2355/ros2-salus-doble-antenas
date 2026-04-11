@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { bootstrapApp } from "../core/bootstrap/bootstrapApp";
-import { readConfig, removeConfig, writeConfig } from "../platform/tauri/configFs";
+import { readConfig, removeConfig, writeConfig } from "../platform/host/configFs";
 
 describe("integration", () => {
   it("persists config through fallback storage", async () => {

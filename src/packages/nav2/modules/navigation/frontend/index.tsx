@@ -1195,7 +1195,10 @@ function registerDispatcher(ctx: ModuleContext): RobotDispatcher {
   return dispatcher;
 }
 
-function registerServices(ctx: ModuleContext, dispatcher: RobotDispatcher): NavigationService {
+function registerServices(
+  ctx: ModuleContext,
+  dispatcher: RobotDispatcher
+): { navigationService: NavigationService; connectionService: ConnectionService } {
   const config = readNav2Config(ctx);
   const limits = parseManualSpeedLimits(config);
   const navigationService = new NavigationService(dispatcher, {
@@ -1246,7 +1249,7 @@ function registerServices(ctx: ModuleContext, dispatcher: RobotDispatcher): Navi
     service: sensorInfoService
   });
 
-  return navigationService;
+  return { navigationService, connectionService };
 }
 
 function registerSidebarPanels(ctx: ModuleContext): void {
@@ -1292,7 +1295,76 @@ function registerFooterItems(ctx: ModuleContext): void {
   });
 }
 
-function registerCommands(ctx: ModuleContext, navigationService: NavigationService): void {
+function registerCommands(
+  ctx: ModuleContext,
+  navigationService: NavigationService,
+  connectionService: ConnectionService
+): void {
+  ctx.commands.register(
+    { id: NavigationCommands.connectionConnect, title: "Connection Connect", category: "Navigation" },
+    () => {
+      void connectionService.connect().catch((error: unknown) => {
+        ctx.eventBus.emit("console.event", {
+          level: "error",
+          text: `Connection command failed: ${String(error)}`,
+          timestamp: Date.now()
+        });
+      });
+    }
+  );
+
+  ctx.commands.register(
+    { id: NavigationCommands.connectionDisconnect, title: "Connection Disconnect", category: "Navigation" },
+    () => {
+      void connectionService.disconnect().catch((error: unknown) => {
+        ctx.eventBus.emit("console.event", {
+          level: "error",
+          text: `Disconnect command failed: ${String(error)}`,
+          timestamp: Date.now()
+        });
+      });
+    }
+  );
+
+  ctx.commands.register(
+    { id: NavigationCommands.connectionSetPreset, title: "Connection Set Preset", category: "Navigation" },
+    (preset?: unknown) => {
+      connectionService.setPreset(preset === "sim" ? "sim" : "real");
+      const state = connectionService.getState();
+      ctx.eventBus.emit("console.event", {
+        level: "info",
+        text: `Connection preset set to ${state.preset}`,
+        timestamp: Date.now()
+      });
+    }
+  );
+
+  ctx.commands.register(
+    { id: NavigationCommands.connectionSetHost, title: "Connection Set Host", category: "Navigation" },
+    (host?: unknown) => {
+      if (typeof host !== "string" || host.trim().length === 0) return;
+      connectionService.setHost(host.trim());
+      ctx.eventBus.emit("console.event", {
+        level: "info",
+        text: `Connection host set to ${host.trim()}`,
+        timestamp: Date.now()
+      });
+    }
+  );
+
+  ctx.commands.register(
+    { id: NavigationCommands.connectionSetPort, title: "Connection Set Port", category: "Navigation" },
+    (port?: unknown) => {
+      if (typeof port !== "string" || port.trim().length === 0) return;
+      connectionService.setPort(port.trim());
+      ctx.eventBus.emit("console.event", {
+        level: "info",
+        text: `Connection port set to ${port.trim()}`,
+        timestamp: Date.now()
+      });
+    }
+  );
+
   ctx.commands.register(
     { id: NavigationCommands.openSnapshotModal, title: "Open Snapshot Modal", category: "Navigation" },
     () => {
@@ -1468,8 +1540,8 @@ export function createNavigationModule(): CockpitModule {
     register(ctx: ModuleContext): void {
       registerTransport(ctx);
       const dispatcher = registerDispatcher(ctx);
-      const navigationService = registerServices(ctx, dispatcher);
-      registerCommands(ctx, navigationService);
+      const { navigationService, connectionService } = registerServices(ctx, dispatcher);
+      registerCommands(ctx, navigationService, connectionService);
       registerSidebarPanels(ctx);
       registerModals(ctx);
       registerFooterItems(ctx);

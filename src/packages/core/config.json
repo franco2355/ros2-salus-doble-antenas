@@ -1,41 +1,7 @@
 {
-  "values": {
-    "terminal_ssh_config_path": "~/.ssh/config",
-    "terminal_default_host": "Localhost",
-    "terminal_shell_override": "",
-    "terminal_scrollback": 5000
-  },
+  "values": {},
   "settings": {
     "title": "Core",
-    "fields": [
-      {
-        "key": "terminal_ssh_config_path",
-        "label": "SSH config path",
-        "type": "string",
-        "description": "Ruta al archivo SSH config para descubrir aliases.",
-        "placeholder": "~/.ssh/config"
-      },
-      {
-        "key": "terminal_default_host",
-        "label": "Default host",
-        "type": "string",
-        "description": "Host seleccionado por defecto al crear una nueva terminal.",
-        "placeholder": "Localhost"
-      },
-      {
-        "key": "terminal_shell_override",
-        "label": "Shell override",
-        "type": "string",
-        "description": "Si se define, reemplaza el shell por defecto del sistema para sesiones locales.",
-        "placeholder": "/bin/zsh"
-      },
-      {
-        "key": "terminal_scrollback",
-        "label": "Scrollback lines",
-        "type": "number",
-        "description": "Cantidad de líneas mantenidas en memoria por sesión.",
-        "placeholder": "5000"
-      }
-    ]
+    "fields": []
   }
 }

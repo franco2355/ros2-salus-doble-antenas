@@ -1,4 +1,4 @@
-import { setWebviewZoom } from "../platform/tauri/webviewZoom";
+import { setWebviewZoom } from "../platform/host/webviewZoom";
 
 export interface ZoomStorageAdapter {
   getItem(key: string): string | null;

@@ -1,3 +1,5 @@
+import { showHostAlert, showHostConfirm, showHostPrompt } from "../../../../../../platform/host/dialogs";
+
 export type GlobalDialogKind = "alert" | "confirm" | "prompt";
 export const DIALOG_SERVICE_ID = "service.dialog";
 
@@ -48,15 +50,21 @@ export class DialogService {
     return this.current ? { ...this.current.active } : null;
   }
 
-  alert(options: GlobalDialogOptions): Promise<void> {
-    return this.enqueue("alert", options) as Promise<void>;
+  async alert(options: GlobalDialogOptions): Promise<void> {
+    const handledByHost = await showHostAlert(options);
+    if (handledByHost) return;
+    await (this.enqueue("alert", options) as Promise<void>);
   }
 
-  confirm(options: GlobalDialogOptions): Promise<boolean> {
+  async confirm(options: GlobalDialogOptions): Promise<boolean> {
+    const hostResult = await showHostConfirm(options);
+    if (typeof hostResult === "boolean") return hostResult;
     return this.enqueue("confirm", options) as Promise<boolean>;
   }
 
-  prompt(options: GlobalDialogOptions): Promise<string | null> {
+  async prompt(options: GlobalDialogOptions): Promise<string | null> {
+    const hostResult = await showHostPrompt(options);
+    if (hostResult !== undefined) return hostResult;
     return this.enqueue("prompt", options) as Promise<string | null>;
   }
 

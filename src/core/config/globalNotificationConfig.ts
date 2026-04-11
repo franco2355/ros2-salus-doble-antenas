@@ -1,4 +1,4 @@
-import { readConfig, removeConfig, writeConfig } from "../../platform/tauri/configFs";
+import { readConfig, removeConfig, writeConfig } from "../../platform/host/configFs";
 import type { CoreNotificationSettings } from "../types/settings";
 
 const CONFIG_PATH = "core/notifications.json";

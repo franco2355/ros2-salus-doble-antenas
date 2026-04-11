@@ -7,6 +7,9 @@ export interface BaseContribution {
   readonly id: string;
   readonly slot: UISlot;
   readonly order?: number;
+  readonly command?: string;
+  readonly statusBarPriority?: number;
+  readonly viewContext?: string;
 }
 
 export interface SidebarContribution extends BaseContribution {

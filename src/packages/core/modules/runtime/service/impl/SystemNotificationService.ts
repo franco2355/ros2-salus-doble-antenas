@@ -2,8 +2,8 @@ import { CORE_EVENTS } from "../../../../../../core/events/topics";
 import type { EventBus } from "../../../../../../core/events/eventBus";
 import type { CoreNotificationSettings } from "../../../../../../core/types/settings";
 import { DEFAULT_CORE_NOTIFICATION_SETTINGS, loadCoreNotificationSettings } from "../../../../../../core/config/globalNotificationConfig";
-import { notify } from "../../../../../../platform/tauri/notifications";
-import { isMainWindowFocused } from "../../../../../../platform/tauri/windowFocus";
+import { notify } from "../../../../../../platform/host/notifications";
+import { isMainWindowFocused } from "../../../../../../platform/host/windowFocus";
 
 export const SYSTEM_NOTIFICATION_SERVICE_ID = "service.system-notifications";
 
@@ -255,8 +255,8 @@ export class SystemNotificationService {
     if (!this.settings.notifications_enabled) return false;
     if (this.pageHidden) return true;
     if (this.hasWindowFocus) return false;
-    const tauriFocused = await isFocusedFn().catch(() => false);
-    return !tauriFocused;
+    const hostFocused = await isFocusedFn().catch(() => false);
+    return !hostFocused;
   }
 
   private async notifyWithCooldown(

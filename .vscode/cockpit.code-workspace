@@ -74,7 +74,7 @@
 			},
 			{
 				"label": "📦 NPM: Instalar dependencias",
-				"detail": "Instala dependencias del proyecto React + Tauri",
+				"detail": "Instala dependencias del proyecto React + Extension VSCode",
 				"type": "shell",
 				"command": "npm install",
 				"problemMatcher": []
@@ -96,41 +96,37 @@
 				"problemMatcher": []
 			},
 			{
-				"label": "🖥️ Tauri: Ejecutar",
-				"detail": "Ejecuta la app desktop con Tauri (dev)",
+				"label": "🧩 Extension: Empaquetar VSIX",
+				"detail": "Genera archivo cockpit.vsix listo para instalar",
 				"type": "shell",
-				"command": "npm run tauri:dev",
-				"group": "test",
-				"problemMatcher": []
-			},
-			{
-				"label": "📦 Tauri: Compilar",
-				"detail": "Compila el bundle desktop con Tauri",
-				"type": "shell",
-				"command": "npm run tauri:build",
+				"command": "npm run package:vsix",
 				"group": "build",
 				"problemMatcher": []
-			}
-		],
-		"inputs": [
-			{
-				"id": "serviceName",
-				"description": "Nombre del servicio de Docker",
-				"default": "users-api",
-				"type": "promptString"
 			},
 			{
-				"id": "containerName",
-				"description": "Nombre del contenedor",
-				"default": "mysql-users-api",
-				"type": "promptString"
+				"label": "🧩 Extension: Compilar",
+				"type": "shell",
+				"command": "npm run build",
+				"group": "build",
+				"problemMatcher": []
 			},
 			{
-				"id": "command",
-				"description": "Comando a ejecutar",
-				"default": "bash",
-				"type": "promptString"
+				"label": "📦 Extension: Empaquetar VSIX",
+				"type": "shell",
+				"command": "npm run package:vsix",
+				"group": "build",
+				"problemMatcher": []
+			},
+			{
+				"label": "🧩 Extension: Compilar e instalar VSIX",
+				"type": "shell",
+				"command": "bash ${workspaceFolder}/.vscode/tasks/compile-install-vsix.sh",
+				"group": {
+					"kind": "build",
+					"isDefault": true
+				},
+				"problemMatcher": []
 			}
-		]
+			]
+		}
 	}
-}

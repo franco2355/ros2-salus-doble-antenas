@@ -2,14 +2,14 @@ import type { AppRuntime } from "../core/types/module";
 import type { Disposable } from "../core/commands/types";
 
 export const ShellCommands = {
-  toggleSidebar: "core.shell.toggleSidebar",
-  toggleConsole: "core.shell.toggleConsole",
-  openModal:     "core.shell.openModal",
-  closeModal:    "core.shell.closeModal",
-  dismiss:       "core.shell.dismiss",
-  zoomIn:        "core.shell.zoomIn",
-  zoomOut:       "core.shell.zoomOut",
-  zoomReset:     "core.shell.zoomReset"
+  toggleSidebar: "cockpit.shell.toggleSidebar",
+  toggleConsole: "cockpit.shell.toggleConsole",
+  openModal: "cockpit.shell.openModal",
+  closeModal: "cockpit.shell.closeModal",
+  dismiss: "cockpit.shell.dismiss",
+  zoomIn: "cockpit.shell.zoomIn",
+  zoomOut: "cockpit.shell.zoomOut",
+  zoomReset: "cockpit.shell.zoomReset"
 } as const;
 
 export interface ShellCommandCallbacks {

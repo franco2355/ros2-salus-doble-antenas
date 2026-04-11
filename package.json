@@ -1,39 +1,189 @@
 {
-  "name": "cockpit-modular",
-  "version": "0.1.0",
+  "name": "cockpit-vscode",
+  "displayName": "Cockpit",
+  "description": "Cockpit modular host as VSCode extension",
+  "version": "0.2.0",
   "private": true,
+  "publisher": "cockpit",
   "type": "module",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "main": "./dist/extension.cjs",
+  "activationEvents": [
+    "onCommand:cockpit.open",
+    "onCommand:cockpit.workspace.open",
+    "onCommand:cockpit.modal.open",
+    "onCommand:cockpit.toolbar.show",
+    "onCommand:cockpit.terminal.toggle",
+    "onCommand:cockpit.terminal.new",
+    "onCommand:cockpit.sidebar.focus",
+    "onCommand:cockpit.console.focus",
+    "onView:cockpit.sidebar.connection",
+    "onView:cockpit.sidebar.navigation",
+    "onView:cockpit.sidebar.telemetry"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "cockpit.open",
+        "title": "Cockpit: Open"
+      },
+      {
+        "command": "cockpit.workspace.open",
+        "title": "Cockpit: Open Workspace View"
+      },
+      {
+        "command": "cockpit.modal.open",
+        "title": "Cockpit: Open Modal"
+      },
+      {
+        "command": "cockpit.toolbar.show",
+        "title": "Cockpit: Toolbar Actions"
+      },
+      {
+        "command": "cockpit.terminal.toggle",
+        "title": "Cockpit: Toggle Terminal"
+      },
+      {
+        "command": "cockpit.terminal.new",
+        "title": "Cockpit: New Terminal"
+      },
+      {
+        "command": "cockpit.sidebar.focus",
+        "title": "Cockpit: Focus Sidebar"
+      },
+      {
+        "command": "cockpit.console.focus",
+        "title": "Cockpit: Focus Console"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "cockpit.open",
+        "key": "ctrl+shift+y",
+        "when": "!inQuickOpen"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "cockpit.open",
+          "when": "view == cockpit.sidebar.connection",
+          "group": "navigation@1"
+        },
+        {
+          "command": "cockpit.toolbar.show",
+          "when": "view == cockpit.sidebar.connection",
+          "group": "navigation@2"
+        },
+        {
+          "command": "cockpit.open",
+          "when": "view == cockpit.sidebar.navigation",
+          "group": "navigation@1"
+        },
+        {
+          "command": "cockpit.toolbar.show",
+          "when": "view == cockpit.sidebar.navigation",
+          "group": "navigation@2"
+        },
+        {
+          "command": "cockpit.open",
+          "when": "view == cockpit.sidebar.telemetry",
+          "group": "navigation@1"
+        },
+        {
+          "command": "cockpit.console.focus",
+          "when": "view == cockpit.sidebar.telemetry",
+          "group": "navigation@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "cockpit.open",
+          "when": "true"
+        },
+        {
+          "command": "cockpit.sidebar.focus",
+          "when": "true"
+        },
+        {
+          "command": "cockpit.console.focus",
+          "when": "true"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "cockpit",
+          "title": "Cockpit",
+          "icon": "dist/cockpit-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "cockpit": [
+        {
+          "id": "cockpit.sidebar.connection",
+          "name": "Connection"
+        },
+        {
+          "id": "cockpit.sidebar.navigation",
+          "name": "Navigation"
+        },
+        {
+          "id": "cockpit.sidebar.telemetry",
+          "name": "Telemetry"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Cockpit",
+      "properties": {
+        "cockpit.config": {
+          "type": "object",
+          "default": {},
+          "markdownDescription": "Mapa de configuraciones persistentes por ruta virtual (por ejemplo `modules.yaml` o `packages/nav2.json`)."
+        }
+      }
+    }
+  },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "tauri:dev": "tauri dev",
-    "tauri:build": "cross-env NO_STRIP=true tauri build",
+    "build:webview": "tsc -b && vite build",
+    "build:extension": "esbuild src/extension/extension.ts --bundle --platform=node --format=cjs --outfile=dist/extension.cjs --external:vscode",
+    "build": "npm run build:webview && npm run build:extension",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:extension": "npm run build && node ./scripts/run-vscode-tests.mjs",
+    "test:all": "npm run test && npm run test:extension",
+    "package:vsix": "npx @vscode/vsce package --out cockpit.vsix --no-rewrite-relative-links"
   },
   "dependencies": {
-    "@tauri-apps/api": "2.1.1",
     "@types/leaflet": "^1.9.21",
-    "@xterm/addon-fit": "^0.11.0",
     "leaflet": "^1.9.4",
     "leaflet-draw": "^1.0.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "xterm": "^5.3.0",
     "yaml": "^2.6.0"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "2.1.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.0.1",
     "@types/leaflet-draw": "^1.0.13",
     "@types/node": "^22.10.7",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "@types/vscode": "^1.90.0",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.6.2",
     "@vitejs/plugin-react": "^4.3.4",
-    "cross-env": "^10.1.0",
+    "esbuild": "^0.25.9",
+    "glob": "^11.0.3",
     "jsdom": "^25.0.1",
+    "mocha": "^11.7.4",
     "typescript": "^5.7.2",
     "vite": "^5.4.11",
     "vitest": "^2.1.8"

@@ -1,4 +1,4 @@
-import { readConfig, removeConfig, writeConfig } from "../../platform/tauri/configFs";
+import { readConfig, removeConfig, writeConfig } from "../../platform/host/configFs";
 import type { PackageConfigSchema, PackageSettingFieldSchema, PackageSettingFieldType, PackageSettingsSchema } from "../types/module";
 
 export function isPackageConfigObject(input: unknown): input is Record<string, unknown> {

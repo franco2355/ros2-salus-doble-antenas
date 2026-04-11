@@ -1797,3 +1797,26 @@ select {
 .map-canvas {
   background: var(--panel);
 }
+
+.cockpit-slot-shell {
+  width: 100%;
+  height: 100vh;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.cockpit-slot-shell-sidebar {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+}
+
+.cockpit-slot-shell-console,
+.cockpit-slot-shell-workspace {
+  display: flex;
+  flex-direction: column;
+}
+
+.cockpit-slot-shell-console .console-host {
+  height: 100% !important;
+}

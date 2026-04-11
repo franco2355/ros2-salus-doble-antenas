@@ -4,6 +4,7 @@ interface FooterProps {
   items: FooterContribution[];
   consoleCollapsed: boolean;
   onToggleConsoleCollapse: () => void;
+  showConsoleToggle?: boolean;
 }
 
 function orderFooterItems(items: FooterContribution[]): FooterContribution[] {
@@ -24,7 +25,12 @@ function orderFooterItems(items: FooterContribution[]): FooterContribution[] {
   return ordered;
 }
 
-export function Footer({ items, consoleCollapsed, onToggleConsoleCollapse }: FooterProps): JSX.Element {
+export function Footer({
+  items,
+  consoleCollapsed,
+  onToggleConsoleCollapse,
+  showConsoleToggle = true
+}: FooterProps): JSX.Element {
   const orderedItems = orderFooterItems(items);
   const firstRightItemIndex = orderedItems.findIndex((item) => item.align === "right");
   const hasRightAlignedItems = firstRightItemIndex >= 0;
@@ -43,15 +49,17 @@ export function Footer({ items, consoleCollapsed, onToggleConsoleCollapse }: Foo
           {item.render()}
         </div>
       ))}
-      <button
-        type="button"
-        className={`footer-console-toggle${hasRightAlignedItems ? "" : " footer-console-toggle--auto"}`}
-        onClick={onToggleConsoleCollapse}
-        title={consoleCollapsed ? "Expandir consola" : "Colapsar consola"}
-        aria-label={consoleCollapsed ? "Expandir consola" : "Colapsar consola"}
-      >
-        {consoleCollapsed ? "▲" : "▼"}
-      </button>
+      {showConsoleToggle ? (
+        <button
+          type="button"
+          className={`footer-console-toggle${hasRightAlignedItems ? "" : " footer-console-toggle--auto"}`}
+          onClick={onToggleConsoleCollapse}
+          title={consoleCollapsed ? "Expandir consola" : "Colapsar consola"}
+          aria-label={consoleCollapsed ? "Expandir consola" : "Colapsar consola"}
+        >
+          {consoleCollapsed ? "▲" : "▼"}
+        </button>
+      ) : null}
     </footer>
   );
 }

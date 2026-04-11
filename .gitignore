@@ -10,3 +10,5 @@ vite.config.d.ts
 **/.env
 .codex
 .claude
+*.vsix
+.vscode-test

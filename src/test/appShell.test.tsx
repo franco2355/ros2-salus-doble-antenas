@@ -48,7 +48,7 @@ function createRuntime(): AppRuntime {
   const transports = new TransportRegistry();
 
   commands.register({ id: "test.shell.openModal", title: "Open Test Modal", category: "Test" }, () =>
-    commands.execute("core.shell.openModal", "modal.test")
+    commands.execute(ShellCommands.openModal, "modal.test")
   );
 
   contributions.register({
@@ -157,7 +157,7 @@ describe("AppShell", () => {
   it("opens modal directly from toolbar button without dropdown", async () => {
     const runtime = createRuntime();
     runtime.commands.register({ id: "test.settings.openModal", title: "Open Settings Modal", category: "Test" }, () =>
-      runtime.commands.execute("core.shell.openModal", "modal.test")
+      runtime.commands.execute(ShellCommands.openModal, "modal.test")
     );
     runtime.contributions.register({
       id: "toolbar.settings",
