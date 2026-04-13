@@ -74,4 +74,5 @@ Verificar en RViz:
 Si el keepout no coincide con el sitio:
 
 - relanzar con el datum correcto y validar de nuevo
-- si sigue desalineado, usar `use_keepout:=False` solo para diagnostico controlado
+- en el perfil real vigente, `use_keepout` arranca en `False` por default
+- si hace falta reactivarlo para pruebas controladas, lanzar con `use_keepout:=True`

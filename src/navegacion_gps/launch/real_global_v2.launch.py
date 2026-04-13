@@ -182,7 +182,10 @@ def generate_launch_description():
             DeclareLaunchArgument("fcu_url", default_value="/dev/ttyACM0:921600"),
             DeclareLaunchArgument("use_cyclone_dds", default_value="false"),
             DeclareLaunchArgument("nav_start_delay_s", default_value="4.0"),
-            DeclareLaunchArgument("use_keepout", default_value="True"),
+            # Perfil operativo actual: keepout deshabilitado por default
+            # mientras se estabiliza la navegación global con el costmap de
+            # 300 x 300 m. Se puede reactivar explícitamente por launch arg.
+            DeclareLaunchArgument("use_keepout", default_value="False"),
             DeclareLaunchArgument("launch_web_app", default_value="True"),
             DeclareLaunchArgument("ws_host", default_value="0.0.0.0"),
             DeclareLaunchArgument("web_app_port", default_value="8766"),

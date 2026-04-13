@@ -42,7 +42,7 @@ En `real_global_v2` queda disponible `/scan_wifi_debug` como `LaserScan` reducid
 | --- | --- | --- |
 | Recompilar cambios de navegación/control | `./tools/compile-ros.sh controller_server navegacion_gps` | recompila dentro del contenedor |
 | Abrir shell del contenedor | `./tools/exec.sh` | usar si hace falta correr `colcon` o `ros2` a mano |
-| Lanzar `real_global_v2` | `./tools/launch_real_global_v2.sh` | wrapper corto sobre `ros2 launch navegacion_gps real_global_v2.launch.py` |
+| Lanzar `real_global_v2` | `./tools/launch_real_global_v2.sh` | wrapper corto sobre `ros2 launch navegacion_gps real_global_v2.launch.py`; hoy arranca con `use_keepout:=False` por default |
 | Lanzar `real_global_v2` con datum explícito | `./tools/exec.sh "source /opt/ros/humble/setup.bash; source /ros2_ws/install/setup.bash; ros2 launch navegacion_gps real_global_v2.launch.py datum_lat:=<lat> datum_lon:=<lon> datum_yaw_deg:=<yaw_deg>"` | usar cuando el sitio operativo no coincide con el default |
 
 ## Politica de datum
