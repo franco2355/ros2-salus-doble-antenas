@@ -15,6 +15,8 @@ from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 
+from navegacion_gps.navigation_profiles import load_navigation_profile
+
 
 def _read_file(path: str) -> str:
     with open(path, "r", encoding="utf-8") as file_handle:
@@ -71,6 +73,23 @@ def generate_launch_description():
         gps_wpf_dir, "collision_monitor_v2.yaml"
     )
     default_keepout_mask = _resolve_config_file_path(gps_wpf_dir, "keepout_mask.yaml")
+    navigation_profiles_file = _resolve_config_file_path(
+        gps_wpf_dir, "navigation_profiles.yaml"
+    )
+    global_profile = load_navigation_profile(navigation_profiles_file, "global_v2")
+    if (
+        global_profile.datum_lat is None
+        or global_profile.datum_lon is None
+        or global_profile.datum_yaw_deg is None
+        or global_profile.navsat_use_odometry_yaw is None
+    ):
+        raise ValueError(
+            "Navigation profile 'global_v2' must define datum_* and "
+            "navsat_use_odometry_yaw"
+        )
+    default_ublox_dual_gps_params = _resolve_config_file_path(
+        gps_wpf_dir, "ublox_dual_gps.yaml"
+    )
 
     use_sim_time = LaunchConfiguration("use_sim_time")
     wheelbase_m = LaunchConfiguration("wheelbase_m")
@@ -86,6 +105,9 @@ def generate_launch_description():
     web_app_port = LaunchConfiguration("web_app_port")
     use_rviz = LaunchConfiguration("use_rviz")
     rviz_config = LaunchConfiguration("rviz_config")
+    map_frame = LaunchConfiguration("map_frame")
+    fromll_frame = LaunchConfiguration("fromll_frame")
+    odom_topic = LaunchConfiguration("odom_topic")
     enable_scan_wifi_debug = LaunchConfiguration("enable_scan_wifi_debug")
     scan_wifi_debug_topic = LaunchConfiguration("scan_wifi_debug_topic")
     scan_wifi_debug_publish_hz = LaunchConfiguration("scan_wifi_debug_publish_hz")
@@ -104,6 +126,12 @@ def generate_launch_description():
     twist_covariance_vy = LaunchConfiguration("twist_covariance_vy")
     twist_covariance_yaw_rate = LaunchConfiguration("twist_covariance_yaw_rate")
     enable_gps_course_heading = LaunchConfiguration("enable_gps_course_heading")
+    enable_dual_gps_heading = LaunchConfiguration("enable_dual_gps_heading")
+    dual_gps_heading_topic = LaunchConfiguration("dual_gps_heading_topic")
+    ublox_dual_gps_device = LaunchConfiguration("ublox_dual_gps_device")
+    ublox_dual_gps_params_file = LaunchConfiguration("ublox_dual_gps_params_file")
+    dual_gps_heading_yaw_offset_rad = LaunchConfiguration("dual_gps_heading_yaw_offset_rad")
+    dual_gps_heading_output_frame = LaunchConfiguration("dual_gps_heading_output_frame")
     gps_course_heading_min_distance_m = LaunchConfiguration(
         "gps_course_heading_min_distance_m"
     )
@@ -158,6 +186,24 @@ def generate_launch_description():
             "'.lower() == 'true')) else 'false'",
         ]
     )
+    effective_enable_heading = PythonExpression(
+        [
+            "'true' if ('",
+            enable_dual_gps_heading,
+            "'.lower() == 'true' or '",
+            enable_gps_course_heading,
+            "'.lower() == 'true') else 'false'",
+        ]
+    )
+    effective_heading_topic = PythonExpression(
+        [
+            "('",
+            dual_gps_heading_topic,
+            "' if '",
+            enable_dual_gps_heading,
+            "'.lower() == 'true' else '/gps/course_heading')",
+        ]
+    )
 
     return LaunchDescription(
         [
@@ -191,6 +237,9 @@ def generate_launch_description():
             DeclareLaunchArgument("web_app_port", default_value="8766"),
             DeclareLaunchArgument("use_rviz", default_value="False"),
             DeclareLaunchArgument("rviz_config", default_value=default_rviz),
+            DeclareLaunchArgument("map_frame", default_value=global_profile.map_frame),
+            DeclareLaunchArgument("fromll_frame", default_value=global_profile.fromll_frame),
+            DeclareLaunchArgument("odom_topic", default_value=global_profile.odom_topic),
             DeclareLaunchArgument("enable_scan_wifi_debug", default_value="True"),
             DeclareLaunchArgument(
                 "scan_wifi_debug_topic", default_value="/scan_wifi_debug"
@@ -240,8 +289,34 @@ def generate_launch_description():
                 default_value="/navsat_transform/fromLL",
             ),
             DeclareLaunchArgument("map_gps_fromll_wait_timeout_s", default_value="0.2"),
-            DeclareLaunchArgument("navsat_use_odometry_yaw", default_value="false"),
+            DeclareLaunchArgument(
+                "navsat_use_odometry_yaw",
+                default_value=(
+                    "true" if global_profile.navsat_use_odometry_yaw else "false"
+                ),
+            ),
             DeclareLaunchArgument("enable_gps_course_heading", default_value="True"),
+            DeclareLaunchArgument("enable_dual_gps_heading", default_value="False"),
+            DeclareLaunchArgument(
+                "dual_gps_heading_topic",
+                default_value="/dual_gps/heading",
+            ),
+            DeclareLaunchArgument(
+                "ublox_dual_gps_device",
+                default_value="/dev/ttyUSB1",
+            ),
+            DeclareLaunchArgument(
+                "ublox_dual_gps_params_file",
+                default_value=default_ublox_dual_gps_params,
+            ),
+            DeclareLaunchArgument(
+                "dual_gps_heading_yaw_offset_rad",
+                default_value="0.0",
+            ),
+            DeclareLaunchArgument(
+                "dual_gps_heading_output_frame",
+                default_value="base_link",
+            ),
             DeclareLaunchArgument("gps_course_heading_min_distance_m", default_value="2.0"),
             DeclareLaunchArgument("gps_course_heading_min_speed_mps", default_value="0.8"),
             DeclareLaunchArgument("gps_course_heading_max_abs_steer_deg", default_value="3.0"),
@@ -281,11 +356,14 @@ def generate_launch_description():
                 "gps_rtk_status_topic",
                 default_value="/gps/rtk_status_mavros",
             ),
-            DeclareLaunchArgument("datum_lat", default_value="-31.4858037"),
-            DeclareLaunchArgument("datum_lon", default_value="-64.2410570"),
+            DeclareLaunchArgument("datum_lat", default_value=str(global_profile.datum_lat)),
+            DeclareLaunchArgument("datum_lon", default_value=str(global_profile.datum_lon)),
             # Convencion fija operativa para `global v2`: por default el robot
             # arranca mirando al Este (`datum_yaw_deg = 0.0` en ROS ENU).
-            DeclareLaunchArgument("datum_yaw_deg", default_value="0.0"),
+            DeclareLaunchArgument(
+                "datum_yaw_deg",
+                default_value=str(global_profile.datum_yaw_deg),
+            ),
             OpaqueFunction(function=_build_robot_state_publisher),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
@@ -312,6 +390,20 @@ def generate_launch_description():
                     "config_path": lidar_config_path,
                     "use_cyclone_dds": use_cyclone_dds,
                 }.items(),
+            ),
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    os.path.join(gps_wpf_dir, "launch", "dual_gps_heading_hw.launch.py")
+                ),
+                launch_arguments={
+                    "use_sim_time": use_sim_time,
+                    "ublox_device": ublox_dual_gps_device,
+                    "ublox_params_file": ublox_dual_gps_params_file,
+                    "output_topic": dual_gps_heading_topic,
+                    "yaw_offset_rad": dual_gps_heading_yaw_offset_rad,
+                    "output_frame": dual_gps_heading_output_frame,
+                }.items(),
+                condition=IfCondition(enable_dual_gps_heading),
             ),
             Node(
                 package="pointcloud_to_laserscan",
@@ -380,7 +472,17 @@ def generate_launch_description():
                 executable="gps_course_heading",
                 name="gps_course_heading",
                 output="screen",
-                condition=IfCondition(enable_gps_course_heading),
+                condition=IfCondition(
+                    PythonExpression(
+                        [
+                            "'",
+                            enable_gps_course_heading,
+                            "'.lower() == 'true' and '",
+                            enable_dual_gps_heading,
+                            "'.lower() != 'true'",
+                        ]
+                    )
+                ),
                 parameters=[
                     {
                         "use_sim_time": ParameterValue(use_sim_time, value_type=bool),
@@ -447,12 +549,12 @@ def generate_launch_description():
                         ),
                         "approx_fromll_zero_threshold_m": 1.0e-3,
                         "approx_fromll_min_distance_for_fallback_m": 0.5,
-                        "fromll_frame": "map",
-                        "map_frame": "map",
+                        "fromll_frame": fromll_frame,
+                        "map_frame": map_frame,
                         "gps_topic": "/global_position/raw/fix",
                         "cmd_vel_safe_topic": "/cmd_vel_safe",
                         "cmd_vel_final_topic": "/cmd_vel_final",
-                        "forward_cmd_vel_safe_without_goal": True,
+                        "forward_cmd_vel_safe_without_goal": False,
                         "brake_topic": "/cmd_vel_safe",
                         "manual_cmd_topic": "/cmd_vel_safe",
                         "teleop_cmd_topic": "/cmd_vel_teleop",
@@ -495,8 +597,8 @@ def generate_launch_description():
                     "map_gps_fromll_wait_timeout_s": map_gps_fromll_wait_timeout_s,
                     "navsat_use_odometry_yaw": navsat_use_odometry_yaw,
                     "global_localization_params_file": global_localization_params_file,
-                    "enable_gps_course_heading": enable_gps_course_heading,
-                    "gps_course_heading_topic": "/gps/course_heading",
+                    "enable_gps_course_heading": effective_enable_heading,
+                    "gps_course_heading_topic": effective_heading_topic,
                     "datum_setter": "false",
                     "datum_lat": datum_lat,
                     "datum_lon": datum_lon,
@@ -528,8 +630,8 @@ def generate_launch_description():
                     "ws_host": ws_host,
                     "ws_port": web_app_port,
                     "gps_topic": "/global_position/raw/fix",
-                    "odom_topic": "/odometry/global",
-                    "map_frame": "map",
+                    "odom_topic": odom_topic,
+                    "map_frame": map_frame,
                     "launch_zones_manager": "false",
                     "launch_nav_command_server": "false",
                     "launch_nav_snapshot_server": "false",

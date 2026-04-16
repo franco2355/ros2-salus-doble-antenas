@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 import rclpy
-from action_msgs.msg import GoalStatus
+from action_msgs.msg import GoalStatus, GoalStatusArray
 from diagnostic_msgs.msg import DiagnosticStatus, KeyValue
 from geographic_msgs.msg import GeoPoint
 from geometry_msgs.msg import PoseStamped, Quaternion, Twist
@@ -32,6 +32,8 @@ from interfaces.srv import (
     SetManualMode,
     SetNavGoalLL,
 )
+from navegacion_gps.nav_status_gate import effective_goal_active
+from navegacion_gps.nav_status_gate import has_active_goal_status
 
 
 class NavCommandServerNode(Node):
@@ -71,6 +73,7 @@ class NavCommandServerNode(Node):
         self.declare_parameter("manual_cmd_timeout_s", 0.4)
         self.declare_parameter("manual_watchdog_hz", 10.0)
         self.declare_parameter("nav_telemetry_hz", 5.0)
+        self.declare_parameter("external_nav_status_timeout_s", 120.0)
         self.declare_parameter("telemetry_topic", "/nav_command_server/telemetry")
         self.declare_parameter("event_topic", "/nav_command_server/events")
         self.declare_parameter("set_goal_service", "/nav_command_server/set_goal_ll")
@@ -143,6 +146,9 @@ class NavCommandServerNode(Node):
             1.0, float(self.get_parameter("manual_watchdog_hz").value)
         )
         self.nav_telemetry_hz = max(1.0, float(self.get_parameter("nav_telemetry_hz").value))
+        self.external_nav_status_timeout_s = max(
+            0.1, float(self.get_parameter("external_nav_status_timeout_s").value)
+        )
         self.telemetry_topic = str(self.get_parameter("telemetry_topic").value)
         self.event_topic = str(self.get_parameter("event_topic").value)
         self.set_goal_service = str(self.get_parameter("set_goal_service").value)
@@ -168,6 +174,8 @@ class NavCommandServerNode(Node):
         self._manual_watchdog_stop_sent = False
         self._last_cmd_vel_safe: Optional[Twist] = None
         self._is_navigating = False
+        self._external_nav_active = False
+        self._last_external_nav_status_monotonic: Optional[float] = None
         self._auto_mode = "idle"
         self._collision_stop_active = False
         self._last_robot_pose: Optional[Dict[str, float]] = None
@@ -272,6 +280,24 @@ class NavCommandServerNode(Node):
             CollisionMonitorState,
             self.collision_monitor_state_topic,
             self._on_collision_monitor_state,
+            10,
+        )
+        self._navigate_to_pose_status_sub = self.create_subscription(
+            GoalStatusArray,
+            "/navigate_to_pose/_action/status",
+            self._on_external_nav_status,
+            10,
+        )
+        self._navigate_through_poses_status_sub = self.create_subscription(
+            GoalStatusArray,
+            "/navigate_through_poses/_action/status",
+            self._on_external_nav_status,
+            10,
+        )
+        self._follow_waypoints_status_sub = self.create_subscription(
+            GoalStatusArray,
+            "/follow_waypoints/_action/status",
+            self._on_external_nav_status,
             10,
         )
 
@@ -600,6 +626,20 @@ class NavCommandServerNode(Node):
             "angular_z_cmd": float(self._last_manual_cmd.twist.angular.z),
         }
 
+    def _effective_goal_active_locked(self, now: Optional[float] = None) -> bool:
+        external_age_s: Optional[float] = None
+        if self._last_external_nav_status_monotonic is not None:
+            now_mono = time.monotonic() if now is None else float(now)
+            external_age_s = max(
+                0.0, now_mono - float(self._last_external_nav_status_monotonic)
+            )
+        return effective_goal_active(
+            internal_active=bool(self._is_navigating),
+            external_active=bool(self._external_nav_active),
+            external_age_s=external_age_s,
+            external_timeout_s=float(self.external_nav_status_timeout_s),
+        )
+
     @staticmethod
     def _details_to_key_values(details: Optional[Dict[str, Any]]) -> List[KeyValue]:
         if not details:
@@ -629,7 +669,7 @@ class NavCommandServerNode(Node):
             self._event_seq += 1
             event_id = int(self._event_seq)
             auto_mode = str(self._auto_mode)
-            goal_active = bool(self._is_navigating)
+            goal_active = bool(self._effective_goal_active_locked())
             manual_enabled = bool(self._manual_enabled)
 
         payload = {
@@ -827,7 +867,7 @@ class NavCommandServerNode(Node):
 
     def _fill_get_state_response(self, response: GetNavState.Response) -> None:
         with self._lock:
-            goal_active = self._is_navigating
+            goal_active = self._effective_goal_active_locked()
             cmd_vel_safe = self._cmd_vel_safe_payload_locked()
             manual_control = self._manual_control_payload_locked()
             robot_pose = self._last_robot_pose
@@ -858,7 +898,7 @@ class NavCommandServerNode(Node):
                 return
             self._last_telemetry_sent = now
 
-            goal_active = self._is_navigating
+            goal_active = self._effective_goal_active_locked(now=now)
             manual_control = self._manual_control_payload_locked()
             cmd_vel_safe = self._cmd_vel_safe_payload_locked()
             robot_pose = self._last_robot_pose
@@ -922,12 +962,19 @@ class NavCommandServerNode(Node):
             self._last_gps_fix_monotonic = time.monotonic()
         self._publish_telemetry(force=False)
 
+    def _on_external_nav_status(self, msg: GoalStatusArray) -> None:
+        active = has_active_goal_status(status.status for status in msg.status_list)
+        with self._lock:
+            self._external_nav_active = bool(active)
+            self._last_external_nav_status_monotonic = time.monotonic()
+        self._publish_telemetry(force=False)
+
     def _on_cmd_vel_safe(self, msg: Twist) -> None:
         with self._lock:
             self._last_cmd_vel_safe = msg
             self._last_cmd_vel_safe_monotonic = time.monotonic()
             manual_enabled = bool(self._manual_enabled)
-            is_navigating = bool(self._is_navigating)
+            is_navigating = bool(self._effective_goal_active_locked())
             collision_stop_active = bool(self._collision_stop_active)
             forward_without_goal = bool(self.forward_cmd_vel_safe_without_goal)
 
@@ -956,7 +1003,7 @@ class NavCommandServerNode(Node):
             self._collision_stop_active = stop_active
             self._last_collision_stop_active = stop_active
             manual_enabled = bool(self._manual_enabled)
-            is_navigating = bool(self._is_navigating)
+            is_navigating = bool(self._effective_goal_active_locked())
         if (not manual_enabled) and is_navigating and stop_active:
             self._publish_brake_sequence(brake_pct=100)
         if stop_active and not was_stop_active:

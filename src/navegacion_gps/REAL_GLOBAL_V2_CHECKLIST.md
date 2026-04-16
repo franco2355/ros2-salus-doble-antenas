@@ -6,6 +6,7 @@
 - Confirmar que el datum elegido corresponda al sitio operativo actual.
 - Confirmar que `keepout_mask.yaml` este alineado con ese mismo sitio.
 - Mantener datum fijo por sitio operativo. No usar `datum_setter` ni auto-set de datum; esa ruta es LEGACY.
+- Si hace falta reconfigurar datum o frame operativo por sitio, editar primero `src/navegacion_gps/config/navigation_profiles.yaml`.
 - Antes de arrancar `real_global_v2`, alinear fisicamente el robot al Este o pasar `datum_yaw_deg:=...`.
 - Para la primera validacion, preferir ruedas levantadas o un area amplia y controlada.
 
@@ -70,6 +71,7 @@ Verificar en RViz:
 - visualizacion de `/odometry/global`
 - `Global Costmap`
 - `Local Costmap`
+- `Odom Grid (Debug)` solo si necesitás diagnosticar `map -> odom`; por default queda apagada para no mezclar drift visual con corrección global válida
 
 Si el keepout no coincide con el sitio:
 

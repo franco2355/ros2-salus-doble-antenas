@@ -27,20 +27,25 @@ def test_real_global_v2_launch_reuses_real_stack_with_global_navigation() -> Non
     )
 
     assert "mavros.launch.py" in launch_contents
+    assert "navigation_profiles.yaml" in launch_contents
+    assert 'load_navigation_profile(navigation_profiles_file, "global_v2")' in launch_contents
     assert "rs16.launch.py" in launch_contents
     assert 'executable="pointcloud_to_laserscan_node"' in launch_contents
     assert 'executable="controller_server_node"' in launch_contents
     assert "localization_global_v2.launch.py" in launch_contents
     assert "nav_global_v2.launch.py" in launch_contents
     assert "no_go_editor.launch.py" in launch_contents
-    assert '"fromll_frame": "map"' in launch_contents
-    assert '"map_frame": "map"' in launch_contents
+    assert 'DeclareLaunchArgument("map_frame", default_value=global_profile.map_frame)' in launch_contents
+    assert 'DeclareLaunchArgument("fromll_frame", default_value=global_profile.fromll_frame)' in launch_contents
+    assert 'DeclareLaunchArgument("odom_topic", default_value=global_profile.odom_topic)' in launch_contents
+    assert '"fromll_frame": fromll_frame' in launch_contents
+    assert '"map_frame": map_frame' in launch_contents
     assert '"approx_fromll_fallback_enabled": True' in launch_contents
-    assert '"odom_topic": "/odometry/global"' in launch_contents
+    assert '"odom_topic": odom_topic' in launch_contents
     assert '"launch_nav_command_server": "false"' in launch_contents
-    assert 'DeclareLaunchArgument("datum_lat"' in launch_contents
-    assert 'DeclareLaunchArgument("datum_lon"' in launch_contents
-    assert 'DeclareLaunchArgument("datum_yaw_deg", default_value="0.0")' in launch_contents
+    assert 'DeclareLaunchArgument("datum_lat", default_value=str(global_profile.datum_lat))' in launch_contents
+    assert 'DeclareLaunchArgument("datum_lon", default_value=str(global_profile.datum_lon))' in launch_contents
+    assert 'default_value=str(global_profile.datum_yaw_deg)' in launch_contents
     assert 'DeclareLaunchArgument("use_rviz", default_value="False")' in launch_contents
     assert 'DeclareLaunchArgument("rviz_config", default_value=default_rviz)' in launch_contents
     assert 'DeclareLaunchArgument("enable_scan_wifi_debug", default_value="True")' in launch_contents
@@ -60,9 +65,15 @@ def test_real_global_v2_launch_reuses_real_stack_with_global_navigation() -> Non
     assert '"map_gps_fromll_service": map_gps_fromll_service' in launch_contents
     assert '"map_gps_fromll_service_fallback": map_gps_fromll_service_fallback' in launch_contents
     assert '"map_gps_fromll_wait_timeout_s": map_gps_fromll_wait_timeout_s' in launch_contents
-    assert 'DeclareLaunchArgument("navsat_use_odometry_yaw", default_value="false")' in launch_contents
+    assert '"forward_cmd_vel_safe_without_goal": False' in launch_contents
+    assert "global_profile.navsat_use_odometry_yaw" in launch_contents
     assert '"navsat_use_odometry_yaw": navsat_use_odometry_yaw' in launch_contents
     assert 'DeclareLaunchArgument("enable_gps_course_heading", default_value="True")' in launch_contents
+    assert 'DeclareLaunchArgument("enable_dual_gps_heading", default_value="False")' in launch_contents
+    assert 'DeclareLaunchArgument(\n                "dual_gps_heading_topic",' in launch_contents
+    assert 'DeclareLaunchArgument(\n                "ublox_dual_gps_device",' in launch_contents
+    assert 'DeclareLaunchArgument(\n                "ublox_dual_gps_params_file",' in launch_contents
+    assert 'DeclareLaunchArgument(\n                "dual_gps_heading_yaw_offset_rad",\n                default_value="0.0",' in launch_contents
     assert 'DeclareLaunchArgument("gps_course_heading_min_distance_m", default_value="2.0")' in launch_contents
     assert 'DeclareLaunchArgument("gps_course_heading_min_speed_mps", default_value="0.8")' in launch_contents
     assert 'DeclareLaunchArgument("gps_course_heading_max_abs_steer_deg", default_value="3.0")' in launch_contents
@@ -78,6 +89,9 @@ def test_real_global_v2_launch_reuses_real_stack_with_global_navigation() -> Non
     assert 'DeclareLaunchArgument(\n                "gps_rtk_status_topic",' in launch_contents
     assert 'default_value="/gps/rtk_status_mavros"' in launch_contents
     assert 'executable="gps_course_heading"' in launch_contents
+    assert "dual_gps_heading_hw.launch.py" in launch_contents
+    assert "effective_enable_heading = PythonExpression(" in launch_contents
+    assert "effective_heading_topic = PythonExpression(" in launch_contents
     assert 'executable="scan_wifi_debug"' in launch_contents
     assert 'condition=IfCondition(enable_scan_wifi_debug)' in launch_contents
     assert '"source_topic": "/scan"' in launch_contents
@@ -85,7 +99,7 @@ def test_real_global_v2_launch_reuses_real_stack_with_global_navigation() -> Non
     assert '"publish_hz": ParameterValue(' in launch_contents
     assert '"beam_stride": ParameterValue(' in launch_contents
     assert '"output_range_max_m": ParameterValue(' in launch_contents
-    assert 'condition=IfCondition(enable_gps_course_heading)' in launch_contents
+    assert "enable_dual_gps_heading" in launch_contents
     assert '"rtk_status_topic": gps_rtk_status_topic' in launch_contents
     assert '"gps_status_topic": gps_rtk_status_topic' in launch_contents
     assert '"invalid_hold_s": ParameterValue(' in launch_contents
@@ -93,8 +107,8 @@ def test_real_global_v2_launch_reuses_real_stack_with_global_navigation() -> Non
     assert '"hold_yaw_variance_multiplier": ParameterValue(' in launch_contents
     assert '"require_rtk": ParameterValue(' in launch_contents
     assert '"allowed_rtk_statuses": gps_course_heading_allowed_rtk_statuses' in launch_contents
-    assert '"enable_gps_course_heading": enable_gps_course_heading' in launch_contents
-    assert '"gps_course_heading_topic": "/gps/course_heading"' in launch_contents
+    assert '"enable_gps_course_heading": effective_enable_heading' in launch_contents
+    assert '"gps_course_heading_topic": effective_heading_topic' in launch_contents
 
 
 def test_localization_global_v2_launch_supports_datum_overrides() -> None:
@@ -103,15 +117,16 @@ def test_localization_global_v2_launch_supports_datum_overrides() -> None:
     imu_gate_arg = 'DeclareLaunchArgument(\n                "enable_global_imu_stationary_gate"'
     yaw_hold_arg = 'DeclareLaunchArgument(\n                "enable_global_stationary_yaw_hold"'
     map_gps_arg = 'DeclareLaunchArgument(\n                "enable_map_gps_absolute_measurement"'
-    navsat_yaw_arg = 'DeclareLaunchArgument("navsat_use_odometry_yaw", default_value="false")'
     gps_heading_arg = 'DeclareLaunchArgument("enable_gps_course_heading", default_value="false")'
     gps_heading_topic_arg = (
         'DeclareLaunchArgument("gps_course_heading_topic", default_value="/gps/course_heading")'
     )
 
-    assert 'DeclareLaunchArgument("datum_lat"' in launch_contents
-    assert 'DeclareLaunchArgument("datum_lon"' in launch_contents
-    assert 'DeclareLaunchArgument("datum_yaw_deg"' in launch_contents
+    assert "navigation_profiles.yaml" in launch_contents
+    assert 'load_navigation_profile(navigation_profiles_file, "global_v2")' in launch_contents
+    assert '"datum_lat",' in launch_contents
+    assert '"datum_lon",' in launch_contents
+    assert '"datum_yaw_deg",' in launch_contents
     assert gated_arg in launch_contents
     assert imu_gate_arg in launch_contents
     assert yaw_hold_arg in launch_contents
@@ -122,7 +137,7 @@ def test_localization_global_v2_launch_supports_datum_overrides() -> None:
     assert 'name="map_gps_absolute_measurement"' in launch_contents
     assert "OpaqueFunction(function=_build_navsat_transform)" in launch_contents
     assert '"wait_for_datum": True' in launch_contents
-    assert navsat_yaw_arg in launch_contents
+    assert "global_profile.navsat_use_odometry_yaw" in launch_contents
     assert gps_heading_arg in launch_contents
     assert gps_heading_topic_arg in launch_contents
     assert '"use_odometry_yaw": navsat_use_odometry_yaw' in launch_contents
@@ -140,20 +155,55 @@ def test_rviz_real_global_v2_launch_targets_global_config_for_local_pc() -> None
     launch_rsp_arg = (
         'DeclareLaunchArgument(\n                "launch_robot_state_publisher"'
     )
+    navheading_topic_arg = (
+        'DeclareLaunchArgument(\n                "navheading_topic",'
+    )
+    course_heading_topic_arg = (
+        'DeclareLaunchArgument(\n                "course_heading_topic",'
+    )
 
     assert "rviz_global_v2.rviz" in launch_contents
     assert 'DeclareLaunchArgument(\n                "use_sim_time"' in launch_contents
     assert 'default_value="False"' in launch_contents
+    assert navheading_topic_arg in launch_contents
+    assert course_heading_topic_arg in launch_contents
+    assert 'default_value="/ublox_rover/navheading"' in launch_contents
+    assert 'default_value="/ublox_rover/navheading_pose"' in launch_contents
+    assert 'default_value="/gps/course_heading"' in launch_contents
+    assert 'default_value="/gps/course_heading_pose"' in launch_contents
     assert launch_rsp_arg in launch_contents
     assert "condition=IfCondition(launch_robot_state_publisher)" in launch_contents
+    assert 'executable="navheading_pose_bridge"' in launch_contents
+    assert 'name="course_heading_pose_bridge"' in launch_contents
     assert 'executable="rviz2"' in launch_contents
 
 
 def test_rviz_global_v2_prefers_wifi_debug_scan_for_remote_use() -> None:
     rviz_contents = _read("config/rviz_global_v2.rviz")
 
+    assert "Enabled: true\n      Line Style:\n        Line Width: 0.03\n        Value: Lines\n      Name: Grid" in rviz_contents
+    assert "Enabled: false\n      Line Style:\n        Line Width: 0.05\n        Value: Billboards\n      Name: Odom Grid (Debug)" in rviz_contents
+    assert "Name: Odom Grid (Debug)\n      Normal Cell Count: 0" in rviz_contents
+    assert "Reference Frame: odom" in rviz_contents
     assert "Name: Lidar Points" in rviz_contents
     assert "Value: /scan_3d" in rviz_contents
     assert "Enabled: false" in rviz_contents
     assert "Name: LaserScan" in rviz_contents
     assert "Value: /scan_wifi_debug" in rviz_contents
+    assert "Class: nav2_rviz_plugins/Navigation 2" in rviz_contents
+    assert "Name: Ublox Navheading" in rviz_contents
+    assert "Name: GPS Course Heading" in rviz_contents
+    assert "Class: rviz_default_plugins/Pose" in rviz_contents
+    assert "Value: /ublox_rover/navheading_pose" in rviz_contents
+    assert "Value: /gps/course_heading_pose" in rviz_contents
+
+
+def test_active_urdfs_use_continuous_wheel_spin_joints() -> None:
+    real_urdf = _read("models/cuatri_real.urdf")
+    sim_urdf = _read("models/cuatri_2gps.urdf")
+
+    for urdf_contents in (real_urdf, sim_urdf):
+        assert '<joint name="rear_left_wheel_joint" type="continuous">' in urdf_contents
+        assert '<joint name="rear_right_wheel_joint" type="continuous">' in urdf_contents
+        assert '<joint name="front_left_wheel_joint" type="continuous">' in urdf_contents
+        assert '<joint name="front_right_wheel_joint" type="continuous">' in urdf_contents

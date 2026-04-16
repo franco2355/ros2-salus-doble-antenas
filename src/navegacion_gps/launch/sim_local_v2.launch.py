@@ -9,11 +9,17 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 
+from navegacion_gps.navigation_profiles import load_navigation_profile
+
 
 def generate_launch_description():
     gps_wpf_dir = get_package_share_directory("navegacion_gps")
     default_rviz = os.path.join(gps_wpf_dir, "config", "rviz_local_v2.rviz")
     keepout_mask_yaml = os.path.join(gps_wpf_dir, "config", "keepout_mask.yaml")
+    navigation_profiles_file = os.path.join(
+        gps_wpf_dir, "config", "navigation_profiles.yaml"
+    )
+    local_profile = load_navigation_profile(navigation_profiles_file, "local_v2")
 
     use_sim_time = LaunchConfiguration("use_sim_time")
     wheelbase_m = LaunchConfiguration("wheelbase_m")
@@ -22,6 +28,8 @@ def generate_launch_description():
     use_keepout = LaunchConfiguration("use_keepout")
     use_rviz = LaunchConfiguration("use_rviz")
     rviz_config = LaunchConfiguration("rviz_config")
+    map_frame = LaunchConfiguration("map_frame")
+    fromll_frame = LaunchConfiguration("fromll_frame")
     vx_deadband_mps = LaunchConfiguration("vx_deadband_mps")
     vx_min_effective_mps = LaunchConfiguration("vx_min_effective_mps")
     invert_steer_from_cmd_vel = LaunchConfiguration("invert_steer_from_cmd_vel")
@@ -45,6 +53,8 @@ def generate_launch_description():
             DeclareLaunchArgument("use_keepout", default_value="True"),
             DeclareLaunchArgument("use_rviz", default_value="True"),
             DeclareLaunchArgument("rviz_config", default_value=default_rviz),
+            DeclareLaunchArgument("map_frame", default_value=local_profile.map_frame),
+            DeclareLaunchArgument("fromll_frame", default_value=local_profile.fromll_frame),
             DeclareLaunchArgument("vx_deadband_mps", default_value="0.01"),
             DeclareLaunchArgument("vx_min_effective_mps", default_value="0.5"),
             DeclareLaunchArgument("invert_steer_from_cmd_vel", default_value="True"),
@@ -126,7 +136,9 @@ def generate_launch_description():
                         "sim_telemetry_timeout_s": 0.5,
                         "sim_invert_actuation_steer_sign": True,
                         "sim_invert_measured_steer_sign": True,
-                        "sim_max_joint_odom_steer_delta_deg": 5.0,
+                        # 0.0 forces odom-derived steer; joint angles read ~15% larger than
+                        # Gazebo's physics steer, causing heading drift. See map->odom drift.
+                        "sim_max_joint_odom_steer_delta_deg": 0.0,
                     }
                 ],
             ),
@@ -141,8 +153,8 @@ def generate_launch_description():
                         "fromll_service": "/fromLL",
                         "fromll_service_fallback": "/navsat_transform/fromLL",
                         "fromll_wait_timeout_s": 2.0,
-                        "fromll_frame": "odom",
-                        "map_frame": "odom",
+                        "fromll_frame": fromll_frame,
+                        "map_frame": map_frame,
                         "gps_topic": "/gps/fix",
                         "cmd_vel_safe_topic": "/cmd_vel_safe",
                         "cmd_vel_final_topic": "/cmd_vel_final",

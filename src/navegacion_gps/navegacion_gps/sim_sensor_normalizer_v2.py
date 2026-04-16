@@ -33,12 +33,15 @@ class SimSensorNormalizerV2Node(Node):
         self.declare_parameter("imu_out_topic", "/imu/data")
         self.declare_parameter("gps_in_topic", "/gps/fix_raw")
         self.declare_parameter("gps_out_topic", "/gps/fix")
+        self.declare_parameter("gps2_in_topic", "")
+        self.declare_parameter("gps2_out_topic", "/gps2/fix")
         self.declare_parameter("lidar_in_topic", "/scan_3d_raw")
         self.declare_parameter("lidar_out_topic", "/scan_3d")
         self.declare_parameter("odom_in_topic", "/odom_raw")
         self.declare_parameter("odom_out_topic", "/odom")
         self.declare_parameter("imu_frame_id", "imu_link")
         self.declare_parameter("gps_frame_id", "gps_link")
+        self.declare_parameter("gps2_frame_id", "gps_link2")
         self.declare_parameter("lidar_frame_id", "lidar_link")
         self.declare_parameter("odom_frame_id", "odom")
         self.declare_parameter("base_link_frame_id", "base_footprint")
@@ -55,6 +58,8 @@ class SimSensorNormalizerV2Node(Node):
         imu_out_topic = str(self.get_parameter("imu_out_topic").value)
         gps_in_topic = str(self.get_parameter("gps_in_topic").value)
         gps_out_topic = str(self.get_parameter("gps_out_topic").value)
+        gps2_in_topic = str(self.get_parameter("gps2_in_topic").value)
+        gps2_out_topic = str(self.get_parameter("gps2_out_topic").value)
         lidar_in_topic = str(self.get_parameter("lidar_in_topic").value)
         lidar_out_topic = str(self.get_parameter("lidar_out_topic").value)
         odom_in_topic = str(self.get_parameter("odom_in_topic").value)
@@ -62,6 +67,7 @@ class SimSensorNormalizerV2Node(Node):
 
         self._imu_frame_id = str(self.get_parameter("imu_frame_id").value)
         self._gps_frame_id = str(self.get_parameter("gps_frame_id").value)
+        self._gps2_frame_id = str(self.get_parameter("gps2_frame_id").value)
         self._lidar_frame_id = str(self.get_parameter("lidar_frame_id").value)
         self._odom_frame_id = str(self.get_parameter("odom_frame_id").value)
         self._base_link_frame_id = str(self.get_parameter("base_link_frame_id").value)
@@ -87,12 +93,17 @@ class SimSensorNormalizerV2Node(Node):
 
         self._imu_pub = self.create_publisher(Imu, imu_out_topic, 10)
         self._gps_pub = self.create_publisher(NavSatFix, gps_out_topic, 10)
+        self._gps2_pub = (
+            self.create_publisher(NavSatFix, gps2_out_topic, 10) if gps2_in_topic else None
+        )
         self._gps_rtk_status_pub = self.create_publisher(String, gps_rtk_status_topic, 10)
         self._lidar_pub = self.create_publisher(PointCloud2, lidar_out_topic, 10)
         self._odom_pub = self.create_publisher(Odometry, odom_out_topic, 10)
 
         self.create_subscription(Imu, imu_in_topic, self._on_imu, 10)
         self.create_subscription(NavSatFix, gps_in_topic, self._on_gps, 10)
+        if gps2_in_topic:
+            self.create_subscription(NavSatFix, gps2_in_topic, self._on_gps2, 10)
         self.create_subscription(PointCloud2, lidar_in_topic, self._on_lidar, 10)
         self.create_subscription(Odometry, odom_in_topic, self._on_odom, 10)
 
@@ -101,6 +112,10 @@ class SimSensorNormalizerV2Node(Node):
             f"({imu_in_topic},{gps_in_topic},{lidar_in_topic},{odom_in_topic}) "
             f"gps_profile={self._gps_profile.name}"
         )
+        if gps2_in_topic:
+            self.get_logger().info(
+                f"Second GPS antenna: {gps2_in_topic} -> {gps2_out_topic}"
+            )
 
     def _on_imu(self, msg: Imu) -> None:
         out = deepcopy(msg)
@@ -168,6 +183,13 @@ class SimSensorNormalizerV2Node(Node):
         out = deepcopy(msg)
         out.header.frame_id = self._lidar_frame_id
         self._lidar_pub.publish(out)
+
+    def _on_gps2(self, msg: NavSatFix) -> None:
+        if self._gps2_pub is None:
+            return
+        out = deepcopy(msg)
+        out.header.frame_id = self._gps2_frame_id
+        self._gps2_pub.publish(out)
 
     def _on_odom(self, msg: Odometry) -> None:
         self._last_odom_linear_speed_mps = math.hypot(

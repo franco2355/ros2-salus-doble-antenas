@@ -169,7 +169,6 @@ controller_server:
       cost_scaling_gain: 1.0
       inflation_cost_scaling_factor: 3.0
 
-# ================================
 # LOCAL COSTMAP (rolling)
 # ================================
 local_costmap:

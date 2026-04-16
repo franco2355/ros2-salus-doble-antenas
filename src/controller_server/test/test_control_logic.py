@@ -31,11 +31,12 @@ def test_command_from_cmd_vel_clamps_and_scales() -> None:
     )
     assert cmd.drive_enabled is True
     assert cmd.speed_mps == 4.0
-    assert cmd.steer_pct == 39
+    assert cmd.steer_pct == 16
     assert cmd.brake_pct == 0
     assert cmd.estop is False
     assert cmd.speed_limited is True
     assert cmd.steer_saturated is False
+    assert cmd.requested_angular_z_rps == pytest.approx(0.8)
 
 
 def test_command_from_cmd_vel_negative_speed_maps_to_reverse() -> None:
@@ -274,6 +275,29 @@ def test_command_from_cmd_vel_min_effective_is_clamped_by_max_speed() -> None:
 
 def test_command_from_cmd_vel_saturates_when_curvature_is_infeasible() -> None:
     cmd = command_from_cmd_vel(
+        linear_x=0.2,
+        angular_z=2.0,
+        brake_pct=0,
+        max_speed_mps=4.0,
+        max_reverse_mps=1.3,
+        vx_deadband_mps=0.01,
+        vx_min_effective_mps=0.05,
+        max_abs_angular_z=0.4,
+        **ACKERMANN_KWARGS,
+        invert_steer=False,
+        auto_drive_enabled=True,
+        reverse_brake_pct=25,
+    )
+    assert cmd.speed_mps == 0.2
+    assert cmd.steer_pct == 100
+    assert cmd.steer_saturated is True
+    assert cmd.requested_angular_z_rps == pytest.approx(0.4)
+    assert math.degrees(cmd.requested_steer_rad) > 30.0
+    assert math.degrees(cmd.applied_steer_rad) == pytest.approx(30.0)
+
+
+def test_command_from_cmd_vel_clamps_angular_z_before_ackermann_conversion() -> None:
+    cmd = command_from_cmd_vel(
         linear_x=1.0,
         angular_z=2.0,
         brake_pct=0,
@@ -287,11 +311,10 @@ def test_command_from_cmd_vel_saturates_when_curvature_is_infeasible() -> None:
         auto_drive_enabled=True,
         reverse_brake_pct=25,
     )
-    assert cmd.speed_mps == 1.0
-    assert cmd.steer_pct == 100
-    assert cmd.steer_saturated is True
-    assert math.degrees(cmd.requested_steer_rad) > 30.0
-    assert math.degrees(cmd.applied_steer_rad) == pytest.approx(30.0)
+    assert cmd.requested_angular_z_rps == pytest.approx(0.4)
+    assert cmd.requested_curvature_inv_m == pytest.approx(0.4)
+    assert cmd.steer_pct == 69
+    assert cmd.steer_saturated is False
 
 
 def test_command_from_cmd_vel_zero_linear_uses_virtual_speed_for_steer_alignment() -> None:

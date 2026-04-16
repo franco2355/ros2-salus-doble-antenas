@@ -39,6 +39,7 @@ class ControllerServerNode(Node):
         self.declare_parameter("reverse_brake_pct", 20)
         self.declare_parameter("invert_steer_from_cmd_vel", False)
         self.declare_parameter("auto_drive_enabled", True)
+        self.declare_parameter("log_cmd_vel_final_rx", False)
         self.declare_parameter("estop_brake_pct", 100)
         self.declare_parameter("telemetry_stale_timeout_s", 0.5)
         self.declare_parameter("transport_backend", "uart")
@@ -101,6 +102,7 @@ class ControllerServerNode(Node):
             self.get_parameter("invert_steer_from_cmd_vel").value
         )
         self._auto_drive_enabled = bool(self.get_parameter("auto_drive_enabled").value)
+        self._log_cmd_vel_final_rx = bool(self.get_parameter("log_cmd_vel_final_rx").value)
         self._estop_brake_pct = int(self.get_parameter("estop_brake_pct").value)
         self._telemetry_stale_timeout_s = max(
             0.05, float(self.get_parameter("telemetry_stale_timeout_s").value)
@@ -211,15 +213,16 @@ class ControllerServerNode(Node):
         elif (not cmd.steer_saturated) and self._last_steer_saturated:
             self.get_logger().info("Ackermann steer saturation cleared")
         self._last_steer_saturated = bool(cmd.steer_saturated)
-        self.get_logger().info(
-            "cmd_vel_final rx "
-            f"linear_x={msg.twist.linear.x:.3f} angular_z={msg.twist.angular.z:.3f} "
-            f"brake_pct={int(msg.brake_pct)} -> "
-            f"drive={int(cmd.drive_enabled)} estop={int(cmd.estop)} "
-            f"speed_mps={cmd.speed_mps:.3f} steer_pct={cmd.steer_pct} "
-            f"steer_deg={math.degrees(cmd.applied_steer_rad):.2f} "
-            f"curvature={cmd.applied_curvature_inv_m:.3f} brake_pct={cmd.brake_pct}"
-        )
+        if self._log_cmd_vel_final_rx:
+            self.get_logger().info(
+                "cmd_vel_final rx "
+                f"linear_x={msg.twist.linear.x:.3f} angular_z={msg.twist.angular.z:.3f} "
+                f"brake_pct={int(msg.brake_pct)} -> "
+                f"drive={int(cmd.drive_enabled)} estop={int(cmd.estop)} "
+                f"speed_mps={cmd.speed_mps:.3f} steer_pct={cmd.steer_pct} "
+                f"steer_deg={math.degrees(cmd.applied_steer_rad):.2f} "
+                f"curvature={cmd.applied_curvature_inv_m:.3f} brake_pct={cmd.brake_pct}"
+            )
 
     def _apply_to_controller(self, cmd: DesiredCommand) -> None:
         self._client.apply_command(cmd)

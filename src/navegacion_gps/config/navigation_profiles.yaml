@@ -1,0 +1,18 @@
+version: 1
+
+profiles:
+  local_v2:
+    map_frame: odom
+    fromll_frame: odom
+    keepout_mask_frame: odom
+    odom_topic: /odometry/local
+
+  global_v2:
+    map_frame: map
+    fromll_frame: map
+    keepout_mask_frame: map
+    odom_topic: /odometry/global
+    navsat_use_odometry_yaw: true
+    datum_lat: -31.4858037
+    datum_lon: -64.2410570
+    datum_yaw_deg: 0.0

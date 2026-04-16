@@ -1,9 +1,15 @@
+import math
 import os
 from pathlib import Path
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    LogInfo,
+    OpaqueFunction,
+)
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PythonExpression
@@ -35,6 +41,157 @@ def _validate_telemetry_backend(context):
     return []
 
 
+def _as_bool(value: str) -> bool:
+    return str(value).strip().lower() == "true"
+
+
+def _normalize_dual_gps_mode(value: str) -> str:
+    normalized = str(value).strip().lower()
+    aliases = {
+        "": "auto",
+        "1": "true",
+        "0": "false",
+        "yes": "true",
+        "no": "false",
+        "on": "true",
+        "off": "false",
+        "auto": "auto",
+        "true": "true",
+        "false": "false",
+    }
+    if normalized not in aliases:
+        raise RuntimeError(
+            "use_dual_gps_heading must be one of "
+            "auto|true|false (tambien acepta yes/no, on/off, 1/0), "
+            f"got {value!r}"
+        )
+    return aliases[normalized]
+
+
+def _resolve_real_dual_gps_heading_enabled(context) -> bool:
+    requested_mode = _normalize_dual_gps_mode(
+        LaunchConfiguration("use_dual_gps_heading").perform(context)
+    )
+    if requested_mode != "auto":
+        return requested_mode == "true"
+
+    ublox_device = LaunchConfiguration("ublox_device").perform(context).strip()
+    return bool(ublox_device) and Path(ublox_device).exists()
+
+
+def _build_ekf_nodes(context):
+    gps_wpf_dir = get_package_share_directory("navegacion_gps")
+    rl_params_file = _resolve_config_file_path(gps_wpf_dir, "dual_ekf_navsat_params.yaml")
+    overlay_params_file = _resolve_config_file_path(
+        gps_wpf_dir, "dual_gps_heading_ekf_overlay.yaml"
+    )
+
+    use_sim_time = _as_bool(LaunchConfiguration("use_sim_time").perform(context))
+    use_navsat = _as_bool(LaunchConfiguration("use_navsat").perform(context))
+    use_dual = _resolve_real_dual_gps_heading_enabled(context)
+
+    ekf_param_files = [rl_params_file]
+    if use_dual:
+        ekf_param_files.append(overlay_params_file)
+
+    nodes = [
+        Node(
+            package="robot_localization",
+            executable="ekf_node",
+            name="ekf_filter_node_odom",
+            output="screen",
+            parameters=ekf_param_files + [{"use_sim_time": use_sim_time}],
+            remappings=[("odometry/filtered", "odometry/local")],
+        ),
+        Node(
+            package="robot_localization",
+            executable="ekf_node",
+            name="ekf_filter_node_map",
+            output="screen",
+            parameters=ekf_param_files + [{"use_sim_time": use_sim_time}],
+        ),
+    ]
+
+    if use_navsat:
+        nodes.append(
+            Node(
+                package="robot_localization",
+                executable="navsat_transform_node",
+                name="navsat_transform",
+                output="screen",
+                parameters=ekf_param_files + [{"use_sim_time": use_sim_time}],
+                remappings=[
+                    ("gps/filtered", "gps/filtered"),
+                    ("odometry/gps", "odometry/gps"),
+                    ("odometry/filtered", "odometry/local"),
+                ],
+            )
+        )
+
+    return nodes
+
+
+def _build_dual_gps_heading_actions(context):
+    gps_wpf_dir = get_package_share_directory("navegacion_gps")
+    ublox_device = LaunchConfiguration("ublox_device").perform(context).strip()
+    requested_mode = _normalize_dual_gps_mode(
+        LaunchConfiguration("use_dual_gps_heading").perform(context)
+    )
+    has_ublox_device = bool(ublox_device) and Path(ublox_device).exists()
+    use_dual = _resolve_real_dual_gps_heading_enabled(context)
+
+    if requested_mode == "auto":
+        mode_label = "dual" if use_dual else "single"
+        msg = (
+            "[navegacion_gps] real.launch dual GPS auto -> "
+            f"{mode_label} mode "
+            f"(ublox_device={ublox_device or '<empty>'}, exists={has_ublox_device})"
+        )
+    else:
+        msg = (
+            "[navegacion_gps] real.launch dual GPS forced -> "
+            f"{requested_mode} "
+            f"(ublox_device={ublox_device or '<empty>'}, exists={has_ublox_device})"
+        )
+
+    actions = [LogInfo(msg=msg)]
+
+    if use_dual:
+        actions.append(
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    os.path.join(gps_wpf_dir, "launch", "dual_gps_heading_hw.launch.py")
+                ),
+                launch_arguments={
+                    "use_sim_time": LaunchConfiguration("use_sim_time"),
+                    "ublox_device": LaunchConfiguration("ublox_device"),
+                    "ublox_params_file": LaunchConfiguration("ublox_params_file"),
+                    "output_topic": LaunchConfiguration("dual_gps_heading_output_topic"),
+                    "yaw_offset_rad": LaunchConfiguration("dual_gps_heading_yaw_offset_rad"),
+                    "output_frame": LaunchConfiguration("dual_gps_heading_output_frame"),
+                }.items(),
+            )
+        )
+
+    return actions
+
+
+def _validate_real_dual_gps_configuration(context):
+    requested_mode = _normalize_dual_gps_mode(
+        LaunchConfiguration("use_dual_gps_heading").perform(context)
+    )
+    ublox_device = LaunchConfiguration("ublox_device").perform(context).strip()
+    has_ublox_device = bool(ublox_device) and Path(ublox_device).exists()
+
+    if (requested_mode == "true") and (not has_ublox_device):
+        raise RuntimeError(
+            "Invalid real navigation configuration: use_dual_gps_heading:=true "
+            f"pero ublox_device={ublox_device!r} no existe. "
+            "Usa `use_dual_gps_heading:=auto` para fallback automatico o conecta el segundo GPS."
+        )
+    return []
+
+
 def generate_launch_description():
     gps_wpf_dir = get_package_share_directory("navegacion_gps")
     map_tools_dir = get_package_share_directory("map_tools")
@@ -43,7 +200,6 @@ def generate_launch_description():
     zones_geojson_path = _resolve_config_file_path(gps_wpf_dir, "no_go_zones.geojson")
     keepout_mask_image_path = _resolve_config_file_path(gps_wpf_dir, "keepout_mask.pgm")
     keepout_mask_yaml_path = _resolve_config_file_path(gps_wpf_dir, "keepout_mask.yaml")
-    rl_params_file = _resolve_config_file_path(gps_wpf_dir, "dual_ekf_navsat_params.yaml")
     lidar_to_scan_params = _resolve_config_file_path(
         gps_wpf_dir, "pointcloud_to_laserscan.yaml"
     )
@@ -56,7 +212,6 @@ def generate_launch_description():
     use_rviz = LaunchConfiguration("use_rviz")
     rviz_config = LaunchConfiguration("rviz_config")
     use_mapviz = LaunchConfiguration("use_mapviz")
-    use_navsat = LaunchConfiguration("use_navsat")
     use_collision_monitor = LaunchConfiguration("use_collision_monitor")
     use_gazebo_utils = LaunchConfiguration("use_gazebo_utils")
     use_pointcloud_to_laserscan = LaunchConfiguration("use_pointcloud_to_laserscan")
@@ -159,6 +314,39 @@ def generate_launch_description():
         default_value="map",
         description="Global map frame for navigation web backend",
     )
+    declare_use_dual_gps_heading_cmd = DeclareLaunchArgument(
+        "use_dual_gps_heading",
+        default_value="auto",
+        description="Dual-GPS heading mode: auto|true|false. 'auto' habilita dual si existe ublox_device",
+    )
+    declare_ublox_device_cmd = DeclareLaunchArgument(
+        "ublox_device",
+        default_value="/dev/ttyUSB1",
+        description="Serial device for the rover ZED-F9P used for dual GPS heading",
+    )
+    declare_ublox_params_file_cmd = DeclareLaunchArgument(
+        "ublox_params_file",
+        default_value=_resolve_config_file_path(gps_wpf_dir, "ublox_dual_gps.yaml"),
+        description="Path to ublox_gps YAML config file for moving-baseline heading",
+    )
+    declare_dual_gps_heading_output_topic_cmd = DeclareLaunchArgument(
+        "dual_gps_heading_output_topic",
+        default_value="/dual_gps/heading",
+        description="Output IMU topic produced from ublox navheading",
+    )
+    declare_dual_gps_heading_output_frame_cmd = DeclareLaunchArgument(
+        "dual_gps_heading_output_frame",
+        default_value="base_link",
+        description="Frame id for the dual GPS heading IMU",
+    )
+    declare_dual_gps_heading_yaw_offset_rad_cmd = DeclareLaunchArgument(
+        "dual_gps_heading_yaw_offset_rad",
+        default_value="0.0",
+        description=(
+            "Offset between ublox moving-baseline heading and vehicle-forward yaw. "
+            "Current cuatri_real.urdf models a front/rear baseline, so 0.0 is the default."
+        ),
+    )
 
     nav2_only_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(gps_wpf_dir, "launch", "nav2_only.launch.py")),
@@ -173,43 +361,8 @@ def generate_launch_description():
         }.items(),
     )
 
-    ekf_odom_cmd = Node(
-        package="robot_localization",
-        executable="ekf_node",
-        name="ekf_filter_node_odom",
-        output="screen",
-        parameters=[
-            rl_params_file,
-            {"use_sim_time": ParameterValue(use_sim_time, value_type=bool)},
-        ],
-        remappings=[("odometry/filtered", "odometry/local")],
-    )
-    ekf_map_cmd = Node(
-        package="robot_localization",
-        executable="ekf_node",
-        name="ekf_filter_node_map",
-        output="screen",
-        parameters=[
-            rl_params_file,
-            {"use_sim_time": ParameterValue(use_sim_time, value_type=bool)},
-        ],
-    )
-    navsat_transform_cmd = Node(
-        package="robot_localization",
-        executable="navsat_transform_node",
-        name="navsat_transform",
-        output="screen",
-        parameters=[
-            rl_params_file,
-            {"use_sim_time": ParameterValue(use_sim_time, value_type=bool)},
-        ],
-        remappings=[
-            ("gps/filtered", "gps/filtered"),
-            ("odometry/gps", "odometry/gps"),
-            ("odometry/filtered", "odometry/local"),
-        ],
-        condition=IfCondition(use_navsat),
-    )
+    dual_gps_hw_cmd = OpaqueFunction(function=_build_dual_gps_heading_actions)
+    ekf_nodes_cmd = OpaqueFunction(function=_build_ekf_nodes)
 
     zones_manager_cmd = Node(
         package="navegacion_gps",
@@ -433,16 +586,22 @@ def generate_launch_description():
     ld.add_action(declare_ws_port_cmd)
     ld.add_action(declare_gps_topic_cmd)
     ld.add_action(declare_map_frame_cmd)
+    ld.add_action(declare_use_dual_gps_heading_cmd)
+    ld.add_action(declare_ublox_device_cmd)
+    ld.add_action(declare_ublox_params_file_cmd)
+    ld.add_action(declare_dual_gps_heading_output_topic_cmd)
+    ld.add_action(declare_dual_gps_heading_output_frame_cmd)
+    ld.add_action(declare_dual_gps_heading_yaw_offset_rad_cmd)
     ld.add_action(OpaqueFunction(function=_validate_telemetry_backend))
+    ld.add_action(OpaqueFunction(function=_validate_real_dual_gps_configuration))
 
     ld.add_action(nav2_only_cmd)
     ld.add_action(mavros_cmd)
     ld.add_action(pixhawk_cmd)
     ld.add_action(camera_cmd)
     ld.add_action(lidar_cmd)
-    ld.add_action(ekf_odom_cmd)
-    ld.add_action(ekf_map_cmd)
-    ld.add_action(navsat_transform_cmd)
+    ld.add_action(dual_gps_hw_cmd)
+    ld.add_action(ekf_nodes_cmd)
     ld.add_action(zones_manager_cmd)
     ld.add_action(nav_command_server_cmd)
     ld.add_action(nav_snapshot_server_cmd)

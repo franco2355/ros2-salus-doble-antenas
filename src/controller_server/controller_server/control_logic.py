@@ -108,10 +108,14 @@ def command_from_cmd_vel(
     max_reverse = max(0.0, float(max_reverse_mps))
     deadband = max(0.0, float(vx_deadband_mps))
     min_effective = clamp(float(vx_min_effective_mps), 0.0, max_speed)
+    angular_limit = max(0.0, abs(float(max_abs_angular_z)))
 
     linear = float(linear_x)
     angular = float(angular_z)
-    _ = float(max_abs_angular_z)
+    if angular_limit <= 1.0e-6:
+        angular = 0.0
+    else:
+        angular = clamp(angular, -angular_limit, angular_limit)
     speed = 0.0
     speed_limited = False
     min_speed_enforced = False

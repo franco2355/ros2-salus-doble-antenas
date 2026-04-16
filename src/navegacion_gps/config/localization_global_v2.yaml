@@ -180,9 +180,11 @@ navsat_transform:
     # Publica la salida ya convertida en `/odometry/gps`.
     publish_filtered_gps: true
 
-    # Aquí NO usamos yaw tomado de `/odometry/local`.
-    # La idea es desacoplar el heading global de la orientación local.
-    use_odometry_yaw: false
+    # Usamos el yaw del EKF local para proyectar el GPS al frame global.
+    # Con use_odometry_yaw: true, navsat_transform usa el yaw de /odometry/local
+    # (EKF local con odometría de ruedas + IMU) en vez de derivarlo del movimiento GPS.
+    # Esto evita la deriva del map→odom que ocurría al arranque.
+    use_odometry_yaw: true
 
     # Convencion fija operativa para `global v2`:
     # por default el robot arranca mirando al Este (`datum_yaw_deg = 0.0`

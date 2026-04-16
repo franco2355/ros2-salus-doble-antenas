@@ -5,7 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Grid1
-        - /Odom Grid1
+        - /Odom Grid (Debug)1
         - /TF1
         - /RobotModel1
         - /LaserScan1
@@ -15,6 +15,7 @@ Panels:
         - /Odometry1
         - /Odometry2
         - /Odometry3
+        - /Pose1
       Splitter Ratio: 0.5
     Tree Height: 420
   - Class: rviz_common/Selection
@@ -25,6 +26,8 @@ Panels:
       - /2D Goal Pose1
     Name: Tool Properties
     Splitter Ratio: 0.5
+  - Class: nav2_rviz_plugins/Navigation 2
+    Name: Navigation 2
 Visualization Manager:
   Class: ""
   Displays:
@@ -32,7 +35,7 @@ Visualization Manager:
       Cell Size: 1
       Class: rviz_default_plugins/Grid
       Color: 160; 160; 160
-      Enabled: false
+      Enabled: true
       Line Style:
         Line Width: 0.03
         Value: Lines
@@ -50,11 +53,11 @@ Visualization Manager:
       Cell Size: 1
       Class: rviz_default_plugins/Grid
       Color: 0; 210; 120
-      Enabled: false
+      Enabled: true
       Line Style:
         Line Width: 0.05
         Value: Billboards
-      Name: Odom Grid
+      Name: Odom Grid (Debug)
       Normal Cell Count: 0
       Offset:
         X: 0
@@ -285,6 +288,42 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /gps/odometry_map
+      Value: true
+    - Arrow Length: 1
+      Arrow Radius: 0.08
+      Axes Length: 0.5
+      Axes Radius: 0.05
+      Class: rviz_default_plugins/Pose
+      Color: 255; 0; 255
+      Enabled: true
+      Name: Ublox Navheading
+      Shaft Length: 0.8
+      Shaft Radius: 0.04
+      Shape: Arrow
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /ublox_rover/navheading_pose
+      Value: true
+    - Arrow Length: 1
+      Arrow Radius: 0.08
+      Axes Length: 0.5
+      Axes Radius: 0.05
+      Class: rviz_default_plugins/Pose
+      Color: 0; 255; 255
+      Enabled: true
+      Name: GPS Course Heading
+      Shaft Length: 0.8
+      Shaft Radius: 0.04
+      Shape: Arrow
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /gps/course_heading_pose
       Value: true
     - Alpha: 1
       Buffer Length: 1

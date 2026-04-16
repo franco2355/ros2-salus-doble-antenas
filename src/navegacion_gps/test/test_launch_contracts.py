@@ -15,6 +15,7 @@ def test_simulation_realism_mode_reuses_nav2_only_launch() -> None:
     assert '"realism_mode"' in simulation_launch
     assert 'default_value="True"' in simulation_launch
     assert '"gps_profile"' in simulation_launch
+    assert '"models", "cuatri_2gps.urdf"' in simulation_launch
     assert "nav2_only.launch.py" in simulation_launch
     assert "collision_monitor_lidar_only.yaml" in simulation_launch
     assert "else ('m8n'" in simulation_launch

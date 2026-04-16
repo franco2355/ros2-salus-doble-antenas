@@ -35,9 +35,12 @@ setup(
         'console_scripts': [
             'ackermann_odometry = navegacion_gps.ackermann_odometry:main',
             'cmd_vel_ackermann_bridge_v2 = navegacion_gps.cmd_vel_ackermann_bridge_v2:main',
+            'cmd_vel_angular_smoother = navegacion_gps.cmd_vel_angular_smoother:main',
             # LEGACY: dynamic datum setter. Current global profiles use fixed
             # site datum from launch/configuration.
             'datum_setter = navegacion_gps.datum_setter:main',
+            'dual_gps_heading_sim = navegacion_gps.dual_gps_heading_sim:main',
+            'dual_gps_heading_real = navegacion_gps.dual_gps_heading_real:main',
             'gazebo_utils = navegacion_gps.gazebo_utils:main',
             'goal_pose_to_follow_path_v2 = navegacion_gps.goal_pose_to_follow_path_v2:main',
             'global_odom_stationary_gate = navegacion_gps.global_odom_stationary_gate:main',
@@ -45,6 +48,8 @@ setup(
             'global_yaw_stationary_hold = navegacion_gps.global_yaw_stationary_hold:main',
             'loop_waypoint_benchmark = navegacion_gps.loop_waypoint_benchmark:main',
             'map_gps_absolute_measurement = navegacion_gps.map_gps_absolute_measurement:main',
+            'navheading_pose_bridge = navegacion_gps.navheading_pose_bridge:main',
+            'path_cross_track_monitor = navegacion_gps.path_cross_track_monitor:main',
             'zones_manager = navegacion_gps.zones_manager:main',
             'nav_command_server = navegacion_gps.nav_command_server:main',
             'nav_benchmark_report = navegacion_gps.nav_benchmark_report:main',
