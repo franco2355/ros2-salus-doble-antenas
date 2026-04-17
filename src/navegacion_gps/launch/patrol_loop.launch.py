@@ -12,6 +12,7 @@ def generate_launch_description() -> LaunchDescription:
     package_share = get_package_share_directory("navegacion_gps")
     waypoints_file = LaunchConfiguration("waypoints_file")
     min_distance_m = LaunchConfiguration("min_distance_m")
+    gps_topic = LaunchConfiguration("gps_topic")
     nav_mode = LaunchConfiguration("nav_mode")
     loop_delay_s = LaunchConfiguration("loop_delay_s")
 
@@ -22,6 +23,10 @@ def generate_launch_description() -> LaunchDescription:
                 default_value="~/.ros/recorded_waypoints.yaml",
             ),
             DeclareLaunchArgument("min_distance_m", default_value="3.0"),
+            DeclareLaunchArgument(
+                "gps_topic",
+                default_value="/global_position/raw/fix",
+            ),
             DeclareLaunchArgument("nav_mode", default_value="global"),
             DeclareLaunchArgument("loop_delay_s", default_value="1.0"),
             IncludeLaunchDescription(
@@ -36,6 +41,7 @@ def generate_launch_description() -> LaunchDescription:
                 output="screen",
                 parameters=[
                     {
+                        "gps_topic": gps_topic,
                         "min_distance_m": min_distance_m,
                         "output_file": waypoints_file,
                     }
