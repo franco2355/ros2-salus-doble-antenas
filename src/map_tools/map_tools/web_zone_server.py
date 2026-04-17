@@ -13,18 +13,21 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
+import cv2
 import numpy as np
 import rclpy
 import websockets
 from ament_index_python.packages import get_package_share_directory
+from cv_bridge import CvBridge
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 from nav_msgs.msg import Odometry
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
-from sensor_msgs.msg import NavSatFix, NavSatStatus
-from std_msgs.msg import String
-from std_srvs.srv import Trigger
+from sensor_msgs.msg import Image, NavSatFix, NavSatStatus
+from std_msgs.msg import Int32, String
+from vision_msgs.msg import Detection2DArray
+from std_srvs.srv import SetBool, Trigger
 
 from interfaces.msg import CmdVelFinal, NavEvent, NavTelemetry
 from interfaces.srv import (
@@ -120,6 +123,13 @@ class WebZoneServerNode(Node):
             return int.from_bytes(value, byteorder="little", signed=False)
         return int(value)
 
+    @staticmethod
+    def _normalize_camera_frame_encoding(value: str) -> str:
+        normalized = value.strip().lower()
+        if normalized in {"jpeg", "jpg", "png"}:
+            return "jpeg" if normalized in {"jpeg", "jpg"} else "png"
+        return "jpeg"
+
     def __init__(self, loop: asyncio.AbstractEventLoop):
         super().__init__("web_zone_server")
         self._loop = loop
@@ -136,6 +146,17 @@ class WebZoneServerNode(Node):
         self.declare_parameter("set_zones_timeout_s", 12.0)
         self.declare_parameter("set_goal_timeout_s", 12.0)
         self.declare_parameter("waypoints_file", "")
+        self.declare_parameter(
+            "recording_start_service", "/manual_waypoint_recorder/start_recording"
+        )
+        self.declare_parameter(
+            "recording_clear_service", "/manual_waypoint_recorder/clear_recording"
+        )
+        self.declare_parameter(
+            "recording_count_topic", "/manual_waypoint_recorder/waypoint_count"
+        )
+        self.declare_parameter("patrol_start_service", "/loop_patrol_runner/start_patrol")
+        self.declare_parameter("patrol_status_topic", "/loop_patrol_runner/patrol_status")
 
         self.declare_parameter("zones_set_geojson_service", "/zones_manager/set_geojson")
         self.declare_parameter("zones_get_state_service", "/zones_manager/get_state")
@@ -156,6 +177,12 @@ class WebZoneServerNode(Node):
         self.declare_parameter("camera_pan_service", "/camara/camera_pan")
         self.declare_parameter("camera_zoom_toggle_service", "/camara/camera_zoom_toggle")
         self.declare_parameter("camera_status_service", "/camara/camera_status")
+        self.declare_parameter("camera_image_topic", "/camera/image_raw")
+        self.declare_parameter("camera_detections_topic", "/detections")
+        self.declare_parameter("camera_frame_encoding", "jpeg")
+        self.declare_parameter("camera_jpeg_quality", 90)
+        self.declare_parameter("camera_ws_max_fps", 10.0)
+        self.declare_parameter("camera_ws_width", 960)
 
         self.ws_host = str(self.get_parameter("ws_host").value)
         self.ws_port = int(self.get_parameter("ws_port").value)
@@ -176,6 +203,15 @@ class WebZoneServerNode(Node):
         )
         configured_waypoints_file = str(self.get_parameter("waypoints_file").value)
         self.waypoints_file = self._resolve_waypoints_file(configured_waypoints_file)
+        self.recording_start_service = str(
+            self.get_parameter("recording_start_service").value
+        )
+        self.recording_clear_service = str(
+            self.get_parameter("recording_clear_service").value
+        )
+        self.recording_count_topic = str(self.get_parameter("recording_count_topic").value)
+        self.patrol_start_service = str(self.get_parameter("patrol_start_service").value)
+        self.patrol_status_topic = str(self.get_parameter("patrol_status_topic").value)
 
         self.zones_set_geojson_service = str(
             self.get_parameter("zones_set_geojson_service").value
@@ -206,10 +242,28 @@ class WebZoneServerNode(Node):
             self.get_parameter("camera_zoom_toggle_service").value
         )
         self.camera_status_service = str(self.get_parameter("camera_status_service").value)
+        self.camera_image_topic = str(self.get_parameter("camera_image_topic").value)
+        self.camera_detections_topic = str(
+            self.get_parameter("camera_detections_topic").value
+        )
+        self.camera_frame_encoding = self._normalize_camera_frame_encoding(
+            str(self.get_parameter("camera_frame_encoding").value)
+        )
+        self.camera_jpeg_quality = min(
+            95, max(40, int(self.get_parameter("camera_jpeg_quality").value))
+        )
+        self.camera_ws_max_fps = max(
+            1.0, float(self.get_parameter("camera_ws_max_fps").value)
+        )
+        self.camera_ws_width = max(0, int(self.get_parameter("camera_ws_width").value))
 
         self._lock = threading.Lock()
         self._ws_clients: Set[Any] = set()
         self._ws_send_locks: Dict[Any, asyncio.Lock] = {}
+        self._last_camera_ws_frame_monotonic = 0.0
+        self._camera_bridge = CvBridge()
+        self._recent_camera_frames: deque[Dict[str, int]] = deque(maxlen=20)
+        self._latest_camera_frame_shape = {"width": 0, "height": 0}
 
         self._last_robot_pose: Optional[Dict[str, float]] = None
         self._last_robot_heading_deg: Optional[float] = None
@@ -247,6 +301,13 @@ class WebZoneServerNode(Node):
             "last_command": "none",
             "zoom_in": False,
         }
+        self._recording_count = 0
+        self._patrol_status = {
+            "active": False,
+            "current_wp": -1,
+            "total_wp": 0,
+            "label": "",
+        }
         self._recent_nav_events: deque[Dict[str, Any]] = deque(maxlen=30)
         self._active_alerts: List[Dict[str, Any]] = []
         self._rosbag_process: Optional[subprocess.Popen] = None
@@ -277,6 +338,27 @@ class WebZoneServerNode(Node):
         self._diagnostics_sub = self.create_subscription(
             DiagnosticArray, self.diagnostics_topic, self._on_diagnostics, 10
         )
+        self._camera_image_sub = self.create_subscription(
+            Image, self.camera_image_topic, self._on_camera_image, qos_profile_sensor_data
+        )
+        self._camera_detections_sub = self.create_subscription(
+            Detection2DArray,
+            self.camera_detections_topic,
+            self._on_camera_detections,
+            10,
+        )
+        self._recording_count_sub = self.create_subscription(
+            Int32,
+            self.recording_count_topic,
+            self._on_recording_count,
+            10,
+        )
+        self._patrol_status_sub = self.create_subscription(
+            String,
+            self.patrol_status_topic,
+            self._on_patrol_status,
+            10,
+        )
 
         self._zones_set_geojson_client = self.create_client(
             SetZonesGeoJson, self.zones_set_geojson_service
@@ -293,6 +375,13 @@ class WebZoneServerNode(Node):
         self._nav_set_manual_mode_client = self.create_client(
             SetManualMode, self.nav_set_manual_mode_service
         )
+        self._recording_start_client = self.create_client(
+            SetBool, self.recording_start_service
+        )
+        self._recording_clear_client = self.create_client(
+            Trigger, self.recording_clear_service
+        )
+        self._patrol_start_client = self.create_client(SetBool, self.patrol_start_service)
         self._teleop_cmd_pub = self.create_publisher(CmdVelFinal, self.teleop_cmd_topic, 10)
         self._nav_get_state_client = self.create_client(GetNavState, self.nav_get_state_service)
         self._nav_snapshot_client = self.create_client(GetNavSnapshot, self.nav_snapshot_service)
@@ -311,6 +400,15 @@ class WebZoneServerNode(Node):
             f"rosbag_dir={self.rosbag_output_dir}, "
             f"camera_pan={self.camera_pan_service}, camera_zoom_toggle={self.camera_zoom_toggle_service}, "
             f"camera_status={self.camera_status_service}, "
+            f"camera_image={self.camera_image_topic}, "
+            f"camera_detections={self.camera_detections_topic}, "
+            f"recording_start={self.recording_start_service}, "
+            f"recording_clear={self.recording_clear_service}, "
+            f"recording_count={self.recording_count_topic}, "
+            f"patrol_start={self.patrol_start_service}, "
+            f"patrol_status={self.patrol_status_topic}, "
+            f"camera_frame_encoding={self.camera_frame_encoding}, "
+            f"camera_ws_width={self.camera_ws_width}, "
             f"teleop_topic={self.teleop_cmd_topic}, gps_topic={self.gps_topic}, "
             f"gps_status_topic={self.gps_status_topic}, "
             f"odom_topic={self.odom_topic})"
@@ -340,6 +438,17 @@ class WebZoneServerNode(Node):
             await ws.send(text)
         return True
 
+    async def send_ws_text_if_idle(self, ws: Any, text: str) -> Optional[bool]:
+        with self._lock:
+            lock = self._ws_send_locks.get(ws)
+        if lock is None:
+            return False
+        if lock.locked():
+            return None
+        async with lock:
+            await ws.send(text)
+        return True
+
     async def send_ws_json(self, ws: Any, payload: Dict[str, Any]) -> bool:
         return await self.send_ws_text(ws, json.dumps(payload))
 
@@ -365,6 +474,8 @@ class WebZoneServerNode(Node):
                 "recent_events": list(self._recent_nav_events),
                 "rosbag": self._build_rosbag_status_payload_locked(),
                 "camera_status": dict(self._camera_status),
+                "recording_count": int(self._recording_count),
+                "patrol_status": dict(self._patrol_status),
             }
 
     def _build_nav_telemetry_payload(self) -> Dict[str, Any]:
@@ -388,6 +499,31 @@ class WebZoneServerNode(Node):
             "alerts": alerts,
             "recent_events": recent_events,
         }
+
+    @staticmethod
+    def _parse_json_object(raw_text: str) -> Dict[str, Any]:
+        try:
+            payload = json.loads(raw_text)
+        except Exception:
+            return {}
+        return payload if isinstance(payload, dict) else {}
+
+    @staticmethod
+    def _build_recording_count_payload(count: int) -> Dict[str, Any]:
+        return {
+            "op": "recording_count",
+            "type": "recording_count",
+            "count": int(count),
+        }
+
+    @staticmethod
+    def _build_patrol_status_payload(status: Dict[str, Any]) -> Dict[str, Any]:
+        payload = {
+            "op": "patrol_status",
+            "type": "patrol_status",
+        }
+        payload.update(status)
+        return payload
 
     @staticmethod
     def _normalize_gps_status_text(status_text: Any) -> str:
@@ -545,6 +681,141 @@ class WebZoneServerNode(Node):
             "message": str(getattr(status, "message", "")),
             "hardware_id": str(getattr(status, "hardware_id", "")),
             "values": self._diagnostic_values_to_dict(status),
+        }
+
+    @staticmethod
+    def _stamp_to_epoch_ms(stamp: Any) -> Optional[int]:
+        try:
+            sec = int(getattr(stamp, "sec", 0))
+            nanosec = int(getattr(stamp, "nanosec", 0))
+        except Exception:
+            return None
+        total_ms = sec * 1000 + nanosec // 1_000_000
+        return total_ms if total_ms > 0 else None
+
+    @staticmethod
+    def _clamp_unit_interval(value: float) -> float:
+        return max(0.0, min(1.0, float(value)))
+
+    def _record_camera_frame_shape(self, stamp_ms: int, width: int, height: int) -> None:
+        if stamp_ms <= 0 or width <= 0 or height <= 0:
+            return
+        with self._lock:
+            self._recent_camera_frames.append(
+                {"stamp_ms": int(stamp_ms), "width": int(width), "height": int(height)}
+            )
+            self._latest_camera_frame_shape = {"width": int(width), "height": int(height)}
+
+    def _resolve_camera_frame_shape(self, stamp_ms: int) -> Tuple[int, int]:
+        with self._lock:
+            recent_frames = list(self._recent_camera_frames)
+            fallback_width = int(self._latest_camera_frame_shape.get("width", 0))
+            fallback_height = int(self._latest_camera_frame_shape.get("height", 0))
+
+        best_width = fallback_width
+        best_height = fallback_height
+        best_diff = 251
+        for frame in recent_frames:
+            diff = abs(int(frame.get("stamp_ms", 0)) - int(stamp_ms))
+            if diff > 250 or diff >= best_diff:
+                continue
+            best_diff = diff
+            best_width = int(frame.get("width", 0))
+            best_height = int(frame.get("height", 0))
+        return best_width, best_height
+
+    def _normalize_detection_bbox(
+        self,
+        *,
+        cx: float,
+        cy: float,
+        width: float,
+        height: float,
+        frame_width: int,
+        frame_height: int,
+    ) -> Optional[List[float]]:
+        if not all(np.isfinite(value) for value in (cx, cy, width, height)):
+            return None
+        if width <= 0.0 or height <= 0.0:
+            return None
+
+        looks_normalized = max(abs(cx), abs(cy), abs(width), abs(height)) <= 1.5
+        if looks_normalized:
+            left = cx - width * 0.5
+            top = cy - height * 0.5
+            right = cx + width * 0.5
+            bottom = cy + height * 0.5
+            return [
+                self._clamp_unit_interval(left),
+                self._clamp_unit_interval(top),
+                self._clamp_unit_interval(right - left),
+                self._clamp_unit_interval(bottom - top),
+            ]
+
+        if frame_width <= 0 or frame_height <= 0:
+            return None
+
+        left_px = max(0.0, min(float(frame_width), cx - width * 0.5))
+        top_px = max(0.0, min(float(frame_height), cy - height * 0.5))
+        right_px = max(0.0, min(float(frame_width), cx + width * 0.5))
+        bottom_px = max(0.0, min(float(frame_height), cy + height * 0.5))
+        if right_px <= left_px or bottom_px <= top_px:
+            return None
+
+        return [
+            self._clamp_unit_interval(left_px / float(frame_width)),
+            self._clamp_unit_interval(top_px / float(frame_height)),
+            self._clamp_unit_interval((right_px - left_px) / float(frame_width)),
+            self._clamp_unit_interval((bottom_px - top_px) / float(frame_height)),
+        ]
+
+    def _serialize_detection(
+        self,
+        detection: Any,
+        *,
+        frame_width: int,
+        frame_height: int,
+    ) -> Optional[Dict[str, Any]]:
+        top_label = ""
+        top_score = 0.0
+        results = list(getattr(detection, "results", []) or [])
+        if results:
+            top_result = results[0]
+            hypothesis = getattr(top_result, "hypothesis", None)
+            if hypothesis is not None:
+                top_label = str(getattr(hypothesis, "class_id", "") or "")
+                try:
+                    top_score = float(getattr(hypothesis, "score", 0.0))
+                except (TypeError, ValueError):
+                    top_score = 0.0
+
+        bbox = getattr(detection, "bbox", None)
+        center = getattr(bbox, "center", None)
+        position = getattr(center, "position", None)
+        try:
+            cx = float(getattr(position, "x"))
+            cy = float(getattr(position, "y"))
+            width = float(getattr(bbox, "size_x"))
+            height = float(getattr(bbox, "size_y"))
+        except (TypeError, ValueError, AttributeError):
+            return None
+
+        normalized_bbox = self._normalize_detection_bbox(
+            cx=cx,
+            cy=cy,
+            width=width,
+            height=height,
+            frame_width=frame_width,
+            frame_height=frame_height,
+        )
+        if normalized_bbox is None:
+            return None
+
+        return {
+            "id": str(getattr(detection, "id", "") or ""),
+            "class": top_label or "unknown",
+            "confidence": max(0.0, min(1.0, top_score)),
+            "bbox": normalized_bbox,
         }
 
     def _should_surface_diagnostic(self, status: Any) -> bool:
@@ -766,6 +1037,28 @@ class WebZoneServerNode(Node):
                     self._ws_clients.discard(ws)
                     self._ws_send_locks.pop(ws, None)
 
+    async def _broadcast_camera_frame(self, payload: Dict[str, Any]) -> None:
+        text = json.dumps(payload)
+        with self._lock:
+            clients = list(self._ws_clients)
+        if not clients:
+            return
+
+        failed = []
+        for ws in clients:
+            try:
+                sent = await self.send_ws_text_if_idle(ws, text)
+                if sent is False:
+                    failed.append(ws)
+            except Exception:
+                failed.append(ws)
+
+        if failed:
+            with self._lock:
+                for ws in failed:
+                    self._ws_clients.discard(ws)
+                    self._ws_send_locks.pop(ws, None)
+
     def _on_gps_fix(self, msg: NavSatFix) -> None:
         if not np.isfinite(msg.latitude) or not np.isfinite(msg.longitude):
             return
@@ -945,6 +1238,108 @@ class WebZoneServerNode(Node):
             self._broadcast(self._build_nav_telemetry_payload()), self._loop
         )
 
+    def _on_camera_image(self, msg: Image) -> None:
+        stamp_ms = self._stamp_to_epoch_ms(msg.header.stamp) or int(time.time() * 1000.0)
+        now = time.monotonic()
+        min_period = 1.0 / self.camera_ws_max_fps if self.camera_ws_max_fps > 0.0 else 0.0
+        try:
+            frame = self._camera_bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
+        except Exception as exc:
+            self.get_logger().warning(f"camera frame decode failed: {exc}")
+            return
+
+        height = int(frame.shape[0]) if len(frame.shape) >= 1 else 0
+        width = int(frame.shape[1]) if len(frame.shape) >= 2 else 0
+        self._record_camera_frame_shape(stamp_ms, width, height)
+
+        with self._lock:
+            has_clients = bool(self._ws_clients)
+        if not has_clients:
+            return
+        if min_period > 0.0:
+            with self._lock:
+                if (now - self._last_camera_ws_frame_monotonic) < min_period:
+                    return
+                self._last_camera_ws_frame_monotonic = now
+
+        # Downscale for WebSocket only. Reduces payload from ~216 KB to ~60 KB per frame.
+        # _record_camera_frame_shape was called above with original dimensions, so YOLO
+        # detection bounding boxes (normalized against full-res) remain correct.
+        if self.camera_ws_width > 0 and width > self.camera_ws_width:
+            ws_height = int(round(height * self.camera_ws_width / width))
+            frame = cv2.resize(frame, (self.camera_ws_width, ws_height), interpolation=cv2.INTER_AREA)
+            width = self.camera_ws_width
+            height = ws_height
+
+        encode_extension = ".png"
+        encode_params: List[int] = [int(cv2.IMWRITE_PNG_COMPRESSION), 1]
+        payload_encoding = "png"
+        if self.camera_frame_encoding == "jpeg":
+            encode_extension = ".jpg"
+            encode_params = [int(cv2.IMWRITE_JPEG_QUALITY), int(self.camera_jpeg_quality)]
+            payload_encoding = "jpeg"
+
+        ok, encoded = cv2.imencode(encode_extension, frame, encode_params)
+        if not ok:
+            self.get_logger().warning(
+                f"camera frame {payload_encoding.upper()} encode failed"
+            )
+            return
+
+        payload = {
+            "op": "camera_frame",
+            "data": base64.b64encode(encoded.tobytes()).decode("ascii"),
+            "encoding": payload_encoding,
+            "stamp_ms": int(stamp_ms),
+            "width": int(width),
+            "height": int(height),
+        }
+        asyncio.run_coroutine_threadsafe(self._broadcast_camera_frame(payload), self._loop)
+
+    def _on_camera_detections(self, msg: Detection2DArray) -> None:
+        stamp_ms = self._stamp_to_epoch_ms(msg.header.stamp) or int(time.time() * 1000.0)
+        frame_width, frame_height = self._resolve_camera_frame_shape(stamp_ms)
+
+        with self._lock:
+            has_clients = bool(self._ws_clients)
+        if not has_clients:
+            return
+
+        detections: List[Dict[str, Any]] = []
+        for detection in list(getattr(msg, "detections", []) or []):
+            serialized = self._serialize_detection(
+                detection,
+                frame_width=frame_width,
+                frame_height=frame_height,
+            )
+            if serialized is not None:
+                detections.append(serialized)
+
+        payload = {
+            "op": "camera_detections",
+            "detections": detections,
+            "stamp_ms": int(stamp_ms),
+        }
+        self._broadcast_from_thread(payload)
+
+    def _on_recording_count(self, msg: Int32) -> None:
+        payload = self._build_recording_count_payload(int(msg.data))
+        with self._lock:
+            self._recording_count = int(msg.data)
+        self._broadcast_from_thread(payload)
+
+    def _on_patrol_status(self, msg: String) -> None:
+        status = self._parse_json_object(msg.data)
+        payload = self._build_patrol_status_payload(status)
+        with self._lock:
+            self._patrol_status = {
+                "active": bool(status.get("active", False)),
+                "current_wp": int(status.get("current_wp", -1)),
+                "total_wp": int(status.get("total_wp", 0)),
+                "label": str(status.get("label", "")),
+            }
+        self._broadcast_from_thread(payload)
+
     def _wait_for_future(self, future: Any, timeout_s: float) -> Optional[Any]:
         start = time.monotonic()
         while rclpy.ok():
@@ -970,6 +1365,57 @@ class WebZoneServerNode(Node):
                 f"Service timeout: {service_name} (request={request_name}, timeout_s={timeout_s:.2f})"
             )
         return result
+
+    async def _call_service_async(
+        self,
+        client: Any,
+        request: Any,
+        timeout_s: float,
+    ) -> Optional[Any]:
+        service_name = getattr(client, "srv_name", "<unknown_service>")
+        request_name = type(request).__name__
+        available = await asyncio.to_thread(
+            client.wait_for_service,
+            timeout_sec=min(timeout_s, 2.0),
+        )
+        if not available:
+            self.get_logger().warning(
+                f"Service unavailable: {service_name} (request={request_name})"
+            )
+            return None
+
+        loop = asyncio.get_running_loop()
+        asyncio_future: asyncio.Future[Any] = loop.create_future()
+
+        def _resolve_result(ros_future: Any) -> None:
+            try:
+                result = ros_future.result()
+            except Exception as exc:
+                loop.call_soon_threadsafe(
+                    lambda: (
+                        None
+                        if asyncio_future.done()
+                        else asyncio_future.set_exception(exc)
+                    )
+                )
+                return
+            loop.call_soon_threadsafe(
+                lambda: (
+                    None
+                    if asyncio_future.done()
+                    else asyncio_future.set_result(result)
+                )
+            )
+
+        ros_future = client.call_async(request)
+        ros_future.add_done_callback(_resolve_result)
+        try:
+            return await asyncio.wait_for(asyncio_future, timeout=timeout_s)
+        except asyncio.TimeoutError:
+            self.get_logger().warning(
+                f"Service timeout: {service_name} (request={request_name}, timeout_s={timeout_s:.2f})"
+            )
+            return None
 
     def _resolve_waypoints_file(self, configured_path: str) -> Path:
         if configured_path:
@@ -1517,6 +1963,139 @@ class WebSocketApi:
             ),
         )
 
+    async def _call_set_bool_client(
+        self,
+        *,
+        ws: Any,
+        client: Any,
+        enabled: bool,
+        request_name: str,
+        client_req_id: Optional[str],
+    ) -> None:
+        request = SetBool.Request()
+        request.data = bool(enabled)
+        response = await self.node._call_service_async(
+            client,
+            request,
+            self.node.request_timeout_s,
+        )
+        if response is None:
+            await self._send_ack(
+                ws=ws,
+                request=request_name,
+                ok=False,
+                error="service timeout",
+                client_req_id=client_req_id,
+            )
+            return
+        message = str(getattr(response, "message", "") or "")
+        ok = bool(getattr(response, "success", False))
+        await self._send_ack(
+            ws=ws,
+            request=request_name,
+            ok=ok,
+            error=None if ok else message,
+            client_req_id=client_req_id,
+            extra={"message": message},
+        )
+
+    async def _call_trigger_client(
+        self,
+        *,
+        ws: Any,
+        client: Any,
+        request_name: str,
+        client_req_id: Optional[str],
+    ) -> None:
+        response = await self.node._call_service_async(
+            client,
+            Trigger.Request(),
+            self.node.request_timeout_s,
+        )
+        if response is None:
+            await self._send_ack(
+                ws=ws,
+                request=request_name,
+                ok=False,
+                error="service timeout",
+                client_req_id=client_req_id,
+            )
+            return
+        message = str(getattr(response, "message", "") or "")
+        ok = bool(getattr(response, "success", False))
+        await self._send_ack(
+            ws=ws,
+            request=request_name,
+            ok=ok,
+            error=None if ok else message,
+            client_req_id=client_req_id,
+            extra={"message": message},
+        )
+
+    async def _ws_start_recording(
+        self,
+        ws: Any,
+        client_req_id: Optional[str],
+    ) -> None:
+        await self._call_set_bool_client(
+            ws=ws,
+            client=self.node._recording_start_client,
+            enabled=True,
+            request_name="start_recording",
+            client_req_id=client_req_id,
+        )
+
+    async def _ws_stop_recording(
+        self,
+        ws: Any,
+        client_req_id: Optional[str],
+    ) -> None:
+        await self._call_set_bool_client(
+            ws=ws,
+            client=self.node._recording_start_client,
+            enabled=False,
+            request_name="stop_recording",
+            client_req_id=client_req_id,
+        )
+
+    async def _ws_clear_recording(
+        self,
+        ws: Any,
+        client_req_id: Optional[str],
+    ) -> None:
+        await self._call_trigger_client(
+            ws=ws,
+            client=self.node._recording_clear_client,
+            request_name="clear_recording",
+            client_req_id=client_req_id,
+        )
+
+    async def _ws_start_patrol(
+        self,
+        ws: Any,
+        client_req_id: Optional[str],
+    ) -> None:
+        await self._call_set_bool_client(
+            ws=ws,
+            client=self.node._patrol_start_client,
+            enabled=True,
+            request_name="start_patrol",
+            client_req_id=client_req_id,
+        )
+
+    async def _ws_stop_patrol(
+        self,
+        ws: Any,
+        client_req_id: Optional[str],
+    ) -> None:
+        await self._call_set_bool_client(
+            ws=ws,
+            client=self.node._patrol_start_client,
+            enabled=False,
+            request_name="stop_patrol",
+            client_req_id=client_req_id,
+        )
+
     async def handle(self, ws: Any, path: Optional[str] = None) -> None:
         _ = path
         pending_tasks: Set[asyncio.Task[Any]] = set()
@@ -1574,6 +2153,17 @@ class WebSocketApi:
             if client_req_id is not None:
                 payload["client_req_id"] = client_req_id
             await self._send_json(ws, payload)
+            return
+
+        handler = {
+            "start_recording": self._ws_start_recording,
+            "stop_recording": self._ws_stop_recording,
+            "clear_recording": self._ws_clear_recording,
+            "start_patrol": self._ws_start_patrol,
+            "stop_patrol": self._ws_stop_patrol,
+        }.get(str(op))
+        if handler is not None:
+            await handler(ws, client_req_id)
             return
 
         if op == "set_zones_geojson":
@@ -1747,6 +2337,16 @@ class WebSocketApi:
                 "set_manual_cmd",
                 ok,
                 err,
+                client_req_id=client_req_id,
+            )
+            return
+
+        if op == "control_heartbeat":
+            await self._send_ack(
+                ws,
+                "control_heartbeat",
+                True,
+                None,
                 client_req_id=client_req_id,
             )
             return

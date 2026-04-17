@@ -14,6 +14,9 @@ class _FakeNode:
     _should_surface_diagnostic = WebZoneServerNode._should_surface_diagnostic
     _rosbag_topics_for_profile = staticmethod(WebZoneServerNode._rosbag_topics_for_profile)
     _normalize_gps_status_text = staticmethod(WebZoneServerNode._normalize_gps_status_text)
+    _normalize_camera_frame_encoding = staticmethod(
+        WebZoneServerNode._normalize_camera_frame_encoding
+    )
     _build_gps_status_payload = staticmethod(WebZoneServerNode._build_gps_status_payload)
     _build_gps_status_payload_from_navsat = staticmethod(
         WebZoneServerNode._build_gps_status_payload_from_navsat
@@ -97,3 +100,9 @@ def test_build_gps_status_payload_from_navsat_falls_back_to_3d_fix():
     assert payload["label"] == "3D FIX"
     assert payload["level"] == "warn"
     assert payload["source"] == "gps_fix"
+
+
+def test_normalize_camera_frame_encoding_defaults_to_jpeg():
+    assert _FakeNode._normalize_camera_frame_encoding("png") == "png"
+    assert _FakeNode._normalize_camera_frame_encoding("jpg") == "jpeg"
+    assert _FakeNode._normalize_camera_frame_encoding("unexpected") == "jpeg"
