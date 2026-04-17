@@ -1040,6 +1040,17 @@
                 <input id="goalLoop" type="checkbox" checked style="width:auto;" /> Loop route
               </label>
             </div>
+            <div class="nav-grid-2">
+              <button id="startRecordingBtn" class="warning">Start Rec</button>
+              <button id="stopRecordingBtn" class="danger">Stop Rec</button>
+            </div>
+            <div class="nav-grid-2">
+              <button id="clearRecordingBtn" class="secondary">Clear Rec</button>
+              <button id="startPatrolBtn" class="success">Start Patrol</button>
+            </div>
+            <div class="row">
+              <button id="stopPatrolBtn" class="danger">Stop Patrol</button>
+            </div>
           </div>
         </section>
 
@@ -1081,6 +1092,8 @@
             <div id="status" class="status">Disconnected</div>
             <div id="goalStatus" class="status">No active goal</div>
             <div id="waypointStatus" class="status">Waypoints: 0</div>
+            <div id="recordingStatus" class="status">Recorder: idle · count=0</div>
+            <div id="patrolStatus" class="status">Patrol: idle</div>
             <div id="cmdVelSafeStatus" class="status">cmd_vel_safe: n/a</div>
             <div id="manualStatus" class="status">Manual: OFF · keys=- · vx_cmd=0.00 · wz_cmd=0.00</div>
             <div id="gpsFixStatus" class="status">gps: unavailable</div>
@@ -1264,6 +1277,17 @@
       lastWaypointDragEndMs: 0,
       lastSnapshot: null,
       cmdVelSafe: null,
+      recording: {
+        active: false,
+        count: 0,
+        lastMessage: ''
+      },
+      patrolLoop: {
+        active: false,
+        current_wp: -1,
+        total_wp: 0,
+        label: ''
+      },
       navTelemetry: {
         goalActive: false,
         navResultStatus: 0,
@@ -1520,6 +1544,31 @@
       get_nav_snapshot: {
         buttons: {
           snapshotBtn: { pending: 'Snapshotting' }
+        }
+      },
+      start_recording: {
+        buttons: {
+          startRecordingBtn: { pending: 'Starting Rec' }
+        }
+      },
+      stop_recording: {
+        buttons: {
+          stopRecordingBtn: { pending: 'Stopping Rec' }
+        }
+      },
+      clear_recording: {
+        buttons: {
+          clearRecordingBtn: { pending: 'Clearing Rec' }
+        }
+      },
+      start_patrol: {
+        buttons: {
+          startPatrolBtn: { pending: 'Starting Patrol' }
+        }
+      },
+      stop_patrol: {
+        buttons: {
+          stopPatrolBtn: { pending: 'Stopping Patrol' }
         }
       },
       set_manual_mode: {
@@ -2533,6 +2582,69 @@
       if (ok === false) statusEl.classList.add('bad');
     }
 
+    function updateRecordingUi(payload = {}) {
+      const statusEl = document.getElementById('recordingStatus');
+      if (!statusEl) return;
+      if (Object.prototype.hasOwnProperty.call(payload, 'active')) {
+        state.recording.active = payload.active === true;
+      }
+      if (Object.prototype.hasOwnProperty.call(payload, 'count')) {
+        const count = Number(payload.count);
+        state.recording.count = Number.isFinite(count) ? Math.max(0, Math.trunc(count)) : 0;
+      }
+      if (Object.prototype.hasOwnProperty.call(payload, 'message')) {
+        state.recording.lastMessage = String(payload.message || '');
+      }
+
+      const statusBits = [
+        `Recorder: ${state.recording.active ? 'recording' : 'idle'}`,
+        `count=${state.recording.count}`
+      ];
+      if (!state.recording.active && state.recording.lastMessage) {
+        statusBits.push(state.recording.lastMessage);
+      }
+      statusEl.textContent = statusBits.join(' · ');
+      statusEl.className = 'status';
+      if (state.recording.active) {
+        statusEl.classList.add('good');
+      }
+    }
+
+    function updatePatrolUi(payload = {}) {
+      const statusEl = document.getElementById('patrolStatus');
+      if (!statusEl) return;
+      if (payload && typeof payload === 'object') {
+        if (Object.prototype.hasOwnProperty.call(payload, 'active')) {
+          state.patrolLoop.active = payload.active === true;
+        }
+        if (Object.prototype.hasOwnProperty.call(payload, 'current_wp')) {
+          const currentWp = Number(payload.current_wp);
+          state.patrolLoop.current_wp = Number.isFinite(currentWp) ? Math.trunc(currentWp) : -1;
+        }
+        if (Object.prototype.hasOwnProperty.call(payload, 'total_wp')) {
+          const totalWp = Number(payload.total_wp);
+          state.patrolLoop.total_wp = Number.isFinite(totalWp) ? Math.max(0, Math.trunc(totalWp)) : 0;
+        }
+        if (Object.prototype.hasOwnProperty.call(payload, 'label')) {
+          state.patrolLoop.label = String(payload.label || '');
+        }
+      }
+
+      const isActive = state.patrolLoop.active === true;
+      const currentDisplay = state.patrolLoop.current_wp >= 0
+        ? state.patrolLoop.current_wp + 1
+        : '-';
+      const totalDisplay = state.patrolLoop.total_wp > 0 ? state.patrolLoop.total_wp : 0;
+      const labelText = state.patrolLoop.label ? ` · ${state.patrolLoop.label}` : '';
+      statusEl.textContent = isActive
+        ? `Patrol: active · wp=${currentDisplay}/${totalDisplay}${labelText}`
+        : `Patrol: idle · wp=${currentDisplay}/${totalDisplay}${labelText}`;
+      statusEl.className = 'status';
+      if (isActive) {
+        statusEl.classList.add('good');
+      }
+    }
+
     function renderGoalWaypoints() {
       goalLayer.clearLayers();
       state.goalWaypoints.forEach((wp, idx) => {
@@ -2973,6 +3085,21 @@
           last_command: msg.last_command,
           zoom_in: msg.zoom_in,
           error: msg.error || null
+        };
+      }
+      if (msg && msg.op === 'recording_count') {
+        return {
+          op: msg.op,
+          count: msg.count
+        };
+      }
+      if (msg && msg.op === 'patrol_status') {
+        return {
+          op: msg.op,
+          active: msg.active,
+          current_wp: msg.current_wp,
+          total_wp: msg.total_wp,
+          label: msg.label
         };
       }
       return msg;
@@ -3627,6 +3754,8 @@
         resetNavTelemetryState();
         state.manualControl.enabled = false;
         renderManualStatus();
+        updateRecordingUi({ active: false });
+        updatePatrolUi({ active: false });
         if (getEffectiveConnectionConfig().cameraEnabled) {
           updateCameraStatusUi({ ok: false, error: 'disconnected', last_command: state.cameraStatus.last_command, zoom_in: state.cameraStatus.zoom_in });
         } else {
@@ -3686,6 +3815,8 @@
       resetNavTelemetryState();
       state.manualControl.enabled = false;
       renderManualStatus();
+      updateRecordingUi({ active: false });
+      updatePatrolUi({ active: false });
     }
 
     function handleServerMessage(msg) {
@@ -3718,6 +3849,11 @@
         if (msg.camera_status) {
           updateCameraStatusUi(msg.camera_status);
         }
+        updateRecordingUi({
+          count: msg.recording_count,
+          active: state.recording.active
+        });
+        updatePatrolUi(msg.patrol_status || null);
         return;
       }
 
@@ -3749,6 +3885,16 @@
 
       if (msg.op === 'rosbag_status') {
         updateRosbagState(msg.rosbag || null);
+        return;
+      }
+
+      if (msg.op === 'recording_count') {
+        updateRecordingUi({ count: msg.count });
+        return;
+      }
+
+      if (msg.op === 'patrol_status') {
+        updatePatrolUi(msg);
         return;
       }
 
@@ -3861,6 +4007,44 @@
           if (!msg.ok) {
             goalStatusEl.textContent = `Manual command failed: ${msg.error || 'error'}`;
             goalStatusEl.className = 'status bad';
+          }
+        } else if (msg.request === 'start_recording') {
+          if (msg.ok) {
+            updateRecordingUi({ active: true, message: '' });
+            setStatus('Waypoint recording started', true);
+          } else {
+            updateRecordingUi({ active: false, message: msg.error || 'start failed' });
+            setStatus(`Waypoint recording failed: ${msg.error || 'error'}`, false);
+          }
+        } else if (msg.request === 'stop_recording') {
+          if (msg.ok) {
+            updateRecordingUi({ active: false, message: msg.message || 'saved' });
+            updateWaypointStatus(msg.message || 'Recording stopped and saved', true);
+            setStatus('Waypoint recording stopped', true);
+          } else {
+            setStatus(`Stop recording failed: ${msg.error || 'error'}`, false);
+          }
+        } else if (msg.request === 'clear_recording') {
+          if (msg.ok) {
+            updateRecordingUi({ active: false, count: 0, message: msg.message || 'cleared' });
+            updateWaypointStatus('Recorded waypoint session cleared', true);
+            setStatus('Waypoint recording cleared', true);
+          } else {
+            setStatus(`Clear recording failed: ${msg.error || 'error'}`, false);
+          }
+        } else if (msg.request === 'start_patrol') {
+          if (msg.ok) {
+            updatePatrolUi({ active: true });
+            setStatus('Loop patrol started', true);
+          } else {
+            setStatus(`Start patrol failed: ${msg.error || 'error'}`, false);
+          }
+        } else if (msg.request === 'stop_patrol') {
+          if (msg.ok) {
+            updatePatrolUi({ active: false });
+            setStatus('Loop patrol stopped', true);
+          } else {
+            setStatus(`Stop patrol failed: ${msg.error || 'error'}`, false);
           }
         } else if (msg.request === 'save_waypoints_file') {
           if (msg.ok) {
@@ -4574,6 +4758,21 @@
 
     document.getElementById('manualModeBtn').addEventListener('click', () => {
       toggleManualModeRequest();
+    });
+    document.getElementById('startRecordingBtn').addEventListener('click', () => {
+      send({ op: 'start_recording' });
+    });
+    document.getElementById('stopRecordingBtn').addEventListener('click', () => {
+      send({ op: 'stop_recording' });
+    });
+    document.getElementById('clearRecordingBtn').addEventListener('click', () => {
+      send({ op: 'clear_recording' });
+    });
+    document.getElementById('startPatrolBtn').addEventListener('click', () => {
+      send({ op: 'start_patrol' });
+    });
+    document.getElementById('stopPatrolBtn').addEventListener('click', () => {
+      send({ op: 'stop_patrol' });
     });
 
     document.getElementById('manualLinearSlider').addEventListener('input', updateManualSliderLabels);
