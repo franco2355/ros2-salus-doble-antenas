@@ -19,6 +19,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/NavSnapshotLayers.msg"
   "msg/NavTelemetry.msg"
   "msg/NavEvent.msg"
+  "msg/VisionTarget.msg"
   "srv/SetZonesGeoJson.srv"
   "srv/GetZonesState.srv"
   "srv/SetKeepoutZones.srv"
