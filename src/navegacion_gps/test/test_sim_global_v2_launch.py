@@ -26,7 +26,7 @@ def test_sim_global_v2_launch_reuses_current_sim_stack_without_rviz() -> None:
         '"enable_map_gps_absolute_measurement": enable_map_gps_absolute_measurement'
     )
     gps_heading_enable_arg = (
-        'DeclareLaunchArgument("enable_gps_course_heading", default_value="false")'
+        'DeclareLaunchArgument("enable_gps_course_heading", default_value="true")'
     )
     gps_heading_distance_arg = (
         'DeclareLaunchArgument("gps_course_heading_min_distance_m", default_value="1.0")'
@@ -50,7 +50,7 @@ def test_sim_global_v2_launch_reuses_current_sim_stack_without_rviz() -> None:
         'DeclareLaunchArgument("gps_course_heading_publish_hz", default_value="10.0")'
     )
     gps_heading_variance_arg = (
-        'DeclareLaunchArgument("gps_course_heading_yaw_variance_rad2", default_value="0.3")'
+        'DeclareLaunchArgument("gps_course_heading_yaw_variance_rad2", default_value="0.01")'
     )
     gps_heading_hold_variance_arg = (
         'DeclareLaunchArgument(\n                "gps_course_heading_hold_yaw_variance_multiplier",'

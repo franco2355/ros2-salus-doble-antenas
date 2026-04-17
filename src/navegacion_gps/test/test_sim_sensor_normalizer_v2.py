@@ -82,3 +82,18 @@ def test_sim_sensor_normalizer_holds_f9p_rtk_when_stationary() -> None:
     assert second.altitude == first.altitude
     assert second.header.stamp.sec == 10
     assert second.header.stamp.nanosec == 100_000_000
+
+
+def test_sim_sensor_normalizer_holds_ideal_when_stationary() -> None:
+    node = _FakeNormalizerNode("ideal", hold_when_stationary=True)
+
+    node._on_gps(_make_fix(sec=20, nanosec=0))
+    first = node._gps_pub.messages[-1]
+    node._on_gps(_make_fix(sec=20, nanosec=100_000_000))
+    second = node._gps_pub.messages[-1]
+
+    assert len(node._gps_pub.messages) == 2
+    assert second.latitude == first.latitude
+    assert second.longitude == first.longitude
+    assert second.altitude == first.altitude
+    assert second.header.stamp.nanosec == 100_000_000

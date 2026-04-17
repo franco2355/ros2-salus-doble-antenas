@@ -205,7 +205,6 @@ class SimSensorNormalizerV2Node(Node):
     def _should_hold_gps(self) -> bool:
         return (
             self._gps_hold_when_stationary
-            and self._gps_profile.name == "f9p_rtk"
             and self._last_gps_out is not None
             and self._last_odom_linear_speed_mps
             <= self._gps_hold_linear_speed_threshold_mps

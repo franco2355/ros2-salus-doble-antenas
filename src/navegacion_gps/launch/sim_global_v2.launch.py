@@ -162,34 +162,25 @@ def generate_launch_description():
                     "true" if global_profile.navsat_use_odometry_yaw else "false"
                 ),
             ),
-            # En simulacion el EKF local ya tiene yaw suficientemente estable.
-            # Fusionar heading por avance GPS durante curvas reabre `map->odom`
-            # aunque el goal cierre bien en `map`, asi que lo dejamos apagado
-            # por default y solo se habilita para diagnostico puntual.
-            DeclareLaunchArgument("enable_gps_course_heading", default_value="false"),
-            # Si se vuelve a habilitar, estos thresholds siguen disponibles
-            # para diagnosticar el heading por avance sin hardcodear perfiles.
+            # Con el wheel-odom fix (sim_max_joint_odom_steer_delta_deg=0.0) el
+            # heading del EKF local ya es estable. Habilitamos gps_course_heading
+            # para dar al EKF global una medicion directa de yaw en rectas (steer<8°)
+            # y eliminar el residuo de ~4-5° que quedaba sin ancla de heading.
+            # En curvas el gate lo desactiva automaticamente (steer>=8°, ~23° min turn).
+            DeclareLaunchArgument("enable_gps_course_heading", default_value="true"),
             DeclareLaunchArgument("gps_course_heading_min_distance_m", default_value="1.0"),
             DeclareLaunchArgument("gps_course_heading_min_speed_mps", default_value="0.4"),
-            # En simulacion el RPP suele meter microcorrecciones de steering
-            # aun en recta. Si el gate de `gps_course_heading` es demasiado
-            # angosto, `imu1` entra y sale continuamente y el EKF global hace
-            # pequeñas correcciones visibles en `map->odom`.
+            # Gate conservador: el smoother de angular.z ya atenua microcorrecciones
+            # del RPP en recta, por lo que 8° es suficientemente ancho sin meter
+            # heading en curvas donde el GPS-track no representa la tangente.
             DeclareLaunchArgument("gps_course_heading_max_abs_steer_deg", default_value="8.0"),
             DeclareLaunchArgument("gps_course_heading_max_abs_yaw_rate_rps", default_value="0.12"),
-            # Cuando el vehiculo entra en una curva leve, dejar caer el heading
-            # en un solo ciclo hace que el EKF global reoriente `map->odom`
-            # demasiado brusco. Mantenemos el ultimo yaw valido por una ventana
-            # corta y con menor confianza para suavizar esa transicion.
             DeclareLaunchArgument("gps_course_heading_invalid_hold_s", default_value="0.8"),
-            # Limita cuan viejo puede ser el segmento GPS usado para inferir
-            # el heading. En curvas largas, usar una cuerda demasiado antigua
-            # reinyecta un yaw que ya no representa la tangente actual.
             DeclareLaunchArgument("gps_course_heading_max_sample_dt_s", default_value="2.5"),
             DeclareLaunchArgument("gps_course_heading_publish_hz", default_value="10.0"),
-            # Bajamos la confianza del yaw absoluto derivado por GPS para que
-            # actue como referencia suave y no como ancla rígida.
-            DeclareLaunchArgument("gps_course_heading_yaw_variance_rad2", default_value="0.3"),
+            # GPS ideal en sim -> varianza apretada para que sea ancla efectiva.
+            # En real usar >=0.1 para tolerar ruido de track GPS.
+            DeclareLaunchArgument("gps_course_heading_yaw_variance_rad2", default_value="0.01"),
             DeclareLaunchArgument(
                 "gps_course_heading_hold_yaw_variance_multiplier",
                 default_value="8.0",
