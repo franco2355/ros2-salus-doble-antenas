@@ -11,6 +11,7 @@ def generate_launch_description() -> LaunchDescription:
 
     params_file = LaunchConfiguration('params_file')
     enable_brake_guard = LaunchConfiguration('enable_brake_guard')
+    enable_recovery = LaunchConfiguration('enable_recovery')
 
     return LaunchDescription([
         DeclareLaunchArgument(
