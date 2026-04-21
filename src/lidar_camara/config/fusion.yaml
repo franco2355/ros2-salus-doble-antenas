@@ -1,0 +1,67 @@
+lidar_camara_fusion:
+  ros__parameters:
+    # ── Sensor topics ──────────────────────────────────────────────────
+    lidar_topic: /scan_3d          # sensor_msgs/PointCloud2 from RSLidar
+    detections_topic: /detections  # vision_msgs/Detection2DArray from yolo_onnx_detector
+
+    # ── Camera geometry ────────────────────────────────────────────────
+    # Adjust camera_hfov_deg to match the lens on the Hikvision camera.
+    # Common values: 80° (telephoto), 90° (standard), 100-110° (wide).
+    # Incorrect FOV causes a proportional azimuth offset in all detections.
+    camera_hfov_deg: 90.0
+    image_width: 640
+    image_height: 360
+
+    # ── Safety thresholds ──────────────────────────────────────────────
+    # brake_distance_m: object confirmed by LiDAR within this range → brake_active=True
+    # warn_distance_m:  object within this range → warn log only
+    brake_distance_m: 1.5
+    warn_distance_m: 4.0
+
+    # ── LiDAR range filter ─────────────────────────────────────────────
+    # Ignore points outside [lidar_min_range_m, lidar_max_range_m].
+    # Increase max if the robot operates in open spaces.
+    lidar_min_range_m: 0.3
+    lidar_max_range_m: 15.0
+
+    # ── Azimuth association ────────────────────────────────────────────
+    # Sector half-width for matching a camera detection to LiDAR points.
+    # At 10 m distance, 8° → ~1.4 m sector width.
+    # Narrow this (4–6°) if you get false LiDAR associations.
+    # Widen it (10–12°) if confirmed detections are rare despite objects present.
+    azimuth_tolerance_deg: 8.0
+
+    # ── Worker ────────────────────────────────────────────────────────
+    worker_hz: 10.0
+
+    # ── Axis flip ─────────────────────────────────────────────────────
+    # Set true if LiDAR +Y points right instead of left (non-ROS convention).
+    azimuth_flip: false
+
+obstacle_recovery:
+  ros__parameters:
+    brake_active_topic: /fusion/brake_active
+    teleop_topic: /cmd_vel_teleop
+    set_manual_mode_service: /nav_command_server/set_manual_mode
+    # Número de frames consecutivos con brake_active=True antes de iniciar la maniobra.
+    # A 10Hz del fusion worker: 3 frames = 300ms de confirmación.
+    require_consecutive: 3
+    # Velocidad de retroceso (m/s). Positivo = adelante, se envía negativo internamente.
+    backup_speed_mps: 0.3
+    # Tiempo de retroceso en segundos.
+    backup_duration_s: 2.0
+    # Cooldown entre maniobras (evita ciclos de backup continuos si el obstáculo no se mueve).
+    cooldown_s: 6.0
+    # Hz de publicación a /cmd_vel_teleop durante la maniobra.
+    # Debe ser > 1/manual_cmd_timeout_s (default 0.4s) → debe ser > 2.5Hz.
+    cmd_hz: 10.0
+
+vision_brake_guard:
+  ros__parameters:
+    brake_service: /nav_command_server/brake
+    brake_active_topic: /fusion/brake_active
+    # Minimum seconds between calls to the brake service (avoids hammering).
+    cooldown_s: 3.0
+    # Number of consecutive brake_active=True frames before calling the service.
+    # Filters single-frame noise.  At worker_hz=10, require_consecutive=3 → 300 ms.
+    require_consecutive: 3
