@@ -8,6 +8,7 @@ Monitors the front sector and brakes when anything is within brake_distance_m.
 import math
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Bool
 
@@ -27,8 +28,14 @@ class LidarBrakeGuard(Node):
         self._half_angle = math.radians(half_deg)
         self._min_range = float(self.get_parameter('min_range_m').value)
 
+        sensor_qos = QoSProfile(
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+            durability=DurabilityPolicy.VOLATILE,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=5,
+        )
         self._brake_pub = self.create_publisher(Bool, '/fusion/brake_active', 10)
-        self.create_subscription(LaserScan, scan_topic, self._on_scan, 10)
+        self.create_subscription(LaserScan, scan_topic, self._on_scan, sensor_qos)
 
         self.get_logger().info(
             f'lidar_brake_guard ready '
