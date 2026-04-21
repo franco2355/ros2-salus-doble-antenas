@@ -26,6 +26,7 @@ setup(
             'fusion_node = lidar_camara.fusion_node:main',
             'vision_brake_guard = lidar_camara.vision_brake_guard:main',
             'obstacle_recovery = lidar_camara.obstacle_recovery_node:main',
+            'lidar_brake_guard = lidar_camara.lidar_brake_guard:main',
         ],
     },
 )
