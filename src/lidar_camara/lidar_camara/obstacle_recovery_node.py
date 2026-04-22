@@ -5,7 +5,8 @@ obstacle_recovery_node.py — Secuencia de recuperación ante obstáculos semán
 Cuando /fusion/brake_active es True por `require_consecutive` frames:
   1. Activa modo manual en nav_command_server
   2. Retrocede a `backup_speed_mps` durante `backup_duration_s` segundos
-  3. Desactiva modo manual → Nav2 retoma y replana alrededor del obstáculo
+  3. Desactiva modo manual
+  4. Reenvía el último goal guardado en nav_command_server
 
 El nodo publica en /cmd_vel_teleop (interfaces/CmdVelFinal) durante el retroceso.
 El watchdog de nav_command_server requiere comandos cada < manual_cmd_timeout_s (0.4s),
@@ -25,6 +26,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import DurabilityPolicy, HistoryPolicy, QoSProfile, ReliabilityPolicy
 from std_msgs.msg import Bool, String
+from std_srvs.srv import Trigger
 
 from interfaces.msg import CmdVelFinal
 from interfaces.srv import SetManualMode
@@ -44,6 +46,7 @@ class ObstacleRecoveryNode(Node):
         self.declare_parameter('brake_active_topic',      '/fusion/brake_active')
         self.declare_parameter('teleop_topic',            '/cmd_vel_teleop')
         self.declare_parameter('set_manual_mode_service', '/nav_command_server/set_manual_mode')
+        self.declare_parameter('resume_last_goal_service','/nav_command_server/resume_last_goal')
         self.declare_parameter('require_consecutive',     3)
         self.declare_parameter('backup_speed_mps',        0.3)
         self.declare_parameter('backup_duration_s',       2.0)
@@ -53,6 +56,7 @@ class ObstacleRecoveryNode(Node):
         brake_topic    = str(self.get_parameter('brake_active_topic').value)
         teleop_topic   = str(self.get_parameter('teleop_topic').value)
         manual_svc     = str(self.get_parameter('set_manual_mode_service').value)
+        resume_svc     = str(self.get_parameter('resume_last_goal_service').value)
         self._required = int(self.get_parameter('require_consecutive').value)
         self._bk_speed = float(self.get_parameter('backup_speed_mps').value)
         self._bk_dur   = float(self.get_parameter('backup_duration_s').value)
@@ -72,6 +76,7 @@ class ObstacleRecoveryNode(Node):
         self._teleop_pub = self.create_publisher(CmdVelFinal, teleop_topic, 10)
         self._status_pub = self.create_publisher(String, '/fusion/recovery/status', 10)
         self._manual_cli = self.create_client(SetManualMode, manual_svc)
+        self._resume_cli = self.create_client(Trigger, resume_svc)
 
         self._state       = State.IDLE
         self._consecutive = 0
@@ -81,7 +86,8 @@ class ObstacleRecoveryNode(Node):
         self.get_logger().info(
             f'obstacle_recovery listo — '
             f'backup={self._bk_speed}m/s x {self._bk_dur}s, '
-            f'cooldown={self._cooldown}s, consecutivos_req={self._required}'
+            f'cooldown={self._cooldown}s, consecutivos_req={self._required}, '
+            f'resume_service={resume_svc}'
         )
 
     # ── callback ─────────────────────────────────────────────────────────
@@ -149,13 +155,18 @@ class ObstacleRecoveryNode(Node):
         self._publish_status()
 
         self.get_logger().info(
-            '[obstacle_recovery] retomando navegación — Nav2 replanea alrededor del obstáculo'
+            '[obstacle_recovery] desactivando manual y reanudando el último goal'
         )
 
         if not self._set_manual_mode(False):
             self.get_logger().error(
                 '[obstacle_recovery] set_manual_mode(False) falló — '
                 'robot puede quedar en manual, verificar manualmente'
+            )
+        elif not self._resume_last_goal():
+            self.get_logger().warning(
+                '[obstacle_recovery] no se pudo reanudar el último goal; '
+                'Nav2 quedó sin objetivo activo'
             )
 
         with self._lock:
@@ -196,6 +207,32 @@ class ObstacleRecoveryNode(Node):
             err = result.error if result else 'sin respuesta'
             self.get_logger().error(f'[obstacle_recovery] set_manual_mode({enabled}) error: {err}')
             return False
+        return True
+
+    def _resume_last_goal(self, timeout_s: float = 5.0) -> bool:
+        if not self._resume_cli.wait_for_service(timeout_sec=2.0):
+            self.get_logger().error(
+                f'[obstacle_recovery] servicio {self._resume_cli.srv_name} no disponible'
+            )
+            return False
+
+        future = self._resume_cli.call_async(Trigger.Request())
+        t0 = time.monotonic()
+        while not future.done():
+            if time.monotonic() - t0 > timeout_s:
+                self.get_logger().error('[obstacle_recovery] timeout esperando resume_last_goal')
+                return False
+            time.sleep(0.05)
+
+        result = future.result()
+        if result is None or not result.success:
+            err = result.message if result else 'sin respuesta'
+            self.get_logger().error(f'[obstacle_recovery] resume_last_goal error: {err}')
+            return False
+
+        self.get_logger().info(
+            f'[obstacle_recovery] resume_last_goal OK: {result.message}'
+        )
         return True
 
     def _publish_status(self) -> None:

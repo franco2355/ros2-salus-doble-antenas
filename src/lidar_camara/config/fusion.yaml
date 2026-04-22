@@ -43,6 +43,7 @@ obstacle_recovery:
     brake_active_topic: /fusion/brake_active
     teleop_topic: /cmd_vel_teleop
     set_manual_mode_service: /nav_command_server/set_manual_mode
+    resume_last_goal_service: /nav_command_server/resume_last_goal
     # Número de frames consecutivos con brake_active=True antes de iniciar la maniobra.
     # A 10Hz del fusion worker: 3 frames = 300ms de confirmación.
     require_consecutive: 3

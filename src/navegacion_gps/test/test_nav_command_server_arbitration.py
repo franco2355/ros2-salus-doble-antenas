@@ -19,6 +19,8 @@ class _FakeArbNode:
         self.forward_cmd_vel_safe_without_goal = False
         self._auto_mode = "idle"
         self._current_goal_handle = None
+        self._last_goal_waypoints = []
+        self._last_goal_loop_enabled = False
         self._last_cmd_vel_safe = None
         self._collision_stop_active = False
         self._last_collision_stop_active = False
@@ -34,6 +36,7 @@ class _FakeArbNode:
         self.published = []
         self.telemetry_forced = []
         self.cancel_calls = 0
+        self.resume_requests = []
         self.events = []
 
     def _publish_cmd_vel_final(self, msg: CmdVelFinal) -> None:
@@ -81,8 +84,16 @@ class _FakeArbNode:
         self.cancel_calls += 1
         return False, "timeout cancelling goal"
 
+    def send_nav2_goals(self, waypoints, loop_enabled, reason="set_goal_service"):
+        self.resume_requests.append((list(waypoints), bool(loop_enabled), str(reason)))
+        return True, "goal accepted"
+
     def _cancel_goal_for_manual_takeover_async(self) -> None:
         self.cancel_current_goal()
+
+    def _effective_goal_active_locked(self, now=None):
+        del now
+        return bool(self._is_navigating)
 
     def get_logger(self):
         class _Logger:
@@ -168,3 +179,42 @@ def test_set_manual_mode_enables_even_if_cancel_fails() -> None:
     assert node._manual_enabled is True
     assert node._is_navigating is False
     assert node.cancel_calls == 1
+
+
+def test_store_last_goal_request_locked_copies_waypoints() -> None:
+    node = _FakeArbNode()
+    with node._lock:
+        NavCommandServerNode._store_last_goal_request_locked(
+            node,
+            [(1.0, 2.0, 3.0), (4, 5, 6)],
+            True,
+        )
+
+    assert node._last_goal_waypoints == [(1.0, 2.0, 3.0), (4.0, 5.0, 6.0)]
+    assert node._last_goal_loop_enabled is True
+
+
+def test_resume_last_goal_rejects_when_manual_mode_is_enabled() -> None:
+    node = _FakeArbNode()
+    node._manual_enabled = True
+    node._last_goal_waypoints = [(1.0, 2.0, 0.0)]
+
+    ok, err = NavCommandServerNode.resume_last_goal(node)
+
+    assert ok is False
+    assert err == "manual control enabled; disable manual mode before resuming"
+    assert node.resume_requests == []
+
+
+def test_resume_last_goal_replays_cached_goal() -> None:
+    node = _FakeArbNode()
+    node._last_goal_waypoints = [(1.0, 2.0, 0.0), (3.0, 4.0, 10.0)]
+    node._last_goal_loop_enabled = True
+
+    ok, err = NavCommandServerNode.resume_last_goal(node)
+
+    assert ok is True
+    assert err == "goal accepted"
+    assert node.resume_requests == [
+        ([(1.0, 2.0, 0.0), (3.0, 4.0, 10.0)], True, "resume_last_goal_service")
+    ]
