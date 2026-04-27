@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cockpit Desktop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+      * { margin:0; padding:0; box-sizing:border-box; }
+
+      #cockpit-intro {
+        position: fixed; inset: 0; z-index: 9999;
+        background: #FAFCFF;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 20px;
+        overflow: hidden;
+      }
+
+      #cockpit-intro::before {
+        content:''; position:absolute; inset:0; pointer-events:none;
+        background-image:
+          linear-gradient(rgba(27,108,168,0.06) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(27,108,168,0.06) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+
+      .ci-bracket { position:absolute; width:120px; height:120px; pointer-events:none; }
+      .ci-bracket-tl { top:32px; left:32px; border-top:1.5px solid rgba(27,108,168,0.4); border-left:1.5px solid rgba(27,108,168,0.4); }
+      .ci-bracket-tr { top:32px; right:32px; border-top:1.5px solid rgba(27,108,168,0.4); border-right:1.5px solid rgba(27,108,168,0.4); }
+      .ci-bracket-bl { bottom:32px; left:32px; border-bottom:1.5px solid rgba(27,108,168,0.4); border-left:1.5px solid rgba(27,108,168,0.4); }
+      .ci-bracket-br { bottom:32px; right:32px; border-bottom:1.5px solid rgba(27,108,168,0.4); border-right:1.5px solid rgba(27,108,168,0.4); }
+
+      #ci-scan {
+        position:absolute; left:0; right:0; height:1px;
+        background: linear-gradient(90deg, transparent 0%, rgba(27,108,168,0.5) 40%, rgba(27,108,168,0.8) 50%, rgba(27,108,168,0.5) 60%, transparent 100%);
+        top: 0; animation: ciScan 3s linear 0.3s infinite;
+        pointer-events: none;
+      }
+      @keyframes ciScan { from{top:0%} to{top:100%} }
+
+      #ci-svg { width: 300px; height: 300px; }
+
+      #ci-robot-group {
+        transform: translateX(-800px);
+        animation: ciRSlide 1.4s cubic-bezier(0.16,1,0.3,1) 0.3s forwards;
+      }
+      @keyframes ciRSlide {
+        0%   { transform: translateX(-800px); }
+        70%  { transform: translateX(8px); }
+        85%  { transform: translateX(-4px); }
+        100% { transform: translateX(0px); }
+      }
+
+      #ci-c-arc {
+        stroke-dasharray: 545; stroke-dashoffset: 545;
+        animation: ciDrawC 1.0s cubic-bezier(0.4,0,0.2,1) 1.2s forwards;
+      }
+      #ci-c-inner {
+        stroke-dasharray: 385; stroke-dashoffset: 385;
+        animation: ciDrawC 0.85s cubic-bezier(0.4,0,0.2,1) 1.45s forwards;
+      }
+      @keyframes ciDrawC { to { stroke-dashoffset:0; } }
+
+      .ci-lt { opacity:0; display:inline-block; animation: ciLtIn 0.28s ease forwards; }
+      @keyframes ciLtIn { to { opacity:1; } }
+
+      #ci-text {
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 700; font-size: 56px; letter-spacing: 16px;
+        color: #0A0E14;
+        position: relative;
+      }
+      #ci-text::before, #ci-text::after {
+        content:''; position:absolute; left:0; right:0; height:1px;
+        background: linear-gradient(90deg, transparent, #1B6CA8, transparent);
+        opacity:0; animation: ciFadeIn 0.4s ease 3.2s forwards;
+      }
+      #ci-text::before { top:-8px; }
+      #ci-text::after  { bottom:-8px; }
+
+      #ci-sub {
+        opacity:0; font-family:'Share Tech Mono',monospace;
+        font-size:10px; letter-spacing:6px; color:#5A7080;
+        text-transform:uppercase;
+        animation: ciFadeIn 0.5s ease 3.1s forwards;
+      }
+
+      #ci-loading {
+        opacity:0; animation: ciFadeIn 0.3s ease 3.4s forwards;
+        display:flex; align-items:center; gap:10px;
+        font-family:'Share Tech Mono',monospace; font-size:9px; color:#7A90A0; letter-spacing:2px;
+      }
+      .ci-ld-bar {
+        width:140px; height:2px; background:#E0ECF4; position:relative; overflow:hidden;
+      }
+      .ci-ld-fill {
+        position:absolute; top:0; left:0; height:100%; background:#1B6CA8;
+        width:0; animation: ciLoad 1.4s ease 3.7s forwards;
+      }
+      @keyframes ciLoad { to { width:100%; } }
+      @keyframes ciFadeIn { to { opacity:1; } }
+
+      #cockpit-intro.done {
+        animation: ciOutFade 0.7s ease forwards;
+        pointer-events: none;
+      }
+      @keyframes ciOutFade { to { opacity:0; pointer-events:none; } }
+    </style>
+  </head>
+  <body>
+
+    <div id="cockpit-intro">
+      <div class="ci-bracket ci-bracket-tl"></div>
+      <div class="ci-bracket ci-bracket-tr"></div>
+      <div class="ci-bracket ci-bracket-bl"></div>
+      <div class="ci-bracket ci-bracket-br"></div>
+      <div id="ci-scan"></div>
+
+      <svg id="ci-svg" viewBox="-150 -150 300 300" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="ci-cg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#1B6CA8"/>
+            <stop offset="100%" stop-color="#5B9FD0"/>
+          </linearGradient>
+          <filter id="ci-fs">
+            <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="rgba(27,108,168,0.22)"/>
+          </filter>
+        </defs>
+
+        <path id="ci-c-arc"
+          d="M 83,-83 A 117,117,0,1,0,83,83"
+          fill="none" stroke="url(#ci-cg)" stroke-width="22"
+          stroke-linecap="butt" filter="url(#ci-fs)"/>
+
+        <path id="ci-c-inner"
+          d="M 65,-65 A 92,92,0,1,0,65,65"
+          fill="none" stroke="rgba(27,108,168,0.07)"
+          stroke-width="2.5" stroke-linecap="round"/>
+
+        <g id="ci-robot-group" style="mix-blend-mode:multiply">
+          <image href="/pasted-1777208286594-0.png"
+            x="-115" y="-105" width="230" height="230"
+            preserveAspectRatio="xMidYMid meet"/>
+        </g>
+      </svg>
+
+      <div id="ci-text">
+        <span class="ci-lt" style="animation-delay:2.25s">C</span><span
+        class="ci-lt" style="animation-delay:2.38s">O</span><span
+        class="ci-lt" style="animation-delay:2.51s">C</span><span
+        class="ci-lt" style="animation-delay:2.64s">K</span><span
+        class="ci-lt" style="animation-delay:2.77s">P</span><span
+        class="ci-lt" style="animation-delay:2.90s">I</span><span
+        class="ci-lt" style="animation-delay:3.03s">T</span>
+      </div>
+
+      <div id="ci-sub">Robotics Control Surface</div>
+
+      <div id="ci-loading">
+        <span>INITIALIZING</span>
+        <div class="ci-ld-bar"><div class="ci-ld-fill"></div></div>
+      </div>
+    </div>
+
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      setTimeout(() => {
+        const intro = document.getElementById('cockpit-intro');
+        intro.classList.add('done');
+        intro.addEventListener('animationend', () => intro.remove(), { once: true });
+      }, 5400);
+    </script>
+  </body>
+</html>

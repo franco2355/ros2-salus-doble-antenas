@@ -1,0 +1,15 @@
+.metrics-footer {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.metrics-footer-item {
+  color: var(--muted);
+}
+
+.metrics-footer-total {
+  color: var(--text);
+}

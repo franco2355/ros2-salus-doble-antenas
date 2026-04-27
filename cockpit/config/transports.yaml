@@ -1,0 +1,11 @@
+transports:
+  transport.ws.core:
+    kind: websocket
+    endpoint_env: VITE_WS_URL
+  transport.googlemaps:
+    kind: google-maps
+    endpoint_env: VITE_GOOGLE_MAPS_API_KEY
+  transport.rosbridge:
+    kind: rosbridge
+    endpoint_env: VITE_ROSBRIDGE_URL
+

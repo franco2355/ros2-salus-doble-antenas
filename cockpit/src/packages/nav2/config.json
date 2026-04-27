@@ -1,0 +1,109 @@
+{
+  "values": {
+    "ws_real_host": "localhost",
+    "ws_real_port": 8766,
+    "ws_sim_host": "localhost",
+    "ws_sim_port": 8766,
+    "camera_probe_timeout_ms": 3000,
+    "camera_load_timeout_ms": 7000,
+    "map_default_center_lat": -31.4201,
+    "map_default_center_lon": -64.1888,
+    "map_default_zoom": 16,
+    "manual_linear_speed_min": 1.0,
+    "manual_linear_speed_max": 4.0,
+    "manual_linear_speed_default": 1.2,
+    "manual_angular_speed_min": 0.1,
+    "manual_angular_speed_max": 1.2,
+    "manual_angular_speed_default": 0.4,
+    "manual_loop_interval_ms": 50
+  },
+  "settings": {
+    "title": "Nav2",
+    "fields": [
+      {
+        "key": "ws_real_host",
+        "label": "WS Real Host",
+        "type": "string",
+        "placeholder": "localhost"
+      },
+      {
+        "key": "ws_real_port",
+        "label": "WS Real Port",
+        "type": "number",
+        "placeholder": "8766"
+      },
+      {
+        "key": "ws_sim_host",
+        "label": "WS Sim Host",
+        "type": "string",
+        "placeholder": "localhost"
+      },
+      {
+        "key": "ws_sim_port",
+        "label": "WS Sim Port",
+        "type": "number",
+        "placeholder": "8766"
+      },
+      {
+        "key": "camera_probe_timeout_ms",
+        "label": "Camera Probe Timeout (ms)",
+        "type": "number"
+      },
+      {
+        "key": "camera_load_timeout_ms",
+        "label": "Camera Load Timeout (ms)",
+        "type": "number"
+      },
+      {
+        "key": "map_default_center_lat",
+        "label": "Map Default Center Lat",
+        "type": "number"
+      },
+      {
+        "key": "map_default_center_lon",
+        "label": "Map Default Center Lon",
+        "type": "number"
+      },
+      {
+        "key": "map_default_zoom",
+        "label": "Map Default Zoom",
+        "type": "number"
+      },
+      {
+        "key": "manual_linear_speed_min",
+        "label": "Manual Linear Speed Min",
+        "type": "number"
+      },
+      {
+        "key": "manual_linear_speed_max",
+        "label": "Manual Linear Speed Max",
+        "type": "number"
+      },
+      {
+        "key": "manual_linear_speed_default",
+        "label": "Manual Linear Speed Default",
+        "type": "number"
+      },
+      {
+        "key": "manual_angular_speed_min",
+        "label": "Manual Angular Speed Min",
+        "type": "number"
+      },
+      {
+        "key": "manual_angular_speed_max",
+        "label": "Manual Angular Speed Max",
+        "type": "number"
+      },
+      {
+        "key": "manual_angular_speed_default",
+        "label": "Manual Angular Speed Default",
+        "type": "number"
+      },
+      {
+        "key": "manual_loop_interval_ms",
+        "label": "Manual Loop Interval (ms)",
+        "type": "number"
+      }
+    ]
+  }
+}

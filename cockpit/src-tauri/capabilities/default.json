@@ -1,0 +1,9 @@
+{
+  "identifier": "default",
+  "description": "Default capability set for Cockpit desktop",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "opener:default"
+  ]
+}

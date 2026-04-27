@@ -1,0 +1,14 @@
+node_modules/
+dist/
+target/
+.DS_Store
+.env.local
+*.log
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+**/.env
+.codex
+.claude
+*.vsix
+.vscode-test

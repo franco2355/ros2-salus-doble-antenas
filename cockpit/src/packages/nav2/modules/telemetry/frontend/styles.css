@@ -1,0 +1,292 @@
+/* ══ TELEMETRY PANEL ════════════════════════════════════════════════
+   All key visual properties use !important to override the global
+   dark-theme rules in base.css and design.css that target .panel-card.
+   These classes are telemetry-* scoped and safe to escalate.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.telemetry-sidebar {
+  gap: 10px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   4 mini status cards
+   ───────────────────────────────────────────────────────────────────── */
+.telemetry-summary-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.telemetry-summary-card {
+  position: relative !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+  padding: 11px 13px 28px !important;
+  background: #ffffff !important;
+  border: 1px solid #DCE6F2 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+  overflow: hidden !important;
+  transition: box-shadow 160ms ease, border-color 160ms ease !important;
+}
+
+.telemetry-summary-card:hover {
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.10) !important;
+  border-color: rgba(56, 189, 248, 0.38) !important;
+}
+
+.telemetry-summary-title {
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.10em !important;
+  text-transform: uppercase !important;
+  color: #94A3B8 !important;
+}
+
+.telemetry-summary-value {
+  font-size: 19px !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+  color: #0EA5E9 !important;
+}
+
+.telemetry-summary-detail {
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+  color: #94A3B8 !important;
+  overflow-wrap: anywhere !important;
+}
+
+/* Tone: only subtle border tint, no background change */
+.telemetry-summary-card-ok  { border-color: rgba(22, 163, 74, 0.30) !important; }
+.telemetry-summary-card-warn{ border-color: rgba(202, 138, 4, 0.28) !important; }
+.telemetry-summary-card-off { border-color: rgba(220, 38, 38, 0.24) !important; }
+
+/* Value always stays celeste regardless of tone */
+.telemetry-summary-card-ok .telemetry-summary-value,
+.telemetry-summary-card-warn .telemetry-summary-value,
+.telemetry-summary-card-off .telemetry-summary-value {
+  color: #0EA5E9 !important;
+}
+
+/* ── Mini card icons (bottom-right via ::after) ────────────────────── */
+.telemetry-summary-card::after {
+  position: absolute !important;
+  bottom: 9px !important;
+  right: 11px !important;
+  font-size: 17px !important;
+  line-height: 1 !important;
+  color: #CBD5E1 !important;
+  pointer-events: none !important;
+}
+
+.telemetry-summary-grid .telemetry-summary-card:nth-child(1)::after { content: '▣'; }
+.telemetry-summary-grid .telemetry-summary-card:nth-child(2)::after { content: '◎'; }
+.telemetry-summary-grid .telemetry-summary-card:nth-child(3)::after { content: '⊕'; }
+.telemetry-summary-grid .telemetry-summary-card:nth-child(4)::after { content: '⚐'; }
+
+/* ─────────────────────────────────────────────────────────────────────
+   Status chips / badges
+   ───────────────────────────────────────────────────────────────────── */
+.telemetry-chip {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 22px !important;
+  padding: 0 8px !important;
+  border-radius: 6px !important;
+  border: 1px solid transparent !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+.telemetry-chip-ok {
+  background: #DCFCE7 !important;
+  border-color: rgba(22, 163, 74, 0.22) !important;
+  color: #15803D !important;
+}
+
+.telemetry-chip-warn {
+  background: #EFF6FF !important;
+  border-color: rgba(59, 130, 246, 0.22) !important;
+  color: #1D4ED8 !important;
+}
+
+.telemetry-chip-off {
+  background: #FEE2E2 !important;
+  border-color: rgba(220, 38, 38, 0.20) !important;
+  color: #DC2626 !important;
+}
+
+.telemetry-chip-neutral {
+  background: #F1F5F9 !important;
+  border-color: rgba(100, 116, 139, 0.18) !important;
+  color: #64748B !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   Section cards: Datum / RTK Source / Yaw Diagnostics
+   ───────────────────────────────────────────────────────────────────── */
+.telemetry-panel-card {
+  display: grid !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  background: #ffffff !important;
+  border: 1px solid #DCE6F2 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05) !important;
+  overflow: hidden !important;
+}
+
+.telemetry-card-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  padding: 11px 14px !important;
+  background: #F8FAFE !important;
+  border-bottom: 1px solid #EEF2F9 !important;
+  border-radius: 0 !important;
+}
+
+.telemetry-card-header h4 {
+  margin: 0 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  color: #1E293B !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  text-shadow: none !important;
+}
+
+/* Section header icons via h4::before */
+.telemetry-card-header h4::before {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 18px !important;
+  height: 18px !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  color: #94A3B8 !important;
+  flex-shrink: 0 !important;
+}
+
+.telemetry-sidebar > .telemetry-panel-card:nth-child(2) .telemetry-card-header h4::before { content: '⊕'; }
+.telemetry-sidebar > .telemetry-panel-card:nth-child(3) .telemetry-card-header h4::before { content: '◎'; }
+.telemetry-sidebar > .telemetry-panel-card:nth-child(4) .telemetry-card-header h4::before { content: '↺'; }
+
+/* ─────────────────────────────────────────────────────────────────────
+   Key-value rows
+   ───────────────────────────────────────────────────────────────────── */
+.telemetry-kv-grid {
+  display: grid !important;
+  grid-template-columns: minmax(100px, 128px) minmax(0, 1fr) !important;
+  gap: 0 !important;
+  padding: 4px 0 !important;
+  background: #ffffff !important;
+}
+
+.telemetry-kv-grid > span {
+  padding: 7px 14px !important;
+  background: transparent !important;
+}
+
+.telemetry-kv-grid > span:nth-child(odd) {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  color: #94A3B8 !important;
+  text-shadow: none !important;
+}
+
+.telemetry-kv-grid > span:nth-child(even) {
+  min-width: 0 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #1E293B !important;
+  overflow-wrap: anywhere !important;
+  text-shadow: none !important;
+}
+
+/* Row dividers */
+.telemetry-kv-grid > span:nth-child(n+3) {
+  border-top: 1px solid #F1F5F9 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   Responsive
+   ───────────────────────────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .telemetry-summary-grid { grid-template-columns: 1fr !important; }
+  .telemetry-kv-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   Console tab
+   ───────────────────────────────────────────────────────────────────── */
+.telemetry-console-grid {
+  min-height: 0;
+  height: 100%;
+  gap: 14px;
+  padding: 14px;
+}
+
+.telemetry-scroll-card {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: min-content minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px;
+}
+
+.telemetry-scroll-card > h4 {
+  margin: 0;
+  line-height: 1.1;
+}
+
+.telemetry-scroll-list {
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  gap: 10px;
+}
+
+.telemetry-scroll-list .feed-item {
+  border: 1px solid #DCE6F2 !important;
+  border-radius: 10px !important;
+  padding: 10px 12px !important;
+  background: #ffffff !important;
+  color: #1E293B !important;
+}
+
+.telemetry-scroll-list .feed-item strong {
+  letter-spacing: 0.04em;
+}
+
+.feed-item.alert-recent,
+.tel-event.alert-recent {
+  background: linear-gradient(160deg, rgba(254, 243, 199, 0.70), #ffffff) !important;
+  border-color: rgba(202, 138, 4, 0.38) !important;
+  animation: telemetry-alert-recent-fade 5s linear forwards;
+}
+
+@keyframes telemetry-alert-recent-fade {
+  0%, 70% {
+    background: linear-gradient(160deg, rgba(254, 243, 199, 0.70), #ffffff);
+    border-color: rgba(202, 138, 4, 0.38);
+  }
+  100% {
+    background: #ffffff;
+    border-color: #DCE6F2;
+  }
+}

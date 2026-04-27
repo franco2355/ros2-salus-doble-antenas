@@ -1,0 +1,176 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1000" viewBox="0 0 1500 1000">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#24261d" flood-opacity="0.16"/>
+    </filter>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#24261d" flood-opacity="0.12"/>
+    </filter>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#9d936d" stroke-width="0.6" opacity="0.18"/>
+    </pattern>
+    <style>
+      .font { font-family: Inter, Arial, sans-serif; }
+      .title { font-size: 17px; font-weight: 800; fill: #11130f; letter-spacing: .8px; }
+      .section-title { font-size: 10px; font-weight: 800; fill: #11130f; letter-spacing: 1px; }
+      .label { font-size: 10px; font-weight: 800; fill: #11130f; letter-spacing: .2px; }
+      .label-wide { font-size: 11px; font-weight: 800; fill: #11130f; letter-spacing: .1px; }
+      .meta { font-size: 8.5px; font-weight: 600; fill: #5e5847; }
+      .muted { font-size: 10px; font-weight: 600; fill: #5e5847; }
+      .body { font-size: 15px; fill: #5e5847; }
+      .heading { font-size: 34px; font-weight: 800; fill: #11130f; }
+      .small { font-size: 9px; font-weight: 700; fill: #5e5847; }
+    </style>
+  </defs>
+
+  <rect width="1500" height="1000" rx="18" fill="#eeeade"/>
+  <rect width="1500" height="1000" rx="18" fill="url(#grid)" opacity="0.58"/>
+
+  <g filter="url(#shadow)">
+    <rect x="36" y="36" width="408" height="928" rx="18" fill="#d8d3c1" stroke="#9d936d" stroke-width="1.4"/>
+    <rect x="36" y="36" width="10" height="928" rx="5" fill="#24261d"/>
+    <rect x="36" y="122" width="10" height="148" rx="4" fill="#526f2f"/>
+    <rect x="36" y="804" width="10" height="82" rx="4" fill="#a4791f"/>
+
+    <g>
+      <rect x="60" y="54" width="360" height="76" rx="14" fill="#f8f4e8" stroke="#9d936d" stroke-width="1.2"/>
+      <rect x="74" y="68" width="46" height="46" rx="12" fill="#24261d"/>
+      <text x="85" y="96" class="font small" fill="#f4eedc">NAV</text>
+      <text x="132" y="85" class="font title">NAVIGATION</text>
+      <text x="132" y="109" class="font muted">Field route control</text>
+      <rect x="307" y="72" width="96" height="28" rx="14" fill="#efe0d9" stroke="#8b3d32" stroke-opacity="0.35"/>
+      <text x="332" y="90" class="font small" fill="#8b3d32">OFFLINE</text>
+    </g>
+
+    <g id="sections">
+      <g transform="translate(60 142)">
+        <rect width="360" height="178" rx="14" fill="#e3ead8" stroke="#526f2f" stroke-opacity="0.82" stroke-width="1.1"/>
+        <rect width="6" height="178" rx="3" fill="#526f2f"/>
+        <text x="18" y="26" class="font section-title">CONNECTION</text>
+        <rect x="304" y="9" width="40" height="20" rx="10" fill="#eef4df" stroke="#526f2f" stroke-opacity="0.55"/>
+        <text x="315" y="23" class="font small" fill="#526f2f">LIVE</text>
+        <rect x="18" y="40" width="324" height="34" rx="9" fill="#f8f4e8" stroke="#9d936d" stroke-opacity="0.75"/>
+        <rect x="22" y="44" width="154" height="26" rx="7" fill="#dfe9c9" stroke="#526f2f"/>
+        <text x="82" y="62" class="font muted" fill="#11130f">Real</text>
+        <text x="248" y="62" class="font muted">Sim</text>
+        <rect x="18" y="84" width="156" height="34" rx="9" fill="#f8f4e8" stroke="#c3b894"/>
+        <text x="28" y="96" class="font small">HOST</text>
+        <text x="28" y="113" class="font label">localhost</text>
+        <rect x="186" y="84" width="156" height="34" rx="9" fill="#f8f4e8" stroke="#c3b894"/>
+        <text x="196" y="96" class="font small">PORT</text>
+        <text x="196" y="113" class="font label">8766</text>
+        <g transform="translate(18 130)">
+          <rect width="156" height="54" rx="10" fill="#dfe9c9" stroke="#526f2f" filter="url(#softShadow)"/>
+          <rect width="22" height="3" rx="2" fill="#526f2f"/>
+          <rect x="12" y="13" width="28" height="28" rx="8" fill="#eef4df" stroke="#526f2f"/>
+          <polygon points="24,21 24,33 34,27" fill="#526f2f"/>
+          <text x="50" y="24" class="font label">CONNECT</text>
+          <text x="50" y="42" class="font meta">Open session</text>
+        </g>
+        <g transform="translate(186 130)">
+          <rect width="156" height="54" rx="10" fill="#f2eddc" stroke="#9d936d" filter="url(#softShadow)"/>
+          <rect width="22" height="3" rx="2" fill="#9d936d"/>
+          <rect x="12" y="13" width="28" height="28" rx="8" fill="#f8f4e8" stroke="#c3b894"/>
+          <circle cx="26" cy="27" r="5" fill="#39382d"/>
+          <text x="50" y="24" class="font label">DISCONNECT</text>
+          <text x="50" y="42" class="font meta">Close session</text>
+        </g>
+      </g>
+
+      <g transform="translate(60 332)">
+        <rect width="360" height="112" rx="14" fill="#ebe6d7" stroke="#c3b894" stroke-width="1.1"/>
+        <rect width="6" height="112" rx="3" fill="#9d936d"/>
+        <text x="18" y="26" class="font section-title">CONTROL MODE</text>
+        <rect x="18" y="44" width="156" height="54" rx="10" fill="#f2eddc" stroke="#9d936d"/>
+        <rect width="22" height="3" rx="2" fill="#9d936d" x="18" y="44"/>
+        <rect x="30" y="57" width="28" height="28" rx="8" fill="#f8f4e8" stroke="#c3b894"/>
+        <circle cx="44" cy="71" r="5" fill="#39382d"/>
+        <text x="68" y="68" class="font label">GOAL MODE</text>
+        <text x="68" y="86" class="font meta">Standby</text>
+        <rect x="186" y="44" width="156" height="54" rx="10" fill="#f2eddc" stroke="#9d936d"/>
+        <rect width="22" height="3" rx="2" fill="#9d936d" x="186" y="44"/>
+        <rect x="198" y="57" width="28" height="28" rx="8" fill="#f8f4e8" stroke="#c3b894"/>
+        <path d="M212 63V79M204 71H220" stroke="#39382d" stroke-width="2"/>
+        <text x="236" y="68" class="font label">MANUAL</text>
+        <text x="236" y="86" class="font meta">Disabled</text>
+      </g>
+
+      <g transform="translate(60 456)">
+        <rect width="360" height="104" rx="14" fill="#ebe6d7" stroke="#c3b894"/>
+        <rect width="6" height="104" rx="3" fill="#9d936d"/>
+        <text x="18" y="26" class="font section-title">WAYPOINTS</text>
+        <g transform="translate(18 42)">
+          <rect width="100" height="54" rx="10" fill="#ddd7c5" stroke="#c3b894"/>
+          <rect x="12" y="13" width="28" height="28" rx="8" fill="#e8e4d6" stroke="#c3b894"/>
+          <text x="50" y="24" class="font label" fill="#5b5545">UNDO</text>
+          <text x="50" y="42" class="font meta" fill="#5b5545">Last</text>
+        </g>
+        <g transform="translate(130 42)">
+          <rect width="100" height="54" rx="10" fill="#efe0d9" stroke="#8b3d32"/>
+          <path d="M24 22L36 34M36 22L24 34" stroke="#8b3d32" stroke-width="2"/>
+          <text x="50" y="24" class="font label" fill="#8b3d32">CLEAR</text>
+          <text x="50" y="42" class="font meta">All</text>
+        </g>
+        <g transform="translate(242 42)">
+          <rect width="100" height="54" rx="10" fill="#efe0d9" stroke="#8b3d32"/>
+          <path d="M22 28H38" stroke="#8b3d32" stroke-width="2.4"/>
+          <text x="50" y="24" class="font label" fill="#8b3d32">REMOVE</text>
+          <text x="50" y="42" class="font meta">0 sel.</text>
+        </g>
+      </g>
+
+      <g transform="translate(60 572)">
+        <rect width="360" height="208" rx="14" fill="#e3ead8" stroke="#526f2f"/>
+        <rect width="6" height="208" rx="3" fill="#526f2f"/>
+        <text x="18" y="26" class="font section-title">NAVIGATION ACTIONS</text>
+        <g transform="translate(18 42)">
+          <rect width="324" height="54" rx="10" fill="#ddd7c5" stroke="#c3b894"/>
+          <rect width="22" height="3" rx="2" fill="#c3b894"/>
+          <rect x="12" y="13" width="28" height="28" rx="8" fill="#e8e4d6" stroke="#c3b894"/>
+          <circle cx="24" cy="25" r="2.5" fill="#5b5545"/><circle cx="34" cy="35" r="2.5" fill="#5b5545"/><path d="M26 27L32 33" stroke="#5b5545" stroke-width="2"/>
+          <text x="50" y="24" class="font label-wide" fill="#5b5545">DISPATCH GOAL</text>
+          <text x="50" y="42" class="font meta" fill="#5b5545">0 waypoints queued</text>
+        </g>
+        <g transform="translate(18 102)">
+          <rect width="324" height="54" rx="10" fill="#ddd7c5" stroke="#c3b894"/>
+          <rect x="12" y="13" width="28" height="28" rx="8" fill="#e8e4d6" stroke="#c3b894"/>
+          <circle cx="24" cy="25" r="2.5" fill="#5b5545"/><circle cx="34" cy="35" r="2.5" fill="#5b5545"/><path d="M26 27L32 33" stroke="#5b5545" stroke-width="2"/>
+          <text x="50" y="24" class="font label-wide" fill="#5b5545">ROUTE MISSION</text>
+          <text x="50" y="42" class="font meta" fill="#5b5545">Expand and execute route</text>
+        </g>
+        <g transform="translate(18 162)">
+          <rect width="324" height="54" rx="10" fill="#efe0d9" stroke="#8b3d32"/>
+          <rect x="12" y="13" width="28" height="28" rx="8" fill="#f4e7e1" stroke="#8b3d32"/>
+          <rect x="22" y="23" width="8" height="8" rx="1.5" fill="#8b3d32"/>
+          <text x="50" y="24" class="font label-wide" fill="#8b3d32">CANCEL</text>
+          <text x="50" y="42" class="font meta">Stop active navigation</text>
+        </g>
+      </g>
+    </g>
+  </g>
+
+  <g transform="translate(478 36)">
+    <rect width="986" height="928" rx="18" fill="#f8f4e8" stroke="#9d936d" stroke-width="1.2"/>
+    <text x="36" y="74" class="font heading">Futuristic light cockpit direction</text>
+    <text x="36" y="114" class="font body">Sin azul ni celeste. El look futurista viene de estructura, jerarquia, lineas tecnicas, estados claros e iconografia precisa.</text>
+    <rect x="36" y="146" width="914" height="180" rx="16" fill="#f1ead8" stroke="#c3b894"/>
+    <text x="56" y="182" class="font title">Paleta clara futurista, sin marco gris</text>
+    <g transform="translate(56 204)">
+      <g><rect width="92" height="92" rx="12" fill="#fffaf0" stroke="#c3b894"/><rect x="10" y="10" width="72" height="32" rx="7" fill="#eeeade"/><text x="10" y="63" class="font label">Base</text><text x="10" y="80" class="font small">#eeeade</text></g>
+      <g transform="translate(110 0)"><rect width="92" height="92" rx="12" fill="#fffaf0" stroke="#c3b894"/><rect x="10" y="10" width="72" height="32" rx="7" fill="#d8d3c1"/><text x="10" y="63" class="font label">Shell</text><text x="10" y="80" class="font small">#d8d3c1</text></g>
+      <g transform="translate(220 0)"><rect width="92" height="92" rx="12" fill="#fffaf0" stroke="#c3b894"/><rect x="10" y="10" width="72" height="32" rx="7" fill="#ebe6d7"/><text x="10" y="63" class="font label">Surface</text><text x="10" y="80" class="font small">#ebe6d7</text></g>
+      <g transform="translate(330 0)"><rect width="92" height="92" rx="12" fill="#fffaf0" stroke="#c3b894"/><rect x="10" y="10" width="72" height="32" rx="7" fill="#f2eddc"/><text x="10" y="63" class="font label">Button</text><text x="10" y="80" class="font small">#f2eddc</text></g>
+      <g transform="translate(440 0)"><rect width="92" height="92" rx="12" fill="#fffaf0" stroke="#c3b894"/><rect x="10" y="10" width="72" height="32" rx="7" fill="#9d936d"/><text x="10" y="63" class="font label">Border</text><text x="10" y="80" class="font small">#9d936d</text></g>
+      <g transform="translate(550 0)"><rect width="92" height="92" rx="12" fill="#fffaf0" stroke="#c3b894"/><rect x="10" y="10" width="72" height="32" rx="7" fill="#526f2f"/><text x="10" y="63" class="font label">Action</text><text x="10" y="80" class="font small">#526f2f</text></g>
+      <g transform="translate(660 0)"><rect width="92" height="92" rx="12" fill="#fffaf0" stroke="#c3b894"/><rect x="10" y="10" width="72" height="32" rx="7" fill="#8b3d32"/><text x="10" y="63" class="font label">Danger</text><text x="10" y="80" class="font small">#8b3d32</text></g>
+      <g transform="translate(770 0)"><rect width="92" height="92" rx="12" fill="#fffaf0" stroke="#c3b894"/><rect x="10" y="10" width="72" height="32" rx="7" fill="#11130f"/><text x="10" y="63" class="font label">Ink</text><text x="10" y="80" class="font small">#11130f</text></g>
+    </g>
+    <rect x="36" y="354" width="914" height="250" rx="16" fill="#f1ead8" stroke="#c3b894"/>
+    <text x="56" y="390" class="font title">Que lo hace mas futurista</text>
+    <text x="56" y="430" class="font body">1. Sidebar como modulo tecnico: rail lateral, ID de modulo y status capsule.</text>
+    <text x="56" y="462" class="font body">2. Opciones con barra de acento, borde oliva/dorado y sombra sutil.</text>
+    <text x="56" y="494" class="font body">3. Iconos en contenedores fijos para lectura rapida.</text>
+    <text x="56" y="526" class="font body">4. Disabled visible: baja prioridad, pero sigue siendo una opcion real.</text>
+    <text x="56" y="558" class="font body">5. Paleta clara mate: usable con luz exterior sin blanco puro.</text>
+  </g>
+</svg>

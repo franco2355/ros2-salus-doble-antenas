@@ -1,0 +1,18 @@
+dispatchers:
+  dispatcher.robot:
+    transport: transport.ws.core
+    ops:
+      - robot.status.update
+      - robot.pose.update
+      - navigation.goal.send
+  dispatcher.map:
+    transport: transport.googlemaps
+    ops:
+      - map.request
+      - google.maps.geocode
+  dispatcher.mission:
+    transport: transport.rosbridge
+    ops:
+      - mission.start
+      - mission.status.update
+
