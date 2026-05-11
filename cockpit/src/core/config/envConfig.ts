@@ -32,7 +32,7 @@ export function loadEnvConfig(env: ImportMetaEnv = import.meta.env): EnvConfig {
     rosbridgeUrl: env.VITE_ROSBRIDGE_URL ?? "ws://localhost:9090",
     httpBaseUrl: env.VITE_HTTP_BASE_URL ?? "http://localhost:8080",
     googleMapsApiKey: env.VITE_GOOGLE_MAPS_API_KEY ?? "",
-    cameraIframeUrl: env.VITE_CAMERA_IFRAME_URL ?? "http://localhost:8088/",
+    cameraIframeUrl: env.VITE_CAMERA_IFRAME_URL ?? "http://localhost:8089/",
     cameraProbeTimeoutMs: parsePositiveInt(env.VITE_CAMERA_PROBE_TIMEOUT_MS, 3000),
     cameraLoadTimeoutMs: parsePositiveInt(env.VITE_CAMERA_LOAD_TIMEOUT_MS, 7000)
   };

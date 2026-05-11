@@ -148,10 +148,11 @@ function RailFeedRow({
   );
 }
 
-const VISION_STREAM_URL = "http://localhost:8089/stream.mjpg";
+const _rpiHost = import.meta.env.VITE_RASPBERRY_HOST ?? "localhost";
+const VISION_STREAM_URL = `http://${_rpiHost}:8089/stream.mjpg`;
 const SNAP_STALE_MS = 1800;
 const STREAM_RECONNECT_STALE_MS = 3000;
-const VISION_DATA_URL = "http://localhost:8088/data";
+const VISION_DATA_URL = `http://${_rpiHost}:8088/data`;
 const VISION_DATA_POLL_INTERVAL_MS = 100;
 const MIN_DETECTION_CONFIDENCE = 0.35;
 const OVERLAY_MIN_CONFIDENCE = 0.50;
