@@ -149,14 +149,16 @@ function RailFeedRow({
 }
 
 const _rpiHost = import.meta.env.VITE_RASPBERRY_HOST ?? "localhost";
+const _visionHost = import.meta.env.VITE_VISION_HOST ?? "localhost";
 const VISION_STREAM_URL = `http://${_rpiHost}:8089/stream.mjpg`;
 const SNAP_STALE_MS = 1800;
-const STREAM_RECONNECT_STALE_MS = 3000;
-const VISION_DATA_URL = `http://${_rpiHost}:8088/data`;
+const STREAM_RECONNECT_STALE_MS = 4000;
+const VISION_DATA_URL = `http://${_visionHost}:8088/data`;
 const VISION_DATA_POLL_INTERVAL_MS = 100;
 const MIN_DETECTION_CONFIDENCE = 0.35;
 const OVERLAY_MIN_CONFIDENCE = 0.50;
 const ALERT_HOLD_MS = 500;
+const DETECTION_MAX_AGE_MS = 60_000;
 
 type DetectionZone = "left" | "center" | "right";
 type RiskLevel = "normal" | "low" | "medium" | "high";
@@ -389,7 +391,7 @@ function CameraVisionWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX
   const [state, setState] = useState<CameraVisionState>(service.getState());
   const [navigationState, setNavigationState] = useState<NavigationState | null>(navigationService?.getState() ?? null);
   const [connectionState, setConnectionState] = useState<ConnectionState | null>(connectionService?.getState() ?? null);
-  const [snapSrc, setSnapSrc] = useState<string>("");
+  const [streamKey, setStreamKey] = useState<number | null>(null);
   const [snapLastFrameMs, setSnapLastFrameMs] = useState<number>(0);
   const lastCameraStampRef = useRef<number>(0);
   const fpsWindowRef = useRef<{ startedMs: number; frames: number }>({ startedMs: Date.now(), frames: 0 });
@@ -412,25 +414,15 @@ function CameraVisionWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX
   }, [connectionService]);
 
   useEffect(() => {
-    setSnapSrc(`${VISION_STREAM_URL}?_=${Date.now()}`);
-    return () => setSnapSrc("");
+    setStreamKey(0);
+    return () => setStreamKey(null);
   }, []);
 
   useEffect(() => {
-    if (snapSrc) return;
-    const timer = setTimeout(() => {
-      setSnapSrc(`${VISION_STREAM_URL}?_=${Date.now()}`);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [snapSrc]);
-
-  // Force stream reconnect when no new frame arrives for STREAM_RECONNECT_STALE_MS.
-  // onError covers hard failures; this covers MJPEG streams that silently stop sending.
-  useEffect(() => {
-    if (!snapSrc || snapLastFrameMs === 0) return;
-    const id = setTimeout(() => setSnapSrc(""), STREAM_RECONNECT_STALE_MS);
+    if (streamKey === null || snapLastFrameMs === 0) return;
+    const id = setTimeout(() => setStreamKey(k => k !== null ? k + 1 : k), STREAM_RECONNECT_STALE_MS);
     return () => clearTimeout(id);
-  }, [snapSrc, snapLastFrameMs]);
+  }, [streamKey, snapLastFrameMs]);
 
   useEffect(() => {
     let cancelled = false;
@@ -493,8 +485,11 @@ function CameraVisionWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX
   const serviceAlertState = state.detectionsActive && state.currentDetections.length > 0
     ? buildAlertState(state.currentDetections, state.lastDetectionMs || Date.now())
     : NORMAL_ALERT_STATE;
-  const liveAlertState = alertState.detections.length > 0 || alertState.risk !== "normal"
-    ? alertState
+  const cameraFrozen = snapLastFrameMs > 0 && nowMs - snapLastFrameMs > DETECTION_MAX_AGE_MS;
+  const detectionExpired = cameraFrozen || (visionLastDetectionMs > 0 && nowMs - visionLastDetectionMs > DETECTION_MAX_AGE_MS);
+  const effectiveAlertState = detectionExpired ? NORMAL_ALERT_STATE : alertState;
+  const liveAlertState = effectiveAlertState.detections.length > 0 || effectiveAlertState.risk !== "normal"
+    ? effectiveAlertState
     : serviceAlertState;
   const detectionCount = liveAlertState.detections.length;
   const detectionsActive = liveAlertState.risk !== "normal" || detectionCount > 0 || state.detectionsActive;
@@ -502,7 +497,7 @@ function CameraVisionWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX
   const detCountText = `${detectionCount} obj${detectionCount !== 1 ? "s" : ""}`;
   const cameraEnabled = connectionService?.isCameraEnabled() ?? false;
   const streamOnline = navigationState?.cameraStreamConnected === true;
-  const snapshotOnline = snapSrc.length > 0 && nowMs - snapLastFrameMs <= SNAP_STALE_MS;
+  const snapshotOnline = streamKey !== null && snapLastFrameMs > 0 && nowMs - snapLastFrameMs <= SNAP_STALE_MS;
   const feedOnline = state.connected || snapshotOnline;
   const presetLabel = connectionState?.preset === "sim" ? "SIM" : connectionState?.preset === "real" ? "REAL" : "N/A";
   const lastFrameTimestamp = state.lastFrameMs || snapLastFrameMs;
@@ -511,8 +506,8 @@ function CameraVisionWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX
   const lastFrameAgeLabel = formatElapsedSeconds(frameAgeMs);
   const lastFrameAgeDetail = formatElapsedMs(frameAgeMs);
   const lastDetectionLabel = formatTimestamp(lastDetectionMs);
-  const jsonTimestampMs = liveAlertState.lastJsonMs || lastDetectionMs;
-  const jsonAgeLabel = jsonTimestampMs > 0 ? `${Math.max(0, nowMs - jsonTimestampMs)} ms` : "Waiting";
+  const jsonTimestampMs = liveAlertState.lastDetectionMs || lastDetectionMs;
+  const jsonAgeLabel = jsonTimestampMs > 0 ? formatElapsedMs(nowMs - jsonTimestampMs) : "Waiting";
   const mainDetection = liveAlertState.mainDetection;
   const overviewDetections = liveAlertState.detections;
   const overviewMainDetection = mainDetection ?? overviewDetections[0] ?? null;
@@ -576,24 +571,27 @@ function CameraVisionWorkspaceView({ runtime }: { runtime: ModuleContext }): JSX
       <div className="cv-body cv-html-body">
         <section className="cv-main cv-html-main">
           <div className="cv-viewport-shell cv-html-stage">
-            <div className={`cv-viewport cv-html-viewport cv-alert-${alertState.risk}${!snapSrc ? " cv-viewport--no-signal" : ""}`}>
-              {snapSrc ? (
+            <div className={`cv-viewport cv-html-viewport cv-alert-${alertState.risk}${!snapshotOnline ? " cv-viewport--no-signal" : ""}`}>
+              {streamKey !== null ? (
                 <img
-                  src={snapSrc}
+                  key={streamKey}
+                  src={`${VISION_STREAM_URL}?_=${streamKey}`}
                   className="cv-frame"
                   alt="Camera stream"
                   draggable={false}
+                  style={snapshotOnline ? undefined : { display: "none" }}
                   onLoad={() => setSnapLastFrameMs(Date.now())}
-                  onError={() => setSnapSrc("")}
+                  onError={() => setStreamKey(k => k !== null ? k + 1 : k)}
                 />
-              ) : (
+              ) : null}
+              {!snapshotOnline ? (
                 <div className="cv-no-signal">
                   <div className="cv-no-signal-shell">
                     <div className="cv-no-signal-text">Awaiting camera snapshot</div>
                   </div>
                 </div>
-              )}
-              {snapSrc && overviewDetections.some(d => d.confidence >= OVERLAY_MIN_CONFIDENCE) ? (
+              ) : null}
+              {snapshotOnline && overviewDetections.some(d => d.confidence >= OVERLAY_MIN_CONFIDENCE) ? (
                 <div className="cv-overlay" aria-hidden="true">
                   {overviewDetections.filter(d => d.confidence >= OVERLAY_MIN_CONFIDENCE).map((det, index) => {
                     const left = `${Math.max(0, Math.min(1, det.bbox.x)) * 100}%`;

@@ -39,6 +39,12 @@
 
 set -euo pipefail
 
+if [[ "$(uname -m)" == aarch64 || "$(uname -m)" == armv7l ]]; then
+  echo "[vision-pc] ERROR: Este script NO debe ejecutarse en la Raspberry Pi (ARM)." >&2
+  echo "[vision-pc] El detector YOLO solo corre en la PC (x86_64)." >&2
+  exit 1
+fi
+
 # ── Variables de configuración ───────────────────────────────────────────────
 STREAM_URL="${STREAM_URL:-}"
 MODEL_PATH="${MODEL_PATH:-}"

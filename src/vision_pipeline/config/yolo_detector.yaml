@@ -10,7 +10,7 @@
     conf_threshold: 0.70
     nms_iou_threshold: 0.45
     max_detections: 20
-    max_fps: 10.0
+    max_fps: 1.0
     execution_provider: auto
     intra_op_threads: 2
     inter_op_threads: 1

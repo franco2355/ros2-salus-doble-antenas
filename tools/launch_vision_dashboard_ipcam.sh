@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ "$(uname -m)" == aarch64 || "$(uname -m)" == armv7l ]]; then
+  echo "[vision] ERROR: Este script NO debe ejecutarse en la Raspberry Pi (ARM)." >&2
+  echo "[vision] El detector YOLO solo corre en la PC (x86_64)." >&2
+  exit 1
+fi
+
 CONTAINER="${ROS2_CONTAINER_NAME:-ros2_salus}"
 STREAM_URL="${STREAM_URL:-}"
 MODEL_PATH="${MODEL_PATH:-/ros2_ws/src/vision_pipeline/models/yolo11n.onnx}"
