@@ -12,6 +12,8 @@ from std_msgs.msg import String
 
 from .control_logic import (
     DesiredCommand,
+    ReverseTransitionState,
+    apply_reverse_transition,
     command_from_cmd_vel,
     safe_command,
     select_effective_command,
@@ -37,8 +39,10 @@ class ControllerServerNode(Node):
         self.declare_parameter("wheelbase_m", 0.94)
         self.declare_parameter("steering_limit_rad", 0.5235987756)
         self.declare_parameter("reverse_brake_pct", 20)
+        self.declare_parameter("reverse_transition_hold_s", 0.5)
         self.declare_parameter("invert_steer_from_cmd_vel", False)
         self.declare_parameter("auto_drive_enabled", True)
+        self.declare_parameter("log_cmd_vel_final_rx", False)
         self.declare_parameter("estop_brake_pct", 100)
         self.declare_parameter("telemetry_stale_timeout_s", 0.5)
         self.declare_parameter("transport_backend", "uart")
@@ -97,10 +101,14 @@ class ControllerServerNode(Node):
             )
             self._steering_limit_rad = 0.5235987756
         self._reverse_brake_pct = int(self.get_parameter("reverse_brake_pct").value)
+        self._reverse_transition_hold_s = max(
+            0.0, float(self.get_parameter("reverse_transition_hold_s").value)
+        )
         self._invert_steer_from_cmd_vel = bool(
             self.get_parameter("invert_steer_from_cmd_vel").value
         )
         self._auto_drive_enabled = bool(self.get_parameter("auto_drive_enabled").value)
+        self._log_cmd_vel_final_rx = bool(self.get_parameter("log_cmd_vel_final_rx").value)
         self._estop_brake_pct = int(self.get_parameter("estop_brake_pct").value)
         self._telemetry_stale_timeout_s = max(
             0.05, float(self.get_parameter("telemetry_stale_timeout_s").value)
@@ -141,6 +149,7 @@ class ControllerServerNode(Node):
         self._auto_stamp_s = 0.0
         self._last_source = "init"
         self._last_steer_saturated = False
+        self._reverse_transition_state = ReverseTransitionState()
 
         self._client = create_transport_backend(
             node=self,
@@ -211,18 +220,28 @@ class ControllerServerNode(Node):
         elif (not cmd.steer_saturated) and self._last_steer_saturated:
             self.get_logger().info("Ackermann steer saturation cleared")
         self._last_steer_saturated = bool(cmd.steer_saturated)
-        self.get_logger().info(
-            "cmd_vel_final rx "
-            f"linear_x={msg.twist.linear.x:.3f} angular_z={msg.twist.angular.z:.3f} "
-            f"brake_pct={int(msg.brake_pct)} -> "
-            f"drive={int(cmd.drive_enabled)} estop={int(cmd.estop)} "
-            f"speed_mps={cmd.speed_mps:.3f} steer_pct={cmd.steer_pct} "
-            f"steer_deg={math.degrees(cmd.applied_steer_rad):.2f} "
-            f"curvature={cmd.applied_curvature_inv_m:.3f} brake_pct={cmd.brake_pct}"
-        )
+        if self._log_cmd_vel_final_rx:
+            self.get_logger().info(
+                "cmd_vel_final rx "
+                f"linear_x={msg.twist.linear.x:.3f} angular_z={msg.twist.angular.z:.3f} "
+                f"brake_pct={int(msg.brake_pct)} -> "
+                f"drive={int(cmd.drive_enabled)} estop={int(cmd.estop)} "
+                f"speed_mps={cmd.speed_mps:.3f} steer_pct={cmd.steer_pct} "
+                f"steer_deg={math.degrees(cmd.applied_steer_rad):.2f} "
+                f"curvature={cmd.applied_curvature_inv_m:.3f} brake_pct={cmd.brake_pct}"
+            )
 
     def _apply_to_controller(self, cmd: DesiredCommand) -> None:
         self._client.apply_command(cmd)
+
+    def _get_fresh_measured_speed_mps(self, now_s: float) -> tuple[bool, float | None]:
+        telemetry = self._client.get_latest_telemetry()
+        if telemetry is None or telemetry.speed_mps is None:
+            return False, None
+        telemetry_age_s = max(0.0, float(now_s) - float(telemetry.rx_monotonic_s))
+        if telemetry_age_s > self._telemetry_stale_timeout_s:
+            return False, None
+        return True, float(telemetry.speed_mps)
 
     def _control_tick(self) -> None:
         now = time.monotonic()
@@ -245,9 +264,22 @@ class ControllerServerNode(Node):
                 steer_pct=0,
                 brake_pct=max(cmd.brake_pct, self._estop_brake_pct),
             )
+            self._reverse_transition_state = ReverseTransitionState()
             source = "estop"
         else:
             source = result.source
+            telemetry_fresh, measured_speed_mps = self._get_fresh_measured_speed_mps(now)
+            cmd, source, self._reverse_transition_state = apply_reverse_transition(
+                now_s=now,
+                cmd=cmd,
+                source=source,
+                state=self._reverse_transition_state,
+                reverse_brake_pct=self._reverse_brake_pct,
+                min_hold_s=self._reverse_transition_hold_s,
+                measured_speed_mps=measured_speed_mps,
+                telemetry_fresh=telemetry_fresh,
+                stop_speed_threshold_mps=max(0.05, self._vx_deadband_mps),
+            )
 
         self._apply_to_controller(cmd)
         self._last_source = source

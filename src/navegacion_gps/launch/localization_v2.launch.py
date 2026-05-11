@@ -2,7 +2,7 @@ from pathlib import Path
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -21,6 +21,34 @@ def _resolve_config_file_path(package_share_dir: str, filename: str) -> str:
     return str(default_path)
 
 
+def _build_local_ekf(context):
+    use_sim_time = LaunchConfiguration("use_sim_time").perform(context).lower() == "true"
+    imu_topic = LaunchConfiguration("imu_topic").perform(context)
+    localization_params_file = LaunchConfiguration("localization_params_file").perform(context)
+    localization_params_overlay_file = (
+        LaunchConfiguration("localization_params_overlay_file").perform(context).strip()
+    )
+
+    parameters = [localization_params_file]
+    if localization_params_overlay_file:
+        parameters.append(localization_params_overlay_file)
+    parameters.append({"use_sim_time": use_sim_time})
+
+    return [
+        Node(
+            package="robot_localization",
+            executable="ekf_node",
+            name="ekf_filter_node_local_v2",
+            output="screen",
+            parameters=parameters,
+            remappings=[
+                ("imu/data", imu_topic),
+                ("odometry/filtered", "/odometry/local"),
+            ],
+        )
+    ]
+
+
 def generate_launch_description():
     gps_wpf_dir = get_package_share_directory("navegacion_gps")
     default_params_file = _resolve_config_file_path(gps_wpf_dir, "localization_v2.yaml")
@@ -30,7 +58,6 @@ def generate_launch_description():
     imu_topic = LaunchConfiguration("imu_topic")
     wheelbase_m = LaunchConfiguration("wheelbase_m")
     invert_measured_steer_sign = LaunchConfiguration("invert_measured_steer_sign")
-    localization_params_file = LaunchConfiguration("localization_params_file")
     pose_covariance_xy = LaunchConfiguration("pose_covariance_xy")
     pose_covariance_yaw = LaunchConfiguration("pose_covariance_yaw")
     twist_covariance_vx = LaunchConfiguration("twist_covariance_vx")
@@ -53,6 +80,10 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "localization_params_file",
                 default_value=default_params_file,
+            ),
+            DeclareLaunchArgument(
+                "localization_params_overlay_file",
+                default_value="",
             ),
             DeclareLaunchArgument("pose_covariance_xy", default_value="0.05"),
             DeclareLaunchArgument("pose_covariance_yaw", default_value="0.1"),
@@ -106,19 +137,6 @@ def generate_launch_description():
                     },
                 ],
             ),
-            Node(
-                package="robot_localization",
-                executable="ekf_node",
-                name="ekf_filter_node_local_v2",
-                output="screen",
-                parameters=[
-                    localization_params_file,
-                    {"use_sim_time": ParameterValue(use_sim_time, value_type=bool)},
-                ],
-                remappings=[
-                    ("imu/data", imu_topic),
-                    ("odometry/filtered", "/odometry/local"),
-                ],
-            ),
+            OpaqueFunction(function=_build_local_ekf),
         ]
     )

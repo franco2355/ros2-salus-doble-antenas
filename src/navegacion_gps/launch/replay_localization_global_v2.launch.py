@@ -89,7 +89,7 @@ def generate_launch_description():
                 default_value="/navsat_transform/fromLL",
             ),
             DeclareLaunchArgument("map_gps_fromll_wait_timeout_s", default_value="0.2"),
-            DeclareLaunchArgument("navsat_use_odometry_yaw", default_value="false"),
+            DeclareLaunchArgument("navsat_use_odometry_yaw", default_value="true"),
             DeclareLaunchArgument("enable_gps_course_heading", default_value="true"),
             DeclareLaunchArgument("gps_course_heading_min_distance_m", default_value="2.0"),
             DeclareLaunchArgument("gps_course_heading_min_speed_mps", default_value="0.8"),

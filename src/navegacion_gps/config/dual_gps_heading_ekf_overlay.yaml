@@ -1,0 +1,40 @@
+# Overlay para dual GPS heading. Se carga encima de dual_ekf_navsat_params.yaml
+# cuando real.launch resuelve use_dual_gps_heading en modo dual.
+
+ekf_filter_node_odom:
+  ros__parameters:
+    imu0_config: [false, false, false,
+                  true,  true,  false,
+                  false, false, false,
+                  false, false, true,
+                  false, false, false]
+
+    imu1: /dual_gps/heading
+    imu1_config: [false, false, false,
+                  false, false, true,
+                  false, false, false,
+                  false, false, false,
+                  false, false, false]
+    imu1_differential: false
+    imu1_relative: false
+
+ekf_filter_node_local_v2:
+  ros__parameters:
+    imu0_config: [false, false, false,
+                  true,  true,  false,
+                  false, false, false,
+                  false, false, true,
+                  false, false, false]
+
+    imu1: /dual_gps/heading
+    imu1_config: [false, false, false,
+                  false, false, true,
+                  false, false, false,
+                  false, false, false,
+                  false, false, false]
+    imu1_differential: false
+    imu1_relative: false
+
+navsat_transform:
+  ros__parameters:
+    use_odometry_yaw: true

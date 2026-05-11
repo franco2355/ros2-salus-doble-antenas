@@ -33,10 +33,16 @@
       #ci-scan {
         position:absolute; left:0; right:0; height:1px;
         background: linear-gradient(90deg, transparent 0%, rgba(27,108,168,0.5) 40%, rgba(27,108,168,0.8) 50%, rgba(27,108,168,0.5) 60%, transparent 100%);
-        top: 0; animation: ciScan 3s linear 0.3s infinite;
+        top: 0;
+        opacity: 0;
+        animation: ciScan 3s linear 1.85s infinite;
         pointer-events: none;
       }
-      @keyframes ciScan { from{top:0%} to{top:100%} }
+      @keyframes ciScan {
+        0% { top:0%; opacity:1; }
+        96% { opacity:1; }
+        100% { top:100%; opacity:0; }
+      }
 
       #ci-svg { width: 300px; height: 300px; }
 
@@ -52,14 +58,19 @@
       }
 
       #ci-c-arc {
-        stroke-dasharray: 545; stroke-dashoffset: 545;
-        animation: ciDrawC 1.0s cubic-bezier(0.4,0,0.2,1) 1.2s forwards;
+        stroke-dasharray: 1; stroke-dashoffset: 1;
+        opacity: 0;
+        animation: ciDrawC 1.0s cubic-bezier(0.4,0,0.2,1) 1.85s forwards;
       }
       #ci-c-inner {
-        stroke-dasharray: 385; stroke-dashoffset: 385;
-        animation: ciDrawC 0.85s cubic-bezier(0.4,0,0.2,1) 1.45s forwards;
+        stroke-dasharray: 1; stroke-dashoffset: 1;
+        opacity: 0;
+        animation: ciDrawC 0.85s cubic-bezier(0.4,0,0.2,1) 2.1s forwards;
       }
-      @keyframes ciDrawC { to { stroke-dashoffset:0; } }
+      @keyframes ciDrawC {
+        from { opacity:1; stroke-dashoffset:1; }
+        to { opacity:1; stroke-dashoffset:0; }
+      }
 
       .ci-lt { opacity:0; display:inline-block; animation: ciLtIn 0.28s ease forwards; }
       @keyframes ciLtIn { to { opacity:1; } }
@@ -130,12 +141,12 @@
         <path id="ci-c-arc"
           d="M 83,-83 A 117,117,0,1,0,83,83"
           fill="none" stroke="url(#ci-cg)" stroke-width="22"
-          stroke-linecap="butt" filter="url(#ci-fs)"/>
+          stroke-linecap="butt" filter="url(#ci-fs)" pathLength="1"/>
 
         <path id="ci-c-inner"
           d="M 65,-65 A 92,92,0,1,0,65,65"
           fill="none" stroke="rgba(27,108,168,0.07)"
-          stroke-width="2.5" stroke-linecap="round"/>
+          stroke-width="2.5" stroke-linecap="round" pathLength="1"/>
 
         <g id="ci-robot-group" style="mix-blend-mode:multiply">
           <image href="/pasted-1777208286594-0.png"

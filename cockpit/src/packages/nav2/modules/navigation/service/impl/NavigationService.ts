@@ -1,4 +1,5 @@
 import type { RobotDispatcher } from "../../dispatcher/impl/RobotDispatcher";
+import type { Nav2IncomingMessage } from "../../../../protocol/messages";
 
 export interface GoalInput {
   x: number;
@@ -213,6 +214,14 @@ function extractMessageText(message: Record<string, unknown>): string {
   const payload = asRecord(message.payload);
   const nested = payload && typeof payload.message === "string" ? payload.message.trim() : "";
   return nested || "";
+}
+
+function normalizeRecordingError(response: Nav2IncomingMessage, fallback: string): string {
+  const raw = String(response.error ?? (extractMessageText(response as Record<string, unknown>) || fallback)).trim();
+  if (/unknown\s+op/i.test(raw)) {
+    return "El backend conectado no soporta la operación de grabación de waypoints. Actualizá o levantá map_tools web_zone_server con soporte start_recording.";
+  }
+  return raw || fallback;
 }
 
 function messageCandidates(message: Record<string, unknown>): Record<string, unknown>[] {
@@ -597,10 +606,40 @@ export class NavigationService {
     this.state = {
       ...this.state,
       goalMode: next,
+      manualMode: next ? false : this.state.manualMode,
+      manualDisablePending: next ? false : this.state.manualDisablePending,
       lastStatus: next ? "Goal mode ON" : "Goal mode OFF"
     };
+    if (next) {
+      this.clearManualIntent();
+      this.updateManualLoopLifecycle();
+    }
     this.emit();
     return next;
+  }
+
+  async setGoalMode(enabled: boolean): Promise<void> {
+    if (enabled && this.state.controlLocked) {
+      throw new Error(`Controls are locked (${this.state.controlLockReason || "locked"})`);
+    }
+    if (enabled && this.state.manualMode) {
+      const response = await this.robotDispatcher.requestManualMode(false);
+      if (response.ok === false) {
+        throw new Error(response.error ?? "Disable manual mode failed");
+      }
+    }
+    this.state = {
+      ...this.state,
+      goalMode: enabled,
+      manualMode: enabled ? false : this.state.manualMode,
+      manualDisablePending: enabled ? false : this.state.manualDisablePending,
+      lastStatus: enabled ? "Goal mode ON" : "Goal mode OFF"
+    };
+    if (enabled) {
+      this.clearManualIntent();
+      this.updateManualLoopLifecycle();
+    }
+    this.emit();
   }
 
   queueWaypoint(input: GoalInput): void {
@@ -790,7 +829,7 @@ export class NavigationService {
   async startRecording(): Promise<void> {
     const response = await this.robotDispatcher.requestStartRecording();
     if (response.ok === false) {
-      throw new Error(response.error ?? "Start recording failed");
+      throw new Error(normalizeRecordingError(response, "Start recording failed"));
     }
     this.state = {
       ...this.state,
@@ -807,7 +846,7 @@ export class NavigationService {
   async stopRecording(): Promise<void> {
     const response = await this.robotDispatcher.requestStopRecording();
     if (response.ok === false) {
-      throw new Error(response.error ?? "Stop recording failed");
+      throw new Error(normalizeRecordingError(response, "Stop recording failed"));
     }
     const message = extractMessageText(response as Record<string, unknown>) || "saved";
     this.state = {
@@ -825,7 +864,7 @@ export class NavigationService {
   async clearRecording(): Promise<void> {
     const response = await this.robotDispatcher.requestClearRecording();
     if (response.ok === false) {
-      throw new Error(response.error ?? "Clear recording failed");
+      throw new Error(normalizeRecordingError(response, "Clear recording failed"));
     }
     const message = extractMessageText(response as Record<string, unknown>) || "recording cleared";
     this.state = {
@@ -898,6 +937,13 @@ export class NavigationService {
 
   async unlockControls(graceMs = 2000): Promise<void> {
     await this.setControlLock(false, graceMs);
+  }
+
+  applyLocalControlLock(locked: boolean, reason: string): void {
+    this.applyControlLockUpdate({
+      locked,
+      reason
+    });
   }
 
   startControlHeartbeat(intervalMs = 1000): void {
@@ -1080,6 +1126,7 @@ export class NavigationService {
     }
     this.state = {
       ...this.state,
+      goalMode: enabled ? false : this.state.goalMode,
       manualMode: enabled,
       manualDisablePending: false,
       lastStatus: enabled ? "Manual mode ON" : "Manual mode OFF"
@@ -1395,6 +1442,7 @@ export class NavigationService {
 
     this.state = {
       ...this.state,
+      goalMode: enabledFromServer ? false : this.state.goalMode,
       manualMode: enabledFromServer,
       manualDisablePending: enabledFromServer ? this.state.manualDisablePending : false,
       manualCommand: {

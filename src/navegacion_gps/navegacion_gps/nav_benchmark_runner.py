@@ -14,6 +14,8 @@ from interfaces.msg import DriveTelemetry, NavEvent, NavTelemetry
 from interfaces.srv import CancelNavGoal, SetNavGoalLL
 from nav_msgs.msg import Odometry
 import rclpy
+from rcl_interfaces.msg import ParameterType
+from rcl_interfaces.srv import GetParameters
 from rclpy.node import Node
 from robot_localization.srv import FromLL
 from sensor_msgs.msg import NavSatFix
@@ -21,6 +23,7 @@ from std_msgs.msg import String
 import tf2_geometry_msgs  # noqa: F401
 from tf2_msgs.msg import TFMessage
 
+from navegacion_gps.frame_math import transform_xy_to_map_frame
 from navegacion_gps.heading_math import yaw_deg_from_quaternion_xyzw
 from navegacion_gps.heading_math import normalize_yaw_deg
 from navegacion_gps.nav_benchmarking import BenchmarkScenario
@@ -98,6 +101,8 @@ class NavBenchmarkRunnerNode(Node):
         self.course_debug: dict[str, Any] = {}
         self.events: list[dict[str, Any]] = []
         self.latest_map_odom_tf: Optional[dict[str, float]] = None
+        self.fromll_frame = "odom"
+        self._fromll_frame_resolved = False
 
         self.create_subscription(NavSatFix, "/gps/fix", self._on_gps_fix, 10)
         self.create_subscription(Odometry, "/odometry/local", self._on_odom_local, 10)
@@ -123,6 +128,9 @@ class NavBenchmarkRunnerNode(Node):
         self.goal_client = self.create_client(SetNavGoalLL, "/nav_command_server/set_goal_ll")
         self.cancel_goal_client = self.create_client(
             CancelNavGoal, "/nav_command_server/cancel_goal"
+        )
+        self.nav_params_client = self.create_client(
+            GetParameters, "/nav_command_server/get_parameters"
         )
 
     def _on_gps_fix(self, msg: NavSatFix) -> None:
@@ -195,6 +203,7 @@ class NavBenchmarkRunnerNode(Node):
             return False
         if not self.cancel_goal_client.wait_for_service(timeout_sec=timeout_s):
             return False
+        self._resolve_fromll_frame(timeout_s=min(float(timeout_s), 5.0))
         return self.spin_until(
             lambda: self.gps_fix is not None
             and self.odom_local is not None
@@ -233,14 +242,57 @@ class NavBenchmarkRunnerNode(Node):
             float(self.latest_map_odom_tf["yaw_deg"]),
         )
 
+    def _resolve_fromll_frame(self, timeout_s: float) -> str:
+        if self._fromll_frame_resolved:
+            return self.fromll_frame
+
+        resolved_frame = "odom"
+        if self.nav_params_client.wait_for_service(timeout_sec=max(0.1, float(timeout_s))):
+            request = GetParameters.Request(names=["fromll_frame"])
+            future = self.nav_params_client.call_async(request)
+            end = time.time() + max(0.1, float(timeout_s))
+            while time.time() < end:
+                rclpy.spin_once(self, timeout_sec=0.1)
+                if future.done():
+                    response = future.result()
+                    if response and response.values:
+                        value = response.values[0]
+                        if value.type == ParameterType.PARAMETER_STRING:
+                            candidate = str(value.string_value).strip().lower()
+                            if candidate in {"map", "odom"}:
+                                resolved_frame = candidate
+                    break
+        else:
+            self.get_logger().warning(
+                "Could not query /nav_command_server/get_parameters; assuming fromLL_frame='odom'"
+            )
+
+        self.fromll_frame = resolved_frame
+        self._fromll_frame_resolved = True
+        self.get_logger().info(f"Benchmark runner using fromLL_frame='{self.fromll_frame}'")
+        return self.fromll_frame
+
     def _transform_odom_xy_to_map(self, x: float, y: float) -> tuple[float, float]:
         map_odom_x, map_odom_y, map_odom_yaw_deg = self._map_odom_pose()
-        yaw_rad = math.radians(float(map_odom_yaw_deg))
-        cos_yaw = math.cos(yaw_rad)
-        sin_yaw = math.sin(yaw_rad)
-        map_x = float(map_odom_x) + (cos_yaw * float(x)) - (sin_yaw * float(y))
-        map_y = float(map_odom_y) + (sin_yaw * float(x)) + (cos_yaw * float(y))
-        return float(map_x), float(map_y)
+        return transform_xy_to_map_frame(
+            x,
+            y,
+            source_frame="odom",
+            map_odom_x=map_odom_x,
+            map_odom_y=map_odom_y,
+            map_odom_yaw_deg=map_odom_yaw_deg,
+        )
+
+    def _transform_fromll_xy_to_map(self, x: float, y: float) -> tuple[float, float]:
+        map_odom_x, map_odom_y, map_odom_yaw_deg = self._map_odom_pose()
+        return transform_xy_to_map_frame(
+            x,
+            y,
+            source_frame=self.fromll_frame,
+            map_odom_x=map_odom_x,
+            map_odom_y=map_odom_y,
+            map_odom_yaw_deg=map_odom_yaw_deg,
+        )
 
     def map_base_pose(self) -> tuple[float, float, float]:
         if self.odom_local is None:
@@ -271,12 +323,13 @@ class NavBenchmarkRunnerNode(Node):
             rclpy.spin_once(self, timeout_sec=0.1)
             if future.done():
                 response = future.result()
-                map_xy = self._transform_odom_xy_to_map(
+                map_xy = self._transform_fromll_xy_to_map(
                     float(response.map_point.x),
                     float(response.map_point.y),
                 )
                 return {
-                    "raw_odom_xy": [
+                    "fromll_frame": self.fromll_frame,
+                    "raw_fromll_xy": [
                         float(response.map_point.x),
                         float(response.map_point.y),
                     ],

@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode, type WheelEvent } from "react";
 import "./styles.css";
 import { PanelCollapsibleSection, PanelSection } from "../../../../core";
 import { CORE_EVENTS, NAV_EVENTS } from "../../../../../core/events/topics";
@@ -501,6 +501,72 @@ function ButtonFace({
   );
 }
 
+function NavSidebarSectionIcon({ title }: { title: string }): JSX.Element {
+  const baseProps = {
+    viewBox: "0 0 24 24",
+    width: 16,
+    height: 16,
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.9,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const
+  };
+
+  switch (title) {
+    case "CONNECTION":
+      return (
+        <svg {...baseProps}>
+          <path d="M5 12.5a10 10 0 0 1 14 0" />
+          <path d="M8.5 16a5.2 5.2 0 0 1 7 0" />
+          <circle cx="12" cy="19" r="1" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case "CONTROL MODE":
+      return (
+        <svg {...baseProps}>
+          <path d="m4 7 5 5-5 5" />
+          <path d="M12 17h8" />
+        </svg>
+      );
+    case "WAYPOINTS":
+      return (
+        <svg {...baseProps}>
+          <path d="M12 21s6-5.1 6-11a6 6 0 0 0-12 0c0 5.9 6 11 6 11Z" />
+          <circle cx="12" cy="10" r="2" />
+        </svg>
+      );
+    case "NAVIGATION ACTIONS":
+      return (
+        <svg {...baseProps}>
+          <path d="m4 11 16-7-7 16-2-7-7-2Z" />
+        </svg>
+      );
+    case "FILE OPERATIONS":
+      return (
+        <svg {...baseProps}>
+          <path d="M3.5 7.5h6l1.7 2H20.5v8.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z" />
+          <path d="M3.5 7.5V5.5a1.5 1.5 0 0 1 1.5-1.5h4l1.5 2H19a1.5 1.5 0 0 1 1.5 1.5v2" />
+        </svg>
+      );
+    case "RECORDING":
+      return (
+        <svg {...baseProps}>
+          <rect x="4" y="7" width="11" height="10" rx="2" />
+          <path d="m15 10 5-2.5v9L15 14" />
+        </svg>
+      );
+    case "PATROL":
+      return (
+        <svg {...baseProps}>
+          <path d="M12 3.5 19 6v5.5c0 4.2-2.8 7.4-7 9-4.2-1.6-7-4.8-7-9V6Z" />
+        </svg>
+      );
+    default:
+      return <NavGlyph kind="route" />;
+  }
+}
+
 function NavSidebarCollapsibleSection({
   title,
   badge,
@@ -522,6 +588,12 @@ function NavSidebarCollapsibleSection({
   const accordionStyle = {
     "--nav-accordion-open-height": `${Math.max(contentHeight, 1)}px`
   } as CSSProperties;
+  const handleHeaderWheel = (event: WheelEvent<HTMLButtonElement>): void => {
+    if (Math.abs(event.deltaY) < 4) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setCollapsed(event.deltaY > 0);
+  };
 
   useEffect(() => {
     const contentElement = contentRef.current;
@@ -565,8 +637,12 @@ function NavSidebarCollapsibleSection({
         aria-expanded={!collapsed}
         aria-controls={bodyId}
         onClick={() => setCollapsed((current) => !current)}
+        onWheel={handleHeaderWheel}
       >
         <span className="nav-sidebar-section-title-row">
+          <span className="nav-sidebar-section-icon" aria-hidden="true">
+            <NavSidebarSectionIcon title={title} />
+          </span>
           <span className="ps-title">{title}</span>
           {badge ? <span className="nav-sidebar-section-badge">{badge}</span> : null}
         </span>
@@ -651,7 +727,7 @@ function ConnectionStatusFooterItem({ runtime }: { runtime: ModuleContext }): JS
 
   return (
     <span className={`connection-footer-status-badge ${state.connected ? "connected" : "disconnected"}`}>
-      {state.connected ? "Conectado" : "Desconectado"}
+      <span className="connection-state-label">{state.connected ? "Conectado" : "Desconectado"}</span>
     </span>
   );
 }
@@ -670,7 +746,11 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
   const lockReasonText = formatControlLockReason(navState.controlLockReason);
   const routeMission = navState.routeMission;
   const missionActive = routeMission.active || routeMission.paused || (telemetrySnapshot?.goalActive === true);
+  const routeMissionRunning = routeMission.active || routeMission.paused;
+  const goalRunning = missionActive && !routeMissionRunning;
   const patrolling = navState.patrolLoop.active;
+  const goalModeSelected = navState.goalMode;
+  const manualModeSelected = navState.manualMode && !goalModeSelected;
   const connectionStatusClassName = joinClassNames(
     "status-pill",
     "nav-sidebar-status-pill",
@@ -684,9 +764,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
       ? "Establishing link..."
       : connState.lastError
         ? "Link error"
-        : "Awaiting connection";
-  const currentPose = telemetrySnapshot?.robotPose ?? null;
-
+        : "Esperando conexión";
   useEffect(() => navService.subscribe((next) => setNavState(next)), [navService]);
   useEffect(() => connService.subscribe((next) => setConnState(next)), [connService]);
   useEffect(() => {
@@ -700,17 +778,20 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
   const emitError = (text: string): void => {
     runtime.eventBus.emit("console.event", { level: "error", text, timestamp: Date.now() });
   };
-  const queueCurrentPoseWaypoint = (): void => {
-    if (!currentPose) {
-      emitError("Current robot pose unavailable; use the map to place a waypoint");
+  const enableMapWaypointPlacement = async (): Promise<void> => {
+    if (navState.controlLocked) {
+      emitError(`Waypoint placement blocked: ${lockReasonText}`);
       return;
     }
-    navService.queueWaypoint({
-      x: currentPose.lat,
-      y: currentPose.lon,
-      yawDeg: Number.isFinite(currentPose.headingDeg) ? currentPose.headingDeg : 0
-    });
-    emitInfo("Current robot pose queued as waypoint");
+    if (!goalModeSelected) {
+      try {
+        await navService.setGoalMode(true);
+      } catch (error) {
+        emitError(`Waypoint placement failed: ${String(error)}`);
+        return;
+      }
+    }
+    emitInfo("Waypoint placement enabled: click and drag on the map to place it");
   };
 
   return (
@@ -739,7 +820,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
         <div className="action-grid">
           <button
             type="button"
-            className="bt prim-btn"
+            className={joinClassNames("bt prim-btn", (connState.connected || connState.connecting) && "active")}
             disabled={connState.connecting || connState.connected}
             onClick={async () => {
               try {
@@ -770,11 +851,6 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
             <ButtonFace icon={<NavGlyph kind="disconnect" />} label="DISCONNECT" meta="Close session" />
           </button>
         </div>
-        {!connState.connected && (
-          <p className="ps-status-error">
-            {connState.lastError ? `Error: ${connState.lastError}` : "Desconectado"}
-          </p>
-        )}
         <div className={connectionStatusClassName}>
           <span className="status-dot" aria-hidden="true" />
           <span>{connectionStatusText}</span>
@@ -786,19 +862,24 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
         <div className="ncb-grid">
           <button
             type="button"
-            className={joinClassNames("ncb", navState.goalMode && "active")}
+            className={joinClassNames("ncb", goalModeSelected && "active")}
             title={navState.controlLocked ? lockReasonText : "Goal mode"}
             disabled={navState.controlLocked}
-            onClick={() => {
-              const enabled = navService.toggleGoalMode();
-              emitInfo(enabled ? "Goal mode enabled" : "Goal mode disabled");
+            onClick={async () => {
+              const next = !goalModeSelected;
+              try {
+                await navService.setGoalMode(next);
+                emitInfo(next ? "Goal mode enabled" : "Goal mode disabled");
+              } catch (error) {
+                emitError(`Goal mode failed: ${String(error)}`);
+              }
             }}
           >
-            <ButtonFace icon={<NavGlyph kind="goal" />} label="GOAL MODE" meta={navState.goalMode ? "Enabled" : "Standby"} compact />
+            <ButtonFace icon={<NavGlyph kind="goal" />} label="GOAL MODE" meta={goalModeSelected ? "Enabled" : "Standby"} compact />
           </button>
           <button
             type="button"
-            className={joinClassNames("ncb", navState.manualMode && "active")}
+            className={joinClassNames("ncb", manualModeSelected && "active")}
             title={navState.controlLocked ? lockReasonText : "Manual mode"}
             disabled={navState.controlLocked}
             onClick={async () => {
@@ -811,7 +892,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
               }
             }}
           >
-            <ButtonFace icon={<NavGlyph kind="manual" />} label="MANUAL" meta={navState.manualMode ? "Enabled" : "Disabled"} compact />
+            <ButtonFace icon={<NavGlyph kind="manual" />} label="MANUAL" meta={manualModeSelected ? "Enabled" : "Disabled"} compact />
           </button>
         </div>
         <label className="check-row nav-loop-check">
@@ -870,12 +951,14 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
         </div>
         <button
           type="button"
-          className="ncb-wide prim-btn"
-          disabled={!currentPose}
-          title={currentPose ? "Agregar la pose actual del robot a la cola" : "Pose actual no disponible"}
-          onClick={queueCurrentPoseWaypoint}
+          className={joinClassNames("ncb-wide prim-btn", wps > 0 && "active")}
+          disabled={navState.controlLocked}
+          title={navState.controlLocked ? lockReasonText : "Activar colocación de waypoint en el mapa"}
+          onClick={() => {
+            void enableMapWaypointPlacement();
+          }}
         >
-          <ButtonFace icon={<NavGlyph kind="addWaypoint" />} label="ADD WAYPOINT" meta="Use current robot pose" />
+          <ButtonFace icon={<NavGlyph kind="addWaypoint" />} label="ADD WAYPOINT" meta={goalModeSelected ? "Click map to place" : "Place on map"} />
         </button>
       </NavSidebarCollapsibleSection>
 
@@ -883,7 +966,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
       <NavSidebarCollapsibleSection title="NAVIGATION ACTIONS" className="nav-sidebar-actions-section">
         <button
           type="button"
-          className="ncb-wide send-btn"
+          className={joinClassNames("ncb-wide send-btn", goalRunning && "active")}
           disabled={wps === 0}
           onClick={async () => {
             try {
@@ -898,7 +981,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
         </button>
         <button
           type="button"
-          className="ncb-wide send-btn"
+          className={joinClassNames("ncb-wide send-btn", routeMissionRunning && "active")}
           disabled={wps < 2}
           onClick={async () => {
             try {
@@ -993,7 +1076,14 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
           <button
             type="button"
             className={joinClassNames("ncb sec-btn", navState.recording.active && "active")}
-            title="Iniciar grabación"
+            disabled={!connState.connected || navState.recording.active}
+            title={
+              !connState.connected
+                ? "Conectá WebSocket antes de grabar"
+                : navState.recording.active
+                  ? "Grabación en curso"
+                  : "Iniciar grabación"
+            }
             onClick={async () => {
               try {
                 await navService.startRecording();
@@ -1008,8 +1098,8 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
           <button
             type="button"
             className="ncb danger-btn"
-            disabled={!navState.recording.active}
-            title="Detener y guardar"
+            disabled={!connState.connected || !navState.recording.active}
+            title={!connState.connected ? "Conectá WebSocket para detener" : "Detener y guardar"}
             onClick={async () => {
               try {
                 await navService.stopRecording();
@@ -1024,8 +1114,14 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
           <button
             type="button"
             className="ncb sec-btn"
-            disabled={navState.recording.active}
-            title="Limpiar sesión grabada"
+            disabled={!connState.connected || navState.recording.active}
+            title={
+              !connState.connected
+                ? "Conectá WebSocket para limpiar"
+                : navState.recording.active
+                  ? "Detené la grabación antes de limpiar"
+                  : "Limpiar sesión grabada"
+            }
             onClick={async () => {
               try {
                 await navService.clearRecording();
@@ -1048,7 +1144,7 @@ function NavigationSidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.El
         <div className="ncb-grid">
           <button
             type="button"
-            className="ncb send-btn"
+            className={joinClassNames("ncb send-btn", patrolling && "active")}
             disabled={wps === 0 || patrolling}
             title="Iniciar patrulla"
             onClick={async () => {
@@ -1570,7 +1666,13 @@ function InfoModal({ runtime }: { runtime: ModuleContext }): JSX.Element {
           </div>
         </div>
       ) : null}
-      {!showDisconnected && (!state.loading[state.activeTab] || activePayload) && state.activeTab === "topics" ? (
+      {!showDisconnected && (!state.loading[state.activeTab] || activePayload) && state.activeTab === "topics" && !state.implemented.topics ? (
+        <div className="panel-card info-placeholder-card">
+          <strong>Topics</strong>
+          <p className="muted">Topic stream bridge not available in this backend.</p>
+        </div>
+      ) : null}
+      {!showDisconnected && (!state.loading[state.activeTab] || activePayload) && state.activeTab === "topics" && state.implemented.topics ? (
         <div className="stack info-modal-topics">
           {topicsSnapshotError ? <div className="status-pill bad">{topicsSnapshotError}</div> : null}
           {state.topics.truncated ? <div className="status-pill">Historial truncado por limites de memoria.</div> : null}
@@ -1796,6 +1898,15 @@ function registerServices(
   ctx.services.registerService({
     id: CONNECTION_SERVICE_ID,
     service: connectionService
+  });
+  connectionService.subscribe((state) => {
+    if (!state.connected) {
+      navigationService.applyLocalControlLock(true, "DISCONNECTED");
+      return;
+    }
+    if (state.preset === "sim") {
+      navigationService.applyLocalControlLock(false, "SIM_BACKEND");
+    }
   });
   ctx.eventBus.on<{ packageId?: unknown; config?: unknown }>(CORE_EVENTS.packageConfigUpdated, (payload) => {
     const packageId = typeof payload?.packageId === "string" ? payload.packageId : "";

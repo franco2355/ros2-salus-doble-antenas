@@ -362,7 +362,7 @@ def generate_launch_description():
     )
     declare_custom_urdf_cmd = DeclareLaunchArgument(
         "custom_urdf",
-        default_value=os.path.join(gps_wpf_dir, "models", "cuatri_real.urdf"),
+        default_value=os.path.join(gps_wpf_dir, "models", "cuatri_2gps.urdf"),
         description="Path to custom URDF to spawn in Gazebo Sim",
     )
     declare_use_rviz_cmd = DeclareLaunchArgument(

@@ -129,7 +129,7 @@ export function ProcessesModal({ runtime }: { runtime: ModuleContext }): JSX.Ele
   }, [outputKey, selectedOutputRaw]);
 
   return (
-    <div className="process-modal-root">
+    <div className={`process-modal-root ${!connected ? "disconnected" : ""}`}>
       {state.error ? <div className="status-pill bad">{state.error}</div> : null}
       {!connected ? (
         <div className="panel-card info-placeholder-card">

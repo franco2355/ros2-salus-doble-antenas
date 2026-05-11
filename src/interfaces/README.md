@@ -17,6 +17,8 @@ Fuente de verdad: `msg/`, `srv/` y paquetes consumidores
   - eventos discretos de navegación para observabilidad
 - `NavSnapshotLayers.msg`
   - metadatos asociados a snapshots de navegación
+- `VisionTarget.msg`
+  - target sintetizado desde `/detections` para consumo directo del robot
 - `NoGoPoint.msg`
 - `NoGoZone.msg`
 

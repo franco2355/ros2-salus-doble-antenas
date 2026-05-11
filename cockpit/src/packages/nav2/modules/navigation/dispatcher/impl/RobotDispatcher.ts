@@ -167,4 +167,8 @@ export class RobotDispatcher extends Nav2DispatcherBase {
   subscribeAck(callback: (message: Nav2IncomingMessage) => void): () => void {
     return this.subscribe("ack", callback);
   }
+
+  subscribeRtkSourceState(callback: (message: Nav2IncomingMessage) => void): () => void {
+    return this.subscribe("rtk_source_state", callback);
+  }
 }

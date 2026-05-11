@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import threading
+import time
 import types
 
 import pytest
@@ -86,7 +87,7 @@ def test_compute_approach_bearing_enu_returns_none_for_nearly_identical_points()
     assert bearing is None
 
 
-def test_dispatch_current_waypoint_uses_wraparound_approach_bearing_for_return_leg() -> None:
+def test_dispatch_current_waypoint_sends_full_cycle_with_wraparound_bearings() -> None:
     node = _FakeLoopNode(
         waypoints=[
             {"lat": -31.485, "lon": -64.241, "yaw_deg": 0.0, "label": "wp_0"},
@@ -101,15 +102,18 @@ def test_dispatch_current_waypoint_uses_wraparound_approach_bearing_for_return_l
     assert node.failure_reason == ""
     assert len(node._set_goal_client.requests) == 1
     request = node._set_goal_client.requests[0]
+    assert request.lats == pytest.approx([-31.485, -31.485])
+    assert request.lons == pytest.approx([-64.241, -64.240])
     assert request.yaw_deg == pytest.approx(180.0, abs=0.5)
-    assert request.yaws_deg == pytest.approx([180.0], abs=0.5)
+    assert request.yaws_deg == pytest.approx([180.0, 0.0], abs=0.5)
 
 
-def test_dispatch_current_waypoint_uses_previous_waypoint_bearing_when_available() -> None:
+def test_dispatch_current_waypoint_rotates_cycle_to_current_index() -> None:
     node = _FakeLoopNode(
         waypoints=[
             {"lat": -31.485, "lon": -64.241, "yaw_deg": 42.0, "label": "wp_0"},
             {"lat": -31.485, "lon": -64.240, "yaw_deg": 42.0, "label": "wp_1"},
+            {"lat": -31.484, "lon": -64.240, "yaw_deg": 42.0, "label": "wp_2"},
         ],
         current_index=1,
         prev_wp_index=0,
@@ -120,5 +124,33 @@ def test_dispatch_current_waypoint_uses_previous_waypoint_bearing_when_available
     assert node.failure_reason == ""
     assert len(node._set_goal_client.requests) == 1
     request = node._set_goal_client.requests[0]
+    assert request.lats == pytest.approx([-31.485, -31.484, -31.485])
+    assert request.lons == pytest.approx([-64.240, -64.240, -64.241])
     assert request.yaw_deg == pytest.approx(0.0, abs=0.5)
-    assert request.yaws_deg == pytest.approx([0.0], abs=0.5)
+    assert request.yaws_deg == pytest.approx([0.0, 90.0, -90.0], abs=0.8)
+
+
+def test_advance_to_next_waypoint_restarts_same_cycle_after_success() -> None:
+    node = types.SimpleNamespace(
+        _lock=threading.Lock(),
+        _active=True,
+        _waypoints=[{"label": "wp_0"}, {"label": "wp_1"}, {"label": "wp_2"}],
+        _goal_in_flight=True,
+        _goal_sent_monotonic=12.0,
+        _retry_count=2,
+        _prev_wp_index=-1,
+        _current_index=1,
+        _loop_delay_s=0.75,
+        _next_dispatch_monotonic=None,
+    )
+
+    before = time.monotonic()
+    LoopPatrolRunnerNode._advance_to_next_waypoint(node)
+    after = time.monotonic()
+
+    assert node._goal_in_flight is False
+    assert node._goal_sent_monotonic is None
+    assert node._retry_count == 0
+    assert node._prev_wp_index == 0
+    assert node._current_index == 1
+    assert before + 0.70 <= node._next_dispatch_monotonic <= after + 0.80

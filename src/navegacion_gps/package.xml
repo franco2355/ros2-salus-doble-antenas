@@ -29,6 +29,8 @@
   <depend>pointcloud_to_laserscan</depend>
   <depend>nav_msgs</depend>
   <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>action_msgs</depend>
   <depend>diagnostic_msgs</depend>
   <depend>tf2_ros</depend>
   <depend>tf2_geometry_msgs</depend>
@@ -43,6 +45,7 @@
   <exec_depend>sensores</exec_depend>
   <exec_depend>controller_server</exec_depend>
   <exec_depend>map_tools</exec_depend>
+  <exec_depend>ublox_gps</exec_depend>
 
   <export>
     <build_type>ament_python</build_type>

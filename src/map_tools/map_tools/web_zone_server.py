@@ -113,6 +113,25 @@ ROSBAG_TOPIC_PROFILES: Dict[str, Tuple[str, ...]] = {
     ),
 }
 
+COCKPIT_NAV2_UI_CONFIG_DEFAULTS: Dict[str, Any] = {
+    "ws_real_host": "localhost",
+    "ws_real_port": 8766,
+    "ws_sim_host": "localhost",
+    "ws_sim_port": 8766,
+    "camera_probe_timeout_ms": 3000,
+    "camera_load_timeout_ms": 7000,
+    "map_default_center_lat": -31.4201,
+    "map_default_center_lon": -64.1888,
+    "map_default_zoom": 16,
+    "manual_linear_speed_min": 1.0,
+    "manual_linear_speed_max": 4.0,
+    "manual_linear_speed_default": 1.2,
+    "manual_angular_speed_min": 0.1,
+    "manual_angular_speed_max": 1.2,
+    "manual_angular_speed_default": 0.4,
+    "manual_loop_interval_ms": 50,
+}
+
 UNSET = object()
 
 
@@ -129,6 +148,136 @@ class WebZoneServerNode(Node):
         if normalized in {"jpeg", "jpg", "png"}:
             return "jpeg" if normalized in {"jpeg", "jpg"} else "png"
         return "jpeg"
+
+    @staticmethod
+    def _normalize_cockpit_nav2_ui_config(raw: Any) -> Dict[str, Any]:
+        values = raw if isinstance(raw, dict) else {}
+        normalized = dict(COCKPIT_NAV2_UI_CONFIG_DEFAULTS)
+
+        def _string_value(key: str) -> str:
+            candidate = str(values.get(key, normalized[key]) or "").strip()
+            return candidate or str(normalized[key])
+
+        def _int_value(key: str, *, min_value: int, max_value: Optional[int] = None) -> int:
+            try:
+                candidate = int(values.get(key, normalized[key]))
+            except (TypeError, ValueError):
+                candidate = int(normalized[key])
+            candidate = max(min_value, candidate)
+            if max_value is not None:
+                candidate = min(max_value, candidate)
+            return int(candidate)
+
+        def _float_value(
+            key: str,
+            *,
+            min_value: float,
+            max_value: Optional[float] = None,
+        ) -> float:
+            try:
+                candidate = float(values.get(key, normalized[key]))
+            except (TypeError, ValueError):
+                candidate = float(normalized[key])
+            if not math.isfinite(candidate):
+                candidate = float(normalized[key])
+            candidate = max(min_value, candidate)
+            if max_value is not None:
+                candidate = min(max_value, candidate)
+            return float(candidate)
+
+        normalized["ws_real_host"] = _string_value("ws_real_host")
+        normalized["ws_sim_host"] = _string_value("ws_sim_host")
+        normalized["ws_real_port"] = _int_value("ws_real_port", min_value=1, max_value=65535)
+        normalized["ws_sim_port"] = _int_value("ws_sim_port", min_value=1, max_value=65535)
+        normalized["camera_probe_timeout_ms"] = _int_value(
+            "camera_probe_timeout_ms",
+            min_value=500,
+        )
+        normalized["camera_load_timeout_ms"] = _int_value(
+            "camera_load_timeout_ms",
+            min_value=1000,
+        )
+        normalized["map_default_center_lat"] = _float_value(
+            "map_default_center_lat",
+            min_value=-90.0,
+            max_value=90.0,
+        )
+        normalized["map_default_center_lon"] = _float_value(
+            "map_default_center_lon",
+            min_value=-180.0,
+            max_value=180.0,
+        )
+        normalized["map_default_zoom"] = _int_value("map_default_zoom", min_value=1, max_value=22)
+
+        linear_min = _float_value("manual_linear_speed_min", min_value=0.0)
+        linear_max = _float_value("manual_linear_speed_max", min_value=0.0)
+        if linear_max <= linear_min:
+            linear_min = float(COCKPIT_NAV2_UI_CONFIG_DEFAULTS["manual_linear_speed_min"])
+            linear_max = float(COCKPIT_NAV2_UI_CONFIG_DEFAULTS["manual_linear_speed_max"])
+        angular_min = _float_value("manual_angular_speed_min", min_value=0.0)
+        angular_max = _float_value("manual_angular_speed_max", min_value=0.0)
+        if angular_max <= angular_min:
+            angular_min = float(COCKPIT_NAV2_UI_CONFIG_DEFAULTS["manual_angular_speed_min"])
+            angular_max = float(COCKPIT_NAV2_UI_CONFIG_DEFAULTS["manual_angular_speed_max"])
+
+        normalized["manual_linear_speed_min"] = float(linear_min)
+        normalized["manual_linear_speed_max"] = float(linear_max)
+        normalized["manual_linear_speed_default"] = _float_value(
+            "manual_linear_speed_default",
+            min_value=linear_min,
+            max_value=linear_max,
+        )
+        normalized["manual_angular_speed_min"] = float(angular_min)
+        normalized["manual_angular_speed_max"] = float(angular_max)
+        normalized["manual_angular_speed_default"] = _float_value(
+            "manual_angular_speed_default",
+            min_value=angular_min,
+            max_value=angular_max,
+        )
+        normalized["manual_loop_interval_ms"] = _int_value(
+            "manual_loop_interval_ms",
+            min_value=20,
+        )
+        return normalized
+
+    @classmethod
+    def _read_cockpit_nav2_ui_config_file(cls, path: Path) -> Optional[Dict[str, Any]]:
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            return None
+        if not isinstance(raw, dict):
+            return None
+        values = raw.get("values")
+        if not isinstance(values, dict):
+            return None
+        return cls._normalize_cockpit_nav2_ui_config(values)
+
+    @staticmethod
+    def _cockpit_nav2_config_path_candidates() -> List[Path]:
+        roots: List[Path] = [Path.cwd().resolve()]
+        file_path = Path(__file__).resolve()
+        roots.extend(file_path.parents)
+        candidates: List[Path] = []
+        seen: Set[str] = set()
+        for root in roots:
+            candidate = root / "cockpit" / "src" / "packages" / "nav2" / "config.json"
+            candidate_key = str(candidate)
+            if candidate_key in seen:
+                continue
+            seen.add(candidate_key)
+            candidates.append(candidate)
+        return candidates
+
+    @classmethod
+    def _load_cockpit_nav2_ui_config(cls) -> Tuple[Dict[str, Any], str]:
+        for candidate in cls._cockpit_nav2_config_path_candidates():
+            if not candidate.is_file():
+                continue
+            config = cls._read_cockpit_nav2_ui_config_file(candidate)
+            if config is not None:
+                return config, str(candidate)
+        return dict(COCKPIT_NAV2_UI_CONFIG_DEFAULTS), ""
 
     def __init__(self, loop: asyncio.AbstractEventLoop):
         super().__init__("web_zone_server")
@@ -183,6 +332,10 @@ class WebZoneServerNode(Node):
         self.declare_parameter("camera_jpeg_quality", 90)
         self.declare_parameter("camera_ws_max_fps", 10.0)
         self.declare_parameter("camera_ws_width", 960)
+        self.declare_parameter("rtk_source_status_topic", "/gps/rtk_source/status_json")
+        self.declare_parameter("datum_lat", float("nan"))
+        self.declare_parameter("datum_lon", float("nan"))
+        self.declare_parameter("datum_yaw_deg", 0.0)
 
         self.ws_host = str(self.get_parameter("ws_host").value)
         self.ws_port = int(self.get_parameter("ws_port").value)
@@ -256,6 +409,11 @@ class WebZoneServerNode(Node):
             1.0, float(self.get_parameter("camera_ws_max_fps").value)
         )
         self.camera_ws_width = max(0, int(self.get_parameter("camera_ws_width").value))
+        self.rtk_source_status_topic = str(self.get_parameter("rtk_source_status_topic").value)
+        datum_lat = float(self.get_parameter("datum_lat").value)
+        datum_lon = float(self.get_parameter("datum_lon").value)
+        datum_yaw_deg = float(self.get_parameter("datum_yaw_deg").value)
+        self._page_ui_config, self._page_ui_config_source = self._load_cockpit_nav2_ui_config()
 
         self._lock = threading.Lock()
         self._ws_clients: Set[Any] = set()
@@ -295,6 +453,9 @@ class WebZoneServerNode(Node):
         self._nav_result_status = 0
         self._nav_result_text = "idle"
         self._nav_result_event_id = 0
+        self._fw_current_waypoint = 0
+        self._fw_total_waypoints = 0
+        self._fw_loop_total_waypoints = 0
         self._camera_status = {
             "ok": False,
             "error": "camera status unavailable",
@@ -307,6 +468,15 @@ class WebZoneServerNode(Node):
             "current_wp": -1,
             "total_wp": 0,
             "label": "",
+        }
+        self._rtk_source_state: Dict[str, Any] = {}
+        self._datum_config: Dict[str, Any] = {
+            "already_set": math.isfinite(datum_lat) and math.isfinite(datum_lon),
+            "datum_lat": datum_lat if math.isfinite(datum_lat) else None,
+            "datum_lon": datum_lon if math.isfinite(datum_lon) else None,
+            "datum_yaw_deg": datum_yaw_deg,
+            "last_set_source": "launch_config" if math.isfinite(datum_lat) and math.isfinite(datum_lon) else None,
+            "last_set_epoch_ms": None,
         }
         self._recent_nav_events: deque[Dict[str, Any]] = deque(maxlen=30)
         self._active_alerts: List[Dict[str, Any]] = []
@@ -358,6 +528,9 @@ class WebZoneServerNode(Node):
             self.patrol_status_topic,
             self._on_patrol_status,
             10,
+        )
+        self._rtk_source_status_sub = self.create_subscription(
+            String, self.rtk_source_status_topic, self._on_rtk_source_status, 10
         )
 
         self._zones_set_geojson_client = self.create_client(
@@ -414,6 +587,12 @@ class WebZoneServerNode(Node):
             f"odom_topic={self.odom_topic})"
         )
         self.get_logger().info(f"Waypoints file path: {self.waypoints_file}")
+        if self._page_ui_config_source:
+            self.get_logger().info(
+                f"Loaded page UI config from cockpit: {self._page_ui_config_source}"
+            )
+        else:
+            self.get_logger().info("Cockpit nav2 config not found; using built-in page defaults")
 
     def add_client(self, ws: Any) -> None:
         with self._lock:
@@ -476,6 +655,9 @@ class WebZoneServerNode(Node):
                 "camera_status": dict(self._camera_status),
                 "recording_count": int(self._recording_count),
                 "patrol_status": dict(self._patrol_status),
+                "ui_config": dict(self._page_ui_config),
+                "rtk_source_state": dict(self._rtk_source_state),
+                "datum": dict(self._datum_config),
             }
 
     def _build_nav_telemetry_payload(self) -> Dict[str, Any]:
@@ -488,6 +670,9 @@ class WebZoneServerNode(Node):
             nav_result_event_id = int(self._nav_result_event_id)
             alerts = list(self._active_alerts)
             recent_events = list(self._recent_nav_events)
+            fw_current_waypoint = int(self._fw_current_waypoint)
+            fw_total_waypoints = int(self._fw_total_waypoints)
+            fw_loop_total_waypoints = int(self._fw_loop_total_waypoints)
         return {
             "op": "nav_telemetry",
             "cmd_vel_safe": cmd_vel_safe,
@@ -498,6 +683,9 @@ class WebZoneServerNode(Node):
             "nav_result_event_id": nav_result_event_id,
             "alerts": alerts,
             "recent_events": recent_events,
+            "current_waypoint": fw_current_waypoint,
+            "total_waypoints": fw_total_waypoints,
+            "loop_total_waypoints": fw_loop_total_waypoints,
         }
 
     @staticmethod
@@ -1182,6 +1370,9 @@ class WebZoneServerNode(Node):
             self._nav_result_status = int(getattr(msg, "nav_result_status", 0))
             self._nav_result_text = str(getattr(msg, "nav_result_text", ""))
             self._nav_result_event_id = int(getattr(msg, "nav_result_event_id", 0))
+            self._fw_current_waypoint = int(getattr(msg, "current_waypoint", 0))
+            self._fw_total_waypoints = int(getattr(msg, "total_waypoints", 0))
+            self._fw_loop_total_waypoints = int(getattr(msg, "loop_total_waypoints", 0))
 
             last_cmd_age = None
             if self._manual_cmd_last_monotonic is not None:
@@ -1339,6 +1530,20 @@ class WebZoneServerNode(Node):
                 "label": str(status.get("label", "")),
             }
         self._broadcast_from_thread(payload)
+
+    def _on_rtk_source_status(self, msg: String) -> None:
+        try:
+            payload = json.loads(msg.data)
+            if not isinstance(payload, dict):
+                return
+        except Exception:
+            return
+        with self._lock:
+            self._rtk_source_state = payload
+        asyncio.run_coroutine_threadsafe(
+            self._broadcast({"op": "rtk_source_state", "rtk_source_state": payload}),
+            self._loop,
+        )
 
     def _wait_for_future(self, future: Any, timeout_s: float) -> Optional[Any]:
         start = time.monotonic()
@@ -2153,6 +2358,64 @@ class WebSocketApi:
             if client_req_id is not None:
                 payload["client_req_id"] = client_req_id
             await self._send_json(ws, payload)
+            return
+
+        if op == "set_sensor_info_view":
+            tab = str(msg.get("tab") or "general")
+            enabled = bool(msg.get("enabled", False))
+            interval_s = float(msg.get("interval_s") or 0.1)
+            topic_name = str(msg.get("topic_name") or "")
+            implemented = tab in ("general", "topics")
+            await self._send_ack(
+                ws,
+                "set_sensor_info_view",
+                True,
+                None,
+                client_req_id=client_req_id,
+                extra={
+                    "tab": tab,
+                    "enabled": enabled,
+                    "implemented": implemented,
+                    "interval_s": interval_s,
+                },
+            )
+            if not enabled or not implemented:
+                return
+            if tab == "topics":
+                topic_list = await asyncio.to_thread(self.node.get_topic_names_and_types)
+                catalog = []
+                for name, _ in topic_list:
+                    catalog.append({
+                        "name": name,
+                        "publisher_count": self.node.count_publishers(name),
+                        "subscriber_count": self.node.count_subscribers(name),
+                    })
+                snapshot: Dict[str, Any] = {
+                    "topics_catalog": catalog,
+                    "selected_topic": topic_name,
+                    "selected_type": "",
+                    "history_text": "",
+                    "truncated": False,
+                    "error": "",
+                }
+            else:
+                state = self.node.snapshot_state()
+                snapshot = {
+                    "datum": state.get("datum"),
+                    "rtk_source_state": state.get("rtk_source_state"),
+                    "gps_meta": state.get("gps_status"),
+                }
+            push: Dict[str, Any] = {
+                "op": "sensor_info",
+                "tab": tab,
+                "implemented": True,
+                "ok": True,
+                "interval_s": interval_s,
+                "snapshot": snapshot,
+            }
+            if client_req_id is not None:
+                push["client_req_id"] = client_req_id
+            await self._send_json(ws, push)
             return
 
         handler = {

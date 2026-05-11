@@ -44,6 +44,7 @@ class VisionWebServerNode(Node):
         self.declare_parameter('html_path', '')
         self.declare_parameter('jpeg_quality', 90)
         self.declare_parameter('overlay_enabled', True)
+        self.declare_parameter('detections_overlay_timeout_s', 1.0)
 
         image_topic = str(self.get_parameter('image_topic').value)
         debug_topic = str(self.get_parameter('debug_topic').value)
@@ -53,6 +54,9 @@ class VisionWebServerNode(Node):
         html_path = str(self.get_parameter('html_path').value)
         self._jpeg_quality = min(95, max(40, int(self.get_parameter('jpeg_quality').value)))
         self._overlay_enabled = bool(self.get_parameter('overlay_enabled').value)
+        self._detections_overlay_timeout_s = max(
+            0.1, float(self.get_parameter('detections_overlay_timeout_s').value)
+        )
 
         if not html_path:
             share_dir = Path(get_package_share_directory('vision_pipeline'))
@@ -164,6 +168,18 @@ class VisionWebServerNode(Node):
             self._latest_detections_wall_time = time.time()
 
     def _draw_overlay(self, frame, overlay_text: str) -> None:
+        now = time.time()
+        with self._state_lock:
+            detections = list(self._latest_detections)
+            detections_age = (
+                None
+                if self._latest_detections_wall_time is None
+                else now - self._latest_detections_wall_time
+            )
+
+        if detections_age is not None and detections_age <= self._detections_overlay_timeout_s:
+            self._draw_detection_boxes(frame, detections)
+
         text = f'IA: {overlay_text or "sin_datos"}'
         margin = 14
         box_height = 42
@@ -185,6 +201,67 @@ class VisionWebServerNode(Node):
             cv2.LINE_AA,
         )
 
+    def _draw_detection_boxes(self, frame, detections: list[dict]) -> None:
+        frame_h, frame_w = frame.shape[:2]
+        box_color = (34, 197, 94)
+        label_bg = (20, 83, 45)
+        label_fg = (236, 253, 245)
+
+        for detection in detections:
+            bbox = detection.get('bbox', {})
+            try:
+                cx = float(bbox.get('cx', 0.0))
+                cy = float(bbox.get('cy', 0.0))
+                width = float(bbox.get('width', 0.0))
+                height = float(bbox.get('height', 0.0))
+            except (TypeError, ValueError):
+                continue
+
+            # vision_msgs detections are published in pixel coordinates.
+            if width <= 0 or height <= 0:
+                continue
+
+            x1 = int(round(cx - width / 2.0))
+            y1 = int(round(cy - height / 2.0))
+            x2 = int(round(cx + width / 2.0))
+            y2 = int(round(cy + height / 2.0))
+
+            x1 = max(0, min(frame_w - 1, x1))
+            y1 = max(0, min(frame_h - 1, y1))
+            x2 = max(0, min(frame_w - 1, x2))
+            y2 = max(0, min(frame_h - 1, y2))
+            if x2 <= x1 or y2 <= y1:
+                continue
+
+            label = str(detection.get('label') or 'objeto')
+            try:
+                score = float(detection.get('score', 0.0))
+            except (TypeError, ValueError):
+                score = 0.0
+            text = f'{label} {score * 100:.0f}%'
+
+            cv2.rectangle(frame, (x1, y1), (x2, y2), box_color, thickness=3)
+            (text_w, text_h), baseline = cv2.getTextSize(
+                text,
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.58,
+                2,
+            )
+            label_y1 = max(0, y1 - text_h - baseline - 8)
+            label_y2 = label_y1 + text_h + baseline + 8
+            label_x2 = min(frame_w - 1, x1 + text_w + 12)
+            cv2.rectangle(frame, (x1, label_y1), (label_x2, label_y2), label_bg, thickness=-1)
+            cv2.putText(
+                frame,
+                text,
+                (x1 + 6, label_y2 - baseline - 4),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.58,
+                label_fg,
+                2,
+                cv2.LINE_AA,
+            )
+
     def _start_http_server(self, host: str, port: int) -> ThreadingHTTPServer:
         node = self
 
@@ -194,7 +271,7 @@ class VisionWebServerNode(Node):
                 if clean_path in ('/', '/index.html'):
                     self._send_response(200, 'text/html; charset=utf-8', node._html_content)
                     return
-                if clean_path == '/snapshot.jpg':
+                if clean_path in ('/snapshot.jpg', '/snap.jpg'):
                     node._send_snapshot(self)
                     return
                 if clean_path == '/stream.mjpg':

@@ -290,3 +290,588 @@
     border-color: #DCE6F2;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────
+   Console dashboard: white telemetry timeline matching the reference
+   ───────────────────────────────────────────────────────────────────── */
+#root .telemetry-console-dashboard {
+  --tc-ink: #172033;
+  --tc-muted: #66758b;
+  --tc-soft: #f6f9fd;
+  --tc-line: #e6edf6;
+  --tc-blue: #2f8de4;
+  --tc-blue-soft: #eef6ff;
+  --tc-green: #16b887;
+  --tc-green-soft: #eafaf4;
+  --tc-amber: #f5ad21;
+  --tc-amber-soft: #fff8e9;
+  --tc-red: #f13d4f;
+  --tc-red-soft: #fff0f2;
+  --tc-violet: #995eea;
+  --tc-violet-soft: #f4edff;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 322px !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  gap: 10px !important;
+  padding: 0 !important;
+  background: #f7f9fc !important;
+  color: var(--tc-ink) !important;
+  font-family: var(--font-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif) !important;
+  line-height: 1.25 !important;
+}
+
+#root .telemetry-console-dashboard svg {
+  width: 16px !important;
+  height: 16px !important;
+  display: block !important;
+  flex-shrink: 0 !important;
+}
+
+#root .telemetry-console-summary {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+  min-height: 62px !important;
+  border: 1px solid var(--tc-line) !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.055) !important;
+  overflow: hidden !important;
+}
+
+#root .telemetry-console-metric {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: 38px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 11px 18px !important;
+  background: #ffffff !important;
+}
+
+#root .telemetry-console-metric + .telemetry-console-metric {
+  border-left: 1px solid var(--tc-line) !important;
+}
+
+#root .telemetry-console-metric-icon {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: var(--tc-blue-soft) !important;
+  color: var(--tc-blue) !important;
+}
+
+#root .telemetry-console-metric-warning .telemetry-console-metric-icon {
+  background: var(--tc-amber-soft) !important;
+  color: var(--tc-amber) !important;
+}
+
+#root .telemetry-console-metric-critical .telemetry-console-metric-icon {
+  background: var(--tc-red-soft) !important;
+  color: var(--tc-red) !important;
+}
+
+#root .telemetry-console-metric-success .telemetry-console-metric-icon {
+  background: var(--tc-green-soft) !important;
+  color: var(--tc-green) !important;
+}
+
+#root .telemetry-console-metric-copy {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 1px !important;
+}
+
+#root .telemetry-console-metric-label {
+  color: var(--tc-muted) !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1 !important;
+  text-transform: uppercase !important;
+}
+
+#root .telemetry-console-metric-value {
+  min-width: 0 !important;
+  color: #15213a !important;
+  font-size: 19px !important;
+  font-weight: 850 !important;
+  line-height: 1.04 !important;
+  letter-spacing: 0 !important;
+  font-variant-numeric: tabular-nums !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+#root .telemetry-console-metric-info .telemetry-console-metric-value {
+  color: var(--tc-blue) !important;
+}
+
+#root .telemetry-console-metric-warning .telemetry-console-metric-value {
+  color: #1d2840 !important;
+}
+
+#root .telemetry-console-metric-critical .telemetry-console-metric-value {
+  color: #1d2840 !important;
+}
+
+#root .telemetry-console-metric-success .telemetry-console-metric-value {
+  color: var(--tc-green) !important;
+}
+
+#root .telemetry-console-metric-detail {
+  color: var(--tc-muted) !important;
+  font-size: 10px !important;
+  font-weight: 650 !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+#root .telemetry-console-panels {
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+#root .telemetry-console-card {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: 39px minmax(0, 1fr) 40px !important;
+  border: 1px solid var(--tc-line) !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  box-shadow: 0 7px 18px rgba(15, 23, 42, 0.07) !important;
+  overflow: hidden !important;
+}
+
+#root .telemetry-console-card-header {
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  padding: 0 14px !important;
+  border-bottom: 1px solid var(--tc-line) !important;
+  background: #ffffff !important;
+}
+
+#root .telemetry-console-card-title {
+  min-width: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  color: #193256 !important;
+}
+
+#root .telemetry-console-card-title svg {
+  width: 14px !important;
+  height: 14px !important;
+  color: var(--tc-blue) !important;
+}
+
+#root .telemetry-console-card-title h3 {
+  margin: 0 !important;
+  color: #18233a !important;
+  font-size: 11px !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.06em !important;
+  line-height: 1 !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+}
+
+#root .telemetry-console-card-alerts .telemetry-console-card-title svg {
+  color: var(--tc-red) !important;
+}
+
+#root .telemetry-console-more-btn,
+#root .telemetry-console-footer-btn {
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: 24px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 0 8px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #2b7bc8 !important;
+  box-shadow: none !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  transform: none !important;
+}
+
+#root .telemetry-console-more-btn:hover:not(:disabled),
+#root .telemetry-console-footer-btn:hover:not(:disabled) {
+  background: var(--tc-blue-soft) !important;
+  color: #1761a8 !important;
+  filter: none !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+#root .telemetry-console-footer-btn {
+  width: fit-content !important;
+  justify-self: center !important;
+  align-self: center !important;
+  height: 28px !important;
+  padding-inline: 10px !important;
+}
+
+#root .telemetry-console-list {
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow-y: auto !important;
+  background: #ffffff !important;
+}
+
+#root .telemetry-console-list::-webkit-scrollbar {
+  width: 4px !important;
+}
+
+#root .telemetry-console-list::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+#root .telemetry-console-list::-webkit-scrollbar-thumb {
+  border-radius: 999px !important;
+  background: #cdd9e7 !important;
+}
+
+#root .telemetry-console-row {
+  position: relative !important;
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: 74px 36px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 8px 13px !important;
+  border: 0 !important;
+  border-bottom: 1px solid #edf2f8 !important;
+  background: #ffffff !important;
+  color: var(--tc-ink) !important;
+}
+
+#root .telemetry-console-row.is-recent {
+  animation: telemetry-console-recent 4.5s ease-out forwards !important;
+}
+
+#root .telemetry-console-row-time {
+  min-width: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  color: #5e6b7f !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  font-variant-numeric: tabular-nums !important;
+  white-space: nowrap !important;
+}
+
+#root .telemetry-console-row-dot {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 999px !important;
+  background: var(--tc-green) !important;
+  flex-shrink: 0 !important;
+}
+
+#root .telemetry-console-row-icon {
+  position: relative !important;
+  z-index: 1 !important;
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: var(--tc-blue-soft) !important;
+  color: var(--tc-blue) !important;
+}
+
+#root .telemetry-console-row-icon svg {
+  width: 15px !important;
+  height: 15px !important;
+}
+
+#root .telemetry-console-row-warning .telemetry-console-row-icon {
+  background: var(--tc-amber-soft) !important;
+  color: var(--tc-amber) !important;
+}
+
+#root .telemetry-console-row-critical .telemetry-console-row-icon {
+  background: var(--tc-red-soft) !important;
+  color: var(--tc-red) !important;
+}
+
+#root .telemetry-console-row-success .telemetry-console-row-icon {
+  background: var(--tc-green-soft) !important;
+  color: var(--tc-green) !important;
+}
+
+#root .telemetry-console-row-detection .telemetry-console-row-icon {
+  background: var(--tc-violet-soft) !important;
+  color: var(--tc-violet) !important;
+}
+
+#root .telemetry-console-row-copy {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 2px !important;
+}
+
+#root .telemetry-console-row-copy strong {
+  min-width: 0 !important;
+  color: #18233a !important;
+  font-size: 11px !important;
+  font-weight: 850 !important;
+  line-height: 1.15 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+#root .telemetry-console-row-copy span {
+  min-width: 0 !important;
+  color: var(--tc-muted) !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  line-height: 1.15 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+#root .telemetry-console-row-chip {
+  height: 18px !important;
+  min-width: 0 !important;
+  max-width: 82px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 7px !important;
+  border-radius: 5px !important;
+  border: 1px solid transparent !important;
+  font-size: 8px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.03em !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+#root .telemetry-console-row-chip-info {
+  background: #eef6ff !important;
+  border-color: rgba(47, 141, 228, 0.16) !important;
+  color: #2a79c7 !important;
+}
+
+#root .telemetry-console-row-chip-success {
+  background: #eafaf4 !important;
+  border-color: rgba(22, 184, 135, 0.18) !important;
+  color: #0d926b !important;
+}
+
+#root .telemetry-console-row-chip-warning {
+  background: #fff6df !important;
+  border-color: rgba(245, 173, 33, 0.2) !important;
+  color: #d08908 !important;
+}
+
+#root .telemetry-console-row-chip-critical {
+  background: #fff0f2 !important;
+  border-color: rgba(241, 61, 79, 0.18) !important;
+  color: #e22238 !important;
+}
+
+#root .telemetry-console-row-chip-detection {
+  background: #f4edff !important;
+  border-color: rgba(153, 94, 234, 0.18) !important;
+  color: #8347d8 !important;
+}
+
+#root .telemetry-console-alert-list {
+  gap: 8px !important;
+  padding: 10px 11px !important;
+}
+
+#root .telemetry-console-alert-list .telemetry-console-row {
+  grid-template-columns: 58px 30px minmax(0, 1fr) auto !important;
+  gap: 8px !important;
+  min-height: 44px !important;
+  padding: 7px 9px !important;
+  border: 0 !important;
+  border-radius: 7px !important;
+  overflow: visible !important;
+}
+
+#root .telemetry-console-alert-list .telemetry-console-row::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 82px !important;
+  top: -10px !important;
+  bottom: -10px !important;
+  width: 1px !important;
+  background: #e5ebf3 !important;
+  z-index: 0 !important;
+}
+
+#root .telemetry-console-alert-list .telemetry-console-row:first-child::before {
+  top: 50% !important;
+}
+
+#root .telemetry-console-alert-list .telemetry-console-row:last-child::before {
+  bottom: 50% !important;
+}
+
+#root .telemetry-console-alert-list .telemetry-console-row-info {
+  background: #f1f6ff !important;
+}
+
+#root .telemetry-console-alert-list .telemetry-console-row-success {
+  background: #eaf8f1 !important;
+}
+
+#root .telemetry-console-alert-list .telemetry-console-row-warning {
+  background: #fff6e4 !important;
+}
+
+#root .telemetry-console-alert-list .telemetry-console-row-critical {
+  background: #fff0f2 !important;
+}
+
+#root .telemetry-console-alert-list .telemetry-console-row-detection {
+  background: #f7f1ff !important;
+}
+
+#root .telemetry-console-alert-list .telemetry-console-row-dot {
+  display: none !important;
+}
+
+#root .telemetry-console-alert-list .telemetry-console-row-time {
+  justify-content: flex-end !important;
+  gap: 0 !important;
+}
+
+#root .telemetry-console-alert-list .telemetry-console-row-icon {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 999px !important;
+}
+
+#root .telemetry-console-alert-list .telemetry-console-row-icon svg {
+  width: 13px !important;
+  height: 13px !important;
+}
+
+#root .telemetry-console-empty {
+  min-height: 110px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  color: var(--tc-muted) !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+}
+
+#root .telemetry-console-empty-icon {
+  width: 28px !important;
+  height: 28px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 999px !important;
+  background: var(--tc-blue-soft) !important;
+  color: var(--tc-blue) !important;
+}
+
+@keyframes telemetry-console-recent {
+  0%, 68% {
+    box-shadow: inset 3px 0 0 rgba(47, 141, 228, 0.55);
+  }
+  100% {
+    box-shadow: inset 3px 0 0 rgba(47, 141, 228, 0);
+  }
+}
+
+@media (max-width: 980px) {
+  #root .telemetry-console-dashboard {
+    min-height: 560px !important;
+  }
+
+  #root .telemetry-console-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  #root .telemetry-console-metric:nth-child(3) {
+    border-left: 0 !important;
+    border-top: 1px solid var(--tc-line) !important;
+  }
+
+  #root .telemetry-console-metric:nth-child(4) {
+    border-top: 1px solid var(--tc-line) !important;
+  }
+
+  #root .telemetry-console-panels {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 560px) {
+  #root .telemetry-console-dashboard {
+    min-height: 640px !important;
+  }
+
+  #root .telemetry-console-summary {
+    grid-template-columns: 1fr !important;
+  }
+
+  #root .telemetry-console-metric + .telemetry-console-metric {
+    border-left: 0 !important;
+    border-top: 1px solid var(--tc-line) !important;
+  }
+
+  #root .telemetry-console-card {
+    grid-template-rows: auto minmax(0, 1fr) 38px !important;
+  }
+
+  #root .telemetry-console-card-header {
+    min-height: 42px !important;
+    padding: 7px 10px !important;
+  }
+
+  #root .telemetry-console-row,
+  #root .telemetry-console-alert-list .telemetry-console-row {
+    grid-template-columns: 62px 32px minmax(0, 1fr) !important;
+  }
+
+  #root .telemetry-console-row-chip {
+    grid-column: 3 !important;
+    justify-self: start !important;
+    margin-top: 2px !important;
+  }
+
+  #root .telemetry-console-alert-list .telemetry-console-row::before {
+    left: 77px !important;
+  }
+}

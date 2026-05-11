@@ -1,0 +1,15 @@
+ekf_filter_node_local_v2:
+  ros__parameters:
+    # In simulation, Gazebo already provides a smooth chassis odometry in
+    # `/odom_raw`. Using it as the local EKF anchor keeps `odom` close to the
+    # simulated world and avoids large `map -> odom` corrections caused by the
+    # purely kinematic Ackermann dead-reckoning path.
+    odom0: /odom_raw
+    odom0_config: [true,  true,  false,
+                   false, false, true,
+                   true,  true,  false,
+                   false, false, true,
+                   false, false, false]
+    odom0_queue_size: 20
+    odom0_differential: false
+    odom0_relative: false

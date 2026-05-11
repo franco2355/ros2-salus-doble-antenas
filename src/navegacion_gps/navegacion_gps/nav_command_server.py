@@ -201,6 +201,10 @@ class NavCommandServerNode(Node):
         self._failure_component = ""
         self._event_seq = 0
         self._last_collision_stop_active = False
+        self._fw_current_waypoint: int = 0
+        self._fw_total_waypoints: int = 0
+        self._fw_loop_total_waypoints: int = 0
+        self._fw_loop_segment_start_index: int = 0
 
         # Service callbacks are mutually exclusive; clients/actions are reentrant to avoid
         # deadlocks when a service callback waits for a client future.
@@ -809,6 +813,10 @@ class NavCommandServerNode(Node):
         self._is_navigating = False
         self._auto_mode = "idle"
         self._active_action = "idle"
+        self._fw_current_waypoint = 0
+        self._fw_total_waypoints = 0
+        self._fw_loop_total_waypoints = 0
+        self._fw_loop_segment_start_index = 0
         return handle
 
     def _cancel_goal_handle_blocking(self, handle: Any) -> Tuple[bool, str]:
@@ -933,6 +941,13 @@ class NavCommandServerNode(Node):
             )
             failure_code = str(self._failure_code)
             failure_component = str(self._failure_component)
+            fw_current = int(self._fw_current_waypoint)
+            fw_total = int(self._fw_total_waypoints)
+            fw_loop_total = int(self._fw_loop_total_waypoints)
+            fw_loop_segment_start = int(self._fw_loop_segment_start_index)
+
+        if fw_loop_total > 0:
+            fw_current = (fw_loop_segment_start + fw_current) % fw_loop_total
 
         msg = NavTelemetry()
         msg.goal_active = bool(goal_active)
@@ -965,6 +980,9 @@ class NavCommandServerNode(Node):
         msg.nav_result_event_id = int(nav_result["event_id"])
         msg.failure_code = failure_code
         msg.failure_component = failure_component
+        msg.current_waypoint = fw_current
+        msg.total_waypoints = fw_total
+        msg.loop_total_waypoints = fw_loop_total
         self._telemetry_pub.publish(msg)
 
     def _on_gps_fix(self, msg: NavSatFix) -> None:
@@ -1065,6 +1083,7 @@ class NavCommandServerNode(Node):
         self._loop_original_poses = []
         self._loop_segment_start_index = 0
         self._loop_enabled = False
+        self._fw_loop_segment_start_index = 0
 
     def _store_last_goal_request_locked(
         self,
@@ -1176,8 +1195,22 @@ class NavCommandServerNode(Node):
 
         goal = FollowWaypoints.Goal()
         goal.poses = poses_list
+        loop_total_waypoints = 0
+        loop_segment_start_index = 0
+        if loop_enabled:
+            details_map = details or {}
+            loop_total_waypoints = int(details_map.get("loop_total_waypoints") or len(poses_list))
+            loop_segment_start_index = int(details_map.get("loop_segment_start_index") or 0)
 
-        future = self._follow_waypoints_client.send_goal_async(goal)
+        with self._lock:
+            self._fw_total_waypoints = len(poses_list)
+            self._fw_loop_total_waypoints = loop_total_waypoints
+            self._fw_loop_segment_start_index = loop_segment_start_index
+            self._fw_current_waypoint = 0
+
+        future = self._follow_waypoints_client.send_goal_async(
+            goal, feedback_callback=self._on_follow_waypoints_feedback
+        )
         goal_handle = self._wait_for_future(future, timeout_sec=5.0)
         if goal_handle is None:
             with self._lock:
@@ -1234,6 +1267,14 @@ class NavCommandServerNode(Node):
         )
         self._publish_telemetry(force=True)
         return True, "goal accepted"
+
+    def _on_follow_waypoints_feedback(self, feedback_msg) -> None:
+        wp = int(getattr(feedback_msg.feedback, "current_waypoint", 0))
+        with self._lock:
+            if wp == self._fw_current_waypoint:
+                return
+            self._fw_current_waypoint = wp
+        self._publish_telemetry(force=True)
 
     def _send_navigate_through_poses_goal(
         self,
@@ -1325,16 +1366,8 @@ class NavCommandServerNode(Node):
         reason: str,
         details: Optional[Dict[str, Any]] = None,
     ) -> Tuple[bool, str]:
-        poses_list = list(poses)
-        if len(poses_list) > 1:
-            return self._send_navigate_through_poses_goal(
-                poses=poses_list,
-                loop_enabled=loop_enabled,
-                reason=reason,
-                details=details,
-            )
         return self._send_follow_waypoints_goal(
-            poses=poses_list,
+            poses=list(poses),
             loop_enabled=loop_enabled,
             reason=reason,
             details=details,

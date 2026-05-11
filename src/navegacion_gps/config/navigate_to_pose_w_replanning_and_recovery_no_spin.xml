@@ -21,7 +21,7 @@
           smoothed_path="{smoothed_path}"
           smoother_id="Constrained"
           max_smoothing_duration="0.35"
-          check_for_collisions="true" />
+          check_for_collisions="false" />
         <RecoveryNode number_of_retries="1" name="RecoveryFollowPath">
           <FollowPath path="{smoothed_path}" controller_id="FollowPath" />
           <Wait name="WaitLocalRetry-Context" wait_duration="1" />

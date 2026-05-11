@@ -51,6 +51,168 @@ function parseNumericValue(value: unknown): number | null {
   return Number.isFinite(numeric) ? numeric : null;
 }
 
+function padTelemetryNumber(value: number): string {
+  return String(value).padStart(2, "0");
+}
+
+function formatTelemetryClock(timestamp: number): string {
+  if (!Number.isFinite(timestamp) || timestamp <= 0) return "--:--:--";
+  const date = new Date(timestamp);
+  return `${padTelemetryNumber(date.getHours())}:${padTelemetryNumber(date.getMinutes())}:${padTelemetryNumber(date.getSeconds())}`;
+}
+
+function isTelemetryEventToday(timestamp: number, nowMs: number): boolean {
+  if (!Number.isFinite(timestamp) || timestamp <= 0) return false;
+  const eventDate = new Date(timestamp);
+  const today = new Date(nowMs);
+  return (
+    eventDate.getFullYear() === today.getFullYear() &&
+    eventDate.getMonth() === today.getMonth() &&
+    eventDate.getDate() === today.getDate()
+  );
+}
+
+function telemetryEventTone(event: TelemetrySnapshot["recentEvents"][number]): "info" | "success" | "warning" | "critical" | "detection" {
+  const level = event.level.trim().toLowerCase();
+  const code = String(event.code ?? "").trim().toLowerCase();
+  const text = event.text.trim().toLowerCase();
+  if (level === "critical" || level === "error" || level === "err" || level === "fatal") return "critical";
+  if (level === "warn" || level === "warning") return "warning";
+  if (code.includes("detection") || text.includes("detected") || text.includes("object")) return "detection";
+  if (
+    code.includes("succeeded") ||
+    text.includes("connected") ||
+    text.includes("online") ||
+    text.includes("restored") ||
+    text.includes("reached")
+  ) {
+    return "success";
+  }
+  return "info";
+}
+
+function telemetryEventLevelLabel(event: TelemetrySnapshot["recentEvents"][number]): string {
+  const tone = telemetryEventTone(event);
+  if (tone === "warning") return "WARNING";
+  if (tone === "critical") return "CRITICAL";
+  if (tone === "detection") return "DETECTION";
+  return "INFO";
+}
+
+function telemetryEventDetail(event: TelemetrySnapshot["recentEvents"][number]): string {
+  if (event.code?.trim()) return event.code.trim().replace(/_/g, " ");
+  const tone = telemetryEventTone(event);
+  if (tone === "success") return "Estado normal";
+  if (tone === "warning") return "Revision requerida";
+  if (tone === "critical") return "Atencion inmediata";
+  if (tone === "detection") return "Evento de percepcion";
+  return "Evento del sistema";
+}
+
+function TelemetryIcon({
+  kind,
+  className = ""
+}: {
+  kind: "pulse" | "warning" | "critical" | "clock" | "list" | "bell" | "camera" | "check" | "info";
+  className?: string;
+}): JSX.Element {
+  const props = {
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    className
+  };
+
+  if (kind === "warning") {
+    return (
+      <svg {...props}>
+        <path d="M10.3 4.2 2.9 17a2 2 0 0 0 1.7 3h14.8a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0Z" />
+        <path d="M12 9v4" />
+        <path d="M12 17h.01" />
+      </svg>
+    );
+  }
+
+  if (kind === "critical") {
+    return (
+      <svg {...props}>
+        <path d="M12 3 5 6v5c0 4.1 2.8 7.8 7 9 4.2-1.2 7-4.9 7-9V6l-7-3Z" />
+        <path d="M12 8v5" />
+        <path d="M12 16h.01" />
+      </svg>
+    );
+  }
+
+  if (kind === "clock") {
+    return (
+      <svg {...props}>
+        <circle cx="12" cy="12" r="8" />
+        <path d="M12 8v5l3 2" />
+      </svg>
+    );
+  }
+
+  if (kind === "list") {
+    return (
+      <svg {...props}>
+        <path d="M8 6h12" />
+        <path d="M8 12h12" />
+        <path d="M8 18h12" />
+        <path d="M4 6h.01" />
+        <path d="M4 12h.01" />
+        <path d="M4 18h.01" />
+      </svg>
+    );
+  }
+
+  if (kind === "bell") {
+    return (
+      <svg {...props}>
+        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+        <path d="M10 21h4" />
+      </svg>
+    );
+  }
+
+  if (kind === "camera") {
+    return (
+      <svg {...props}>
+        <rect x="4" y="7" width="12" height="10" rx="2" />
+        <path d="m16 10 4-2v8l-4-2" />
+        <circle cx="10" cy="12" r="2" />
+      </svg>
+    );
+  }
+
+  if (kind === "check") {
+    return (
+      <svg {...props}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="m8 12 2.5 2.5L16 9" />
+      </svg>
+    );
+  }
+
+  if (kind === "info") {
+    return (
+      <svg {...props}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 11v5" />
+        <path d="M12 8h.01" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg {...props}>
+      <path d="M4 12h4l2-5 4 10 2-5h4" />
+    </svg>
+  );
+}
+
 function StatusChip({
   label,
   tone = "neutral"
@@ -81,6 +243,84 @@ function SummaryCard({
   );
 }
 
+function TelemetryMetricCard({
+  label,
+  value,
+  detail,
+  icon,
+  tone
+}: {
+  label: string;
+  value: string;
+  detail: string;
+  icon: "pulse" | "warning" | "critical" | "clock";
+  tone: "info" | "warning" | "critical" | "success";
+}): JSX.Element {
+  return (
+    <div className={`telemetry-console-metric telemetry-console-metric-${tone}`}>
+      <span className="telemetry-console-metric-icon" aria-hidden="true">
+        <TelemetryIcon kind={icon} />
+      </span>
+      <span className="telemetry-console-metric-copy">
+        <span className="telemetry-console-metric-label">{label}</span>
+        <strong className="telemetry-console-metric-value">{value}</strong>
+        <span className="telemetry-console-metric-detail">{detail}</span>
+      </span>
+    </div>
+  );
+}
+
+function TelemetryEventIcon({ tone }: { tone: ReturnType<typeof telemetryEventTone> }): JSX.Element {
+  const icon =
+    tone === "warning" ? "warning" :
+    tone === "critical" ? "critical" :
+    tone === "success" ? "check" :
+    tone === "detection" ? "camera" :
+    "info";
+  return <TelemetryIcon kind={icon} />;
+}
+
+function TelemetryEventRow({
+  event,
+  variant,
+  recent
+}: {
+  event: TelemetrySnapshot["recentEvents"][number];
+  variant: "events" | "alerts";
+  recent: boolean;
+}): JSX.Element {
+  const tone = telemetryEventTone(event);
+  return (
+    <div className={`telemetry-console-row telemetry-console-row-${variant} telemetry-console-row-${tone} ${recent ? "is-recent" : ""}`}>
+      <span className="telemetry-console-row-time">
+        <span className="telemetry-console-row-dot" aria-hidden="true" />
+        {formatTelemetryClock(event.timestamp)}
+      </span>
+      <span className="telemetry-console-row-icon" aria-hidden="true">
+        <TelemetryEventIcon tone={tone} />
+      </span>
+      <span className="telemetry-console-row-copy">
+        <strong>{event.text}</strong>
+        <span>{telemetryEventDetail(event)}</span>
+      </span>
+      <span className={`telemetry-console-row-chip telemetry-console-row-chip-${tone}`}>
+        {telemetryEventLevelLabel(event)}
+      </span>
+    </div>
+  );
+}
+
+function TelemetryEmptyState({ label }: { label: string }): JSX.Element {
+  return (
+    <div className="telemetry-console-empty">
+      <span className="telemetry-console-empty-icon" aria-hidden="true">
+        <TelemetryIcon kind="info" />
+      </span>
+      <span>{label}</span>
+    </div>
+  );
+}
+
 function TelemetrySidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.Element {
   const services = resolveOptionalServices(runtime);
   const telemetryService = runtime.services.getService<TelemetryService>(SERVICE_ID);
@@ -94,8 +334,6 @@ function TelemetrySidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.Ele
     services.navigation ? services.navigation.getState() : null
   );
   const [telemetrySnapshot, setTelemetrySnapshot] = useState<TelemetrySnapshot>(telemetryService.getSnapshot());
-  const generalPayload = sensorInfoState?.payloads.general as Record<string, unknown> | undefined;
-  const generalSnapshot = (generalPayload?.snapshot ?? {}) as Record<string, unknown>;
   const pixhawkPayload = sensorInfoState?.payloads.pixhawk_gps as Record<string, unknown> | undefined;
   const pixhawkSnapshot = (pixhawkPayload?.snapshot ?? {}) as Record<string, unknown>;
 
@@ -116,8 +354,17 @@ function TelemetrySidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.Ele
 
   useEffect(() => telemetryService.subscribeTelemetry((next) => setTelemetrySnapshot(next)), [telemetryService]);
 
-  const datumState = (generalSnapshot.datum as Record<string, unknown> | undefined) ?? {};
-  const rtkState = (generalSnapshot.rtk_source_state as Record<string, unknown> | undefined) ?? {};
+  useEffect(() => {
+    if (!services.sensorInfo) return;
+    void services.sensorInfo.open();
+    return () => {
+      void services.sensorInfo!.close();
+    };
+  }, [services.sensorInfo]);
+
+  const datumState = telemetrySnapshot.datum ?? {};
+  const rtkState = telemetrySnapshot.rtkSourceState ?? {};
+  const gpsStatus = telemetrySnapshot.gpsStatus ?? {};
   const yawDiagnostics = (pixhawkSnapshot.diagnostics as Record<string, unknown> | undefined) ?? {};
   const yawDelta = parseNumericValue(yawDiagnostics.yaw_delta_deg);
   const yawTone =
@@ -131,6 +378,10 @@ function TelemetrySidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.Ele
   const cameraTone = navigationState?.cameraStreamConnected ? "ok" : "warn";
   const datumTone = datumState.already_set === true ? "ok" : "warn";
   const alertsTone = alertsCount > 0 ? "warn" : "ok";
+  const gpsLevel = String(gpsStatus.level ?? "");
+  const gpsTone: "ok" | "warn" | "off" | "neutral" =
+    gpsLevel === "ok" ? "ok" : gpsLevel === "warn" ? "warn" : gpsLevel === "error" ? "off" : "neutral";
+  const rtkNtripAvailable = rtkState.active_source_label !== undefined;
 
   return (
     <div className="stack telemetry-sidebar">
@@ -182,21 +433,38 @@ function TelemetrySidebarPanel({ runtime }: { runtime: ModuleContext }): JSX.Ele
 
       <div className="panel-card telemetry-panel-card">
         <div className="telemetry-card-header">
-          <h4>RTK Source</h4>
-          <StatusChip label={rtkState.connected === true ? "connected" : "offline"} tone={rtkState.connected === true ? "ok" : "off"} />
+          <h4>GPS Fix</h4>
+          <StatusChip
+            label={gpsStatus.available === true ? String(gpsStatus.label ?? "unknown") : "no signal"}
+            tone={gpsTone}
+          />
         </div>
         <div className="key-value-grid telemetry-kv-grid">
-          <span>Connected</span>
-          <span>{rtkState.connected === true ? "yes" : "no"}</span>
-          <span>Label</span>
-          <span>{String(rtkState.active_source_label ?? "n/a")}</span>
-          <span>RTCM age</span>
-          <span>{formatInfoNumber(rtkState.rtcm_age_s, 1)} s</span>
-          <span>Received count</span>
-          <span>{formatInfoNumber(rtkState.received_count, 0)}</span>
-          <span>Last error</span>
-          <span>{String(rtkState.last_error ?? "none")}</span>
+          <span>Fix type</span>
+          <span>{String(gpsStatus.label ?? "n/a")}</span>
+          <span>Source</span>
+          <span>{String(gpsStatus.source ?? "n/a")}</span>
+          <span>Raw status</span>
+          <span>{String(gpsStatus.raw ?? "n/a")}</span>
         </div>
+        {rtkNtripAvailable && (
+          <>
+            <div className="telemetry-card-header" style={{ marginTop: "0.5rem" }}>
+              <h4>RTK Corrections</h4>
+              <StatusChip label={rtkState.connected === true ? "connected" : "offline"} tone={rtkState.connected === true ? "ok" : "off"} />
+            </div>
+            <div className="key-value-grid telemetry-kv-grid">
+              <span>Source</span>
+              <span>{String(rtkState.active_source_label ?? "n/a")}</span>
+              <span>RTCM age</span>
+              <span>{formatInfoNumber(rtkState.rtcm_age_s, 1)} s</span>
+              <span>Corrections rx</span>
+              <span>{formatInfoNumber(rtkState.received_count, 0)}</span>
+              <span>Last error</span>
+              <span>{String(rtkState.last_error ?? "none")}</span>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="panel-card telemetry-panel-card">
@@ -229,6 +497,8 @@ function TelemetryConsoleTab({ runtime }: { runtime: ModuleContext }): JSX.Eleme
   const service = runtime.services.getService<TelemetryService>(SERVICE_ID);
   const [snapshot, setSnapshot] = useState<TelemetrySnapshot>(service.getSnapshot());
   const [nowMs, setNowMs] = useState(() => Date.now());
+  const [showAllEvents, setShowAllEvents] = useState(false);
+  const [showAllAlerts, setShowAllAlerts] = useState(false);
 
   useEffect(() => service.subscribeTelemetry((next) => setSnapshot(next)), [service]);
   useEffect(() => {
@@ -236,44 +506,125 @@ function TelemetryConsoleTab({ runtime }: { runtime: ModuleContext }): JSX.Eleme
     return () => window.clearInterval(interval);
   }, []);
 
+  const recentEventsToday = snapshot.recentEvents.filter((event) => isTelemetryEventToday(event.timestamp, nowMs));
+  const alertsToday = snapshot.alerts.filter((event) => isTelemetryEventToday(event.timestamp, nowMs));
+  const warningsToday = alertsToday.filter((event) => telemetryEventTone(event) === "warning").length;
+  const criticalToday = alertsToday.filter((event) => telemetryEventTone(event) === "critical").length;
+  const visibleEvents = showAllEvents ? snapshot.recentEvents : snapshot.recentEvents.slice(0, 5);
+  const visibleAlerts = showAllAlerts ? snapshot.alerts : snapshot.alerts.slice(0, 5);
+  const currentTime = formatTelemetryClock(nowMs);
+
   return (
-    <div className="tel-feed telemetry-console-feed">
-      <div className="tel-feed-col">
-        <div className="tel-feed-hdr">Recent Events</div>
-        <div className="tel-feed-list">
-          {snapshot.recentEvents.length === 0 ? (
-            <div className="muted">No events.</div>
-          ) : (
-            snapshot.recentEvents.map((entry: TelemetrySnapshot["recentEvents"][number], index: number) => (
-              <div key={`${entry.timestamp}.${index}`} className="tel-event">
-                <div className="tel-event-msg">
-                  <strong>{entry.level.toUpperCase()}</strong> {entry.text}
-                </div>
-                <div className="tel-event-meta">{new Date(entry.timestamp).toLocaleTimeString()}</div>
-              </div>
-            ))
-          )}
-        </div>
+    <div className="telemetry-console-dashboard">
+      <div className="telemetry-console-summary" aria-label="Telemetry summary">
+        <TelemetryMetricCard
+          label="Events"
+          value={String(recentEventsToday.length)}
+          detail="Hoy"
+          icon="pulse"
+          tone="info"
+        />
+        <TelemetryMetricCard
+          label="Warnings"
+          value={String(warningsToday)}
+          detail="Hoy"
+          icon="warning"
+          tone="warning"
+        />
+        <TelemetryMetricCard
+          label="Critical"
+          value={String(criticalToday)}
+          detail="Hoy"
+          icon="critical"
+          tone="critical"
+        />
+        <TelemetryMetricCard
+          label="Hora local"
+          value={currentTime}
+          detail="En vivo"
+          icon="clock"
+          tone="success"
+        />
       </div>
-      <div className="tel-feed-col">
-        <div className="tel-feed-hdr">Alerts Timeline</div>
-        <div className="tel-feed-list">
-          {snapshot.alerts.length === 0 ? (
-            <div className="muted">No alerts.</div>
-          ) : (
-            snapshot.alerts.map((entry: TelemetrySnapshot["alerts"][number], index: number) => (
-              <div
-                key={`${entry.timestamp}.${index}`}
-                className={`tel-event ${nowMs - entry.timestamp <= 5000 ? "alert-recent" : ""}`}
-              >
-                <div className="tel-event-msg">
-                  <strong>{entry.level.toUpperCase()}</strong> {entry.text}
-                </div>
-                <div className="tel-event-meta">{new Date(entry.timestamp).toLocaleTimeString()}</div>
-              </div>
-            ))
-          )}
-        </div>
+
+      <div className="telemetry-console-panels">
+        <section className="telemetry-console-card telemetry-console-card-events">
+          <div className="telemetry-console-card-header">
+            <div className="telemetry-console-card-title">
+              <TelemetryIcon kind="list" />
+              <h3>Recent Events</h3>
+            </div>
+            <button
+              type="button"
+              className="telemetry-console-more-btn"
+              onClick={() => setShowAllEvents((prev) => !prev)}
+            >
+              {showAllEvents ? "Ver menos" : "Ver todos"}
+              <span aria-hidden="true">›</span>
+            </button>
+          </div>
+          <div className="telemetry-console-list">
+            {visibleEvents.length === 0 ? (
+              <TelemetryEmptyState label="Sin eventos" />
+            ) : (
+              visibleEvents.map((entry, index) => (
+                <TelemetryEventRow
+                  key={`${entry.timestamp}.${index}.event`}
+                  event={entry}
+                  variant="events"
+                  recent={nowMs - entry.timestamp <= 5000}
+                />
+              ))
+            )}
+          </div>
+          <button
+            type="button"
+            className="telemetry-console-footer-btn"
+            onClick={() => setShowAllEvents((prev) => !prev)}
+          >
+            {showAllEvents ? "Ver menos eventos" : "Ver todos los eventos"}
+            <span aria-hidden="true">›</span>
+          </button>
+        </section>
+
+        <section className="telemetry-console-card telemetry-console-card-alerts">
+          <div className="telemetry-console-card-header">
+            <div className="telemetry-console-card-title">
+              <TelemetryIcon kind="bell" />
+              <h3>Alerts Timeline</h3>
+            </div>
+            <button
+              type="button"
+              className="telemetry-console-more-btn"
+              onClick={() => setShowAllAlerts((prev) => !prev)}
+            >
+              {showAllAlerts ? "Ver menos" : "Ver todas"}
+              <span aria-hidden="true">›</span>
+            </button>
+          </div>
+          <div className="telemetry-console-list telemetry-console-alert-list">
+            {visibleAlerts.length === 0 ? (
+              <TelemetryEmptyState label="Sin alertas" />
+            ) : (
+              visibleAlerts.map((entry, index) => (
+                <TelemetryEventRow
+                  key={`${entry.timestamp}.${index}.alert`}
+                  event={entry}
+                  variant="alerts"
+                  recent={nowMs - entry.timestamp <= 5000}
+                />
+              ))
+            )}
+          </div>
+          <button
+            type="button"
+            className="telemetry-console-footer-btn"
+            onClick={() => setShowAllAlerts((prev) => !prev)}
+          >
+            {showAllAlerts ? "Ver menos alertas" : "Ver todas las alertas"}
+            <span aria-hidden="true">›</span>
+          </button>
+        </section>
       </div>
     </div>
   );

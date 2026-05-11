@@ -20,3 +20,6 @@ string nav_result_text
 uint32 nav_result_event_id
 string failure_code
 string failure_component
+uint16 current_waypoint
+uint16 total_waypoints
+uint16 loop_total_waypoints

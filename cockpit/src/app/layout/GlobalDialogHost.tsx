@@ -51,10 +51,12 @@ export function GlobalDialogHost({ runtime }: GlobalDialogHostProps): JSX.Elemen
     }
     dialogService.accept();
   };
+  const isConnectionLostDialog = activeDialog.kind === "alert" && activeDialog.title === "Conexión perdida";
+  const cardClassName = `global-dialog-card${isConnectionLostDialog ? " global-dialog-card-connection-lost" : ""}`;
 
   return (
     <div className="global-dialog-overlay" role="dialog" aria-modal="true" onClick={() => dialogService.dismiss()}>
-      <div className="global-dialog-card" onClick={(event) => event.stopPropagation()}>
+      <div className={cardClassName} onClick={(event) => event.stopPropagation()}>
         <div className="global-dialog-header-shell">
           <header className="global-dialog-header">
             <strong>{activeDialog.title}</strong>

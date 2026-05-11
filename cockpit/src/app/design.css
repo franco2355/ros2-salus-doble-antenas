@@ -204,12 +204,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .chip.off{background:var(--bad-sub);border-color:rgba(224,123,133,.22);color:var(--bad)}
 
 /* ── SPLITTER ── */
-.spl-v,.splitter-vertical{display:flex;align-items:center;justify-content:center;cursor:col-resize;background:transparent;width:8px;flex-shrink:0}
-.spl-v::before,.splitter-vertical::before{content:"";width:2px;height:36px;border-radius:99px;background:var(--line);transition:background 150ms,height 150ms}
-.spl-v:hover::before,.splitter-vertical:hover::before{background:var(--accent);height:52px}
-.spl-h,.splitter-horizontal{height:8px;display:flex;align-items:center;cursor:row-resize;flex-shrink:0}
-.spl-h::before,.splitter-horizontal::before{content:"";height:2px;flex:1;border-radius:99px;background:var(--line);transition:background 150ms}
-.spl-h:hover::before,.splitter-horizontal:hover::before{background:var(--accent)}
+.spl-v,.splitter-vertical{display:flex;align-items:center;justify-content:center;cursor:col-resize;background:transparent;width:8px;min-width:8px;flex-shrink:0;position:relative}
+.spl-v::before,.splitter-vertical::before{content:"";position:static;width:1px;height:48px;border:0;border-radius:999px;background:var(--line);box-shadow:none;opacity:.9;transition:background-color 150ms ease,opacity 150ms ease}
+.spl-v:hover::before,.splitter-vertical:hover::before{background:var(--accent);opacity:1}
+.spl-h,.splitter-horizontal{height:8px;min-height:8px;display:flex;align-items:center;justify-content:center;cursor:row-resize;background:transparent;flex-shrink:0;position:relative}
+.spl-h::before,.splitter-horizontal::before{content:"";position:static;width:64px;height:1px;border:0;border-radius:999px;background:var(--line);box-shadow:none;opacity:.9;transition:background-color 150ms ease,opacity 150ms ease}
+.spl-h:hover::before,.splitter-horizontal:hover::before{background:var(--accent);opacity:1}
 
 /* ── WORKSPACE ── */
 .ws-col,.workspace-column{display:flex;flex-direction:column;gap:0;min-height:0;flex:1}
@@ -1013,14 +1013,13 @@ button,
   border:1px solid #e0e7ef!important;
   color:var(--nav-ui-text)!important;
   box-shadow:0 1px 4px rgba(0,0,0,0.05)!important;
-  transition:border-color 180ms ease,box-shadow 180ms ease,transform 180ms ease!important;
-  will-change:transform;
+  transition:border-color 180ms ease,box-shadow 180ms ease!important;
 }
 
 .nav-sidebar .nav-sidebar-collapsible-section.collapsed:hover{
   border-color:rgba(41,171,226,0.45)!important;
   box-shadow:0 3px 10px rgba(41,171,226,0.10)!important;
-  transform:translateY(-1px)!important;
+  transform:none!important;
 }
 
 .nav-sidebar .nav-sidebar-collapsible-section:not(.collapsed){
@@ -5078,6 +5077,7 @@ button:disabled,
 
 /* ─── Section intro ─────────────────────────────────────────────────── */
 .settings-section-intro {
+  margin-top: 10px !important;
   margin-bottom: 20px !important;
   gap: 4px !important;
 }
@@ -5258,9 +5258,9 @@ button:disabled,
 /* ─── Footer ────────────────────────────────────────────────────────── */
 .modal-card-modal-settings .modal-footer {
   background: #ffffff !important;
-  border-top: 1px solid #EEF2F9 !important;
+  border-top: 0 !important;
   border-radius: 0 0 20px 20px !important;
-  padding: 0 20px !important;
+  padding: 10px 20px 14px !important;
 }
 
 .settings-footer {
@@ -5297,9 +5297,9 @@ button:disabled,
   color: #ffffff !important;
   border: none !important;
   border-radius: 10px !important;
-  min-height: 44px !important;
-  padding: 0 28px !important;
-  font-size: 14px !important;
+  min-height: 38px !important;
+  padding: 0 22px !important;
+  font-size: 13px !important;
   font-weight: 700 !important;
   box-shadow: 0 2px 10px rgba(22,163,74,0.28) !important;
   cursor: pointer !important;
@@ -5316,13 +5316,2657 @@ button:disabled,
   color: #F1F5F9 !important;
   border: none !important;
   border-radius: 10px !important;
-  min-height: 44px !important;
-  padding: 0 28px !important;
-  font-size: 14px !important;
+  min-height: 38px !important;
+  padding: 0 22px !important;
+  font-size: 13px !important;
   font-weight: 700 !important;
   cursor: pointer !important;
 }
 
 .modal-card-modal-settings .settings-footer-actions .button-secondary:hover {
   background: #1E293B !important;
+}
+
+/* Final shell spacing: keep the sidebar options close to the workspace map. */
+.shell-body {
+  gap: 6px !important;
+}
+
+/* Keep the sidebar selector buttons from visually touching the active panel. */
+#root .sidebar-selector,
+#root .sel {
+  width: 50px !important;
+  min-width: 50px !important;
+  max-width: 50px !important;
+  padding: 7px 7px !important;
+}
+
+#root .sidebar-selector .sel-btn,
+#root .sel .sel-btn {
+  width: 34px !important;
+  height: 34px !important;
+}
+
+#root .shell-body > .sidebar-panel {
+  width: calc(100% - 7px) !important;
+  margin-left: 7px !important;
+}
+
+/* Final color polish: shared blue accents and softer navy ink instead of pure black. */
+:root {
+  --salus-blue: #087BFF !important;
+  --salus-blue-strong: #005FD1 !important;
+  --salus-blue-light: #60A5FA !important;
+  --salus-blue-soft: #eaf3ff !important;
+  --salus-ink: #18243a !important;
+  --salus-ink-soft: #31415f !important;
+  --salus-muted: #64748b !important;
+  --text: #18243a !important;
+  --muted: #64748b !important;
+  --accent: #2491FF !important;
+}
+
+.toolbar-brand-name,
+.toolbar-brand-sub,
+.toolbar-btn,
+.sidebar-panel-kicker,
+.sidebar-title,
+.sidebar-panel-heading-badge,
+.workspace-selector .ws-tab,
+.ws-tabs .ws-tab,
+.console-tabs .con-tab,
+.footer-item,
+.conn-footer,
+#root .nav-sidebar .ps-title,
+#root .nav-sidebar .nav-sidebar-section-header,
+#root .nav-sidebar .nav-sidebar-section-header *,
+#root .nav-sidebar .button-face-label,
+#root .nav-sidebar .bf-label,
+#root .nav-sidebar button:not(.nav-sidebar-section-header) *,
+#root header.top-toolbar.toolbar .toolbar-right .toolbar-mini-label,
+#root header.top-toolbar.toolbar .toolbar-right .toolbar-mini-value,
+#root header.top-toolbar.toolbar .toolbar-right .conn-badge span {
+  color: var(--salus-ink) !important;
+  text-shadow: none !important;
+}
+
+.toolbar-brand-name,
+.sidebar-panel-kicker,
+#root .nav-sidebar .ps-title {
+  font-weight: 820 !important;
+  letter-spacing: 0.115em !important;
+}
+
+.toolbar-brand-sub,
+.button-face-meta,
+.bf-meta,
+#root .nav-sidebar .button-face-meta,
+#root .nav-sidebar .bf-meta,
+.footer-item {
+  color: var(--salus-muted) !important;
+}
+
+.sidebar-selector .sel-btn.active,
+#root .sidebar-selector .sel-btn.active,
+#root .sidebar-selector .sel-btn.active:hover,
+.sel .sel-btn.active,
+#root .sel .sel-btn.active,
+#root .sel .sel-btn.active:hover,
+.workspace-selector .ws-tab.active,
+.ws-tabs .ws-tab.active,
+#root .workspace-selector .ws-tab.active,
+#root .ws-tabs .ws-tab.active,
+#root .workspace-selector .ws-tab.active:hover,
+#root .ws-tabs .ws-tab.active:hover {
+  position: relative !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+  background: linear-gradient(135deg, var(--salus-blue) 0%, var(--salus-blue-strong) 100%) !important;
+  border-color: rgba(36, 145, 255, 0.72) !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 8px 18px rgba(36, 145, 255, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34) !important;
+}
+
+.sidebar-selector .sel-btn.active::before,
+#root .sidebar-selector .sel-btn.active::before,
+.sel .sel-btn.active::before,
+#root .sel .sel-btn.active::before,
+.workspace-selector .ws-tab.active::before,
+.ws-tabs .ws-tab.active::before,
+#root .workspace-selector .ws-tab.active::before,
+#root .ws-tabs .ws-tab.active::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: -70% !important;
+  z-index: -1 !important;
+  pointer-events: none !important;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.86) 0 11%, rgba(255, 255, 255, 0.36) 12% 21%, transparent 34%),
+    radial-gradient(circle at 82% 78%, rgba(255, 255, 255, 0.54) 0 10%, rgba(96, 165, 250, 0.58) 11% 22%, transparent 36%),
+    radial-gradient(circle at 48% 52%, rgba(255, 255, 255, 0.34) 0 18%, transparent 42%) !important;
+  filter: blur(3px) !important;
+  opacity: 1 !important;
+  animation: salus-gradient-circle 16s linear infinite !important;
+}
+
+.sidebar-selector .sel-btn.active::after,
+#root .sidebar-selector .sel-btn.active::after,
+.sel .sel-btn.active::after,
+#root .sel .sel-btn.active::after,
+.workspace-selector .ws-tab.active::after,
+.ws-tabs .ws-tab.active::after,
+#root .workspace-selector .ws-tab.active::after,
+#root .ws-tabs .ws-tab.active::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: -45% !important;
+  z-index: -1 !important;
+  pointer-events: none !important;
+  background:
+    radial-gradient(circle at 80% 18%, rgba(255, 255, 255, 0.70) 0 13%, rgba(255, 255, 255, 0.28) 14% 24%, transparent 38%),
+    radial-gradient(circle at 16% 84%, rgba(255, 255, 255, 0.46) 0 14%, rgba(96, 165, 250, 0.44) 15% 28%, transparent 42%) !important;
+  filter: blur(4px) !important;
+  opacity: 0.95 !important;
+  animation: salus-gradient-horizontal 11s ease-in-out infinite !important;
+}
+
+@keyframes salus-gradient-horizontal {
+  0% {
+    transform: translateX(-18%) translateY(-8%);
+  }
+  50% {
+    transform: translateX(18%) translateY(8%);
+  }
+  100% {
+    transform: translateX(-18%) translateY(-8%);
+  }
+}
+
+@keyframes salus-gradient-circle {
+  0% {
+    transform: rotate(0deg) translateY(-8%);
+  }
+  50% {
+    transform: rotate(180deg) translateY(8%);
+  }
+  100% {
+    transform: rotate(360deg) translateY(-8%);
+  }
+}
+
+.sidebar-selector .sel-btn.active *,
+#root .sidebar-selector .sel-btn.active *,
+.sel .sel-btn.active *,
+#root .sel .sel-btn.active *,
+.workspace-selector .ws-tab.active,
+.ws-tabs .ws-tab.active,
+#root .workspace-selector .ws-tab.active,
+#root .ws-tabs .ws-tab.active {
+  position: relative !important;
+  z-index: 1 !important;
+  color: #ffffff !important;
+}
+
+.sidebar-selector .sel-btn.active:hover,
+#root .sidebar-selector .sel-btn.active:hover,
+.sel .sel-btn.active:hover,
+#root .sel .sel-btn.active:hover,
+.sidebar-selector .sel-btn.active:focus-visible,
+#root .sidebar-selector .sel-btn.active:focus-visible,
+.sel .sel-btn.active:focus-visible,
+#root .sel .sel-btn.active:focus-visible,
+.workspace-selector .ws-tab.active:hover,
+.ws-tabs .ws-tab.active:hover,
+#root .workspace-selector .ws-tab.active:hover,
+#root .ws-tabs .ws-tab.active:hover,
+.workspace-selector .ws-tab.active:focus-visible,
+.ws-tabs .ws-tab.active:focus-visible,
+#root .workspace-selector .ws-tab.active:focus-visible,
+#root .ws-tabs .ws-tab.active:focus-visible {
+  background: linear-gradient(135deg, var(--salus-blue) 0%, var(--salus-blue-strong) 100%) !important;
+}
+
+.sidebar-selector .sel-btn.active:hover::before,
+#root .sidebar-selector .sel-btn.active:hover::before,
+.sel .sel-btn.active:hover::before,
+#root .sel .sel-btn.active:hover::before,
+.sidebar-selector .sel-btn.active:hover::after,
+#root .sidebar-selector .sel-btn.active:hover::after,
+.sel .sel-btn.active:hover::after,
+#root .sel .sel-btn.active:hover::after,
+.workspace-selector .ws-tab.active:hover::before,
+.ws-tabs .ws-tab.active:hover::before,
+#root .workspace-selector .ws-tab.active:hover::before,
+#root .ws-tabs .ws-tab.active:hover::before,
+.workspace-selector .ws-tab.active:hover::after,
+.ws-tabs .ws-tab.active:hover::after,
+#root .workspace-selector .ws-tab.active:hover::after,
+#root .ws-tabs .ws-tab.active:hover::after,
+.sidebar-selector .sel-btn.active:focus-visible::before,
+#root .sidebar-selector .sel-btn.active:focus-visible::before,
+.sel .sel-btn.active:focus-visible::before,
+#root .sel .sel-btn.active:focus-visible::before,
+.sidebar-selector .sel-btn.active:focus-visible::after,
+#root .sidebar-selector .sel-btn.active:focus-visible::after,
+.sel .sel-btn.active:focus-visible::after,
+#root .sel .sel-btn.active:focus-visible::after,
+.workspace-selector .ws-tab.active:focus-visible::before,
+.ws-tabs .ws-tab.active:focus-visible::before,
+#root .workspace-selector .ws-tab.active:focus-visible::before,
+#root .ws-tabs .ws-tab.active:focus-visible::before,
+.workspace-selector .ws-tab.active:focus-visible::after,
+.ws-tabs .ws-tab.active:focus-visible::after,
+#root .workspace-selector .ws-tab.active:focus-visible::after,
+#root .ws-tabs .ws-tab.active:focus-visible::after {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-selector .sel-btn.active::before,
+  #root .sidebar-selector .sel-btn.active::before,
+  .sel .sel-btn.active::before,
+  #root .sel .sel-btn.active::before,
+  .sidebar-selector .sel-btn.active::after,
+  #root .sidebar-selector .sel-btn.active::after,
+  .sel .sel-btn.active::after,
+  #root .sel .sel-btn.active::after,
+  .workspace-selector .ws-tab.active::before,
+  .ws-tabs .ws-tab.active::before,
+  #root .workspace-selector .ws-tab.active::before,
+  #root .ws-tabs .ws-tab.active::before,
+  .workspace-selector .ws-tab.active::after,
+  .ws-tabs .ws-tab.active::after,
+  #root .workspace-selector .ws-tab.active::after,
+  #root .ws-tabs .ws-tab.active::after {
+    animation: none !important;
+  }
+}
+
+.sidebar-panel-heading-badge,
+#root .nav-sidebar .nav-sidebar-section-badge,
+#root .nav-sidebar .waypoint-badge {
+  background: var(--salus-blue-soft) !important;
+  border-color: rgba(36, 145, 255, 0.28) !important;
+  color: var(--salus-blue-strong) !important;
+  box-shadow: 0 1px 2px rgba(36, 145, 255, 0.08) !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-icon,
+#root .nav-sidebar .nav-sidebar-section-chevron,
+.toolbar-icon-btn:hover,
+.ws-act:hover,
+.con-tab.active {
+  color: var(--salus-blue) !important;
+}
+
+#root .nav-sidebar .nav-sidebar-collapsible-section,
+#root .nav-sidebar .nav-sidebar-collapsible-section.open,
+#root .nav-sidebar .nav-sidebar-collapsible-section[data-state="open"],
+#root .nav-sidebar .nav-sidebar-collapsible-section.collapsed,
+#root .nav-sidebar .nav-sidebar-collapsible-section[data-state="closed"],
+#root .nav-sidebar .nav-sidebar-collapsible-section:not(.collapsed),
+#root .nav-sidebar button:not(.nav-sidebar-section-header),
+#root .nav-sidebar select,
+#root .nav-sidebar input {
+  border-color: #d8e2ef !important;
+  color: var(--salus-ink) !important;
+}
+
+#root .nav-sidebar .nav-sidebar-collapsible-section:hover,
+#root .nav-sidebar button:not(.nav-sidebar-section-header):hover:not(:disabled),
+#root .nav-sidebar select:hover,
+#root .nav-sidebar input:hover {
+  border-color: rgba(36, 145, 255, 0.36) !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%) !important;
+}
+
+#root .nav-sidebar .button-face-icon,
+#root .nav-sidebar .bf-ico,
+#root .nav-sidebar button:not(.nav-sidebar-section-header) .button-face-icon,
+#root .nav-sidebar button:not(.nav-sidebar-section-header) .bf-ico {
+  background: var(--salus-blue-soft) !important;
+  border-color: rgba(36, 145, 255, 0.22) !important;
+  color: var(--salus-blue) !important;
+}
+
+#root .top-toolbar .conn-badge,
+#root .toolbar .conn-badge,
+#root .top-toolbar .toolbar-mini-badge,
+#root .toolbar .toolbar-mini-badge,
+#root header.top-toolbar.toolbar .toolbar-right .conn-badge,
+#root header.top-toolbar.toolbar .toolbar-right .toolbar-mini-badge {
+  background: #ffffff !important;
+  border-color: #d8e2ef !important;
+  color: var(--salus-ink) !important;
+  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.05) !important;
+}
+
+#root .top-toolbar .conn-dot,
+#root .toolbar .conn-dot,
+#root header.top-toolbar.toolbar .toolbar-right .conn-dot,
+#root header.top-toolbar.toolbar .toolbar-right .conn-dot.pulse {
+  background: var(--salus-blue) !important;
+}
+
+/* Final workspace tabs: compact dark active tab like the reference. */
+#root .workspace-selector,
+#root .ws-tabs {
+  gap: 6px !important;
+  padding: 5px 6px !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+#root .workspace-selector .ws-tab,
+#root .ws-tabs .ws-tab {
+  min-height: 28px !important;
+  height: 28px !important;
+  padding: 0 14px !important;
+  border-radius: 7px !important;
+  border: 1px solid #dbe4ef !important;
+  background: #ffffff !important;
+  color: #18243a !important;
+  font-size: 11px !important;
+  font-weight: 780 !important;
+  letter-spacing: 0.02em !important;
+  gap: 7px !important;
+  text-transform: none !important;
+  box-shadow:
+    0 3px 8px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+#root .workspace-selector .ws-tab-icon,
+#root .ws-tabs .ws-tab-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 14px !important;
+  height: 14px !important;
+  flex: 0 0 14px !important;
+  color: currentColor !important;
+}
+
+#root .workspace-selector .ws-tab-icon svg,
+#root .ws-tabs .ws-tab-icon svg {
+  width: 13px !important;
+  height: 13px !important;
+  stroke: currentColor !important;
+}
+
+#root .workspace-selector .ws-tab-label,
+#root .ws-tabs .ws-tab-label {
+  line-height: 1 !important;
+  font-size: 11px !important;
+  font-weight: 780 !important;
+}
+
+#root .workspace-selector .ws-tab:hover:not(.active),
+#root .ws-tabs .ws-tab:hover:not(.active) {
+  border-color: #cbd7e6 !important;
+  background: #f8fbff !important;
+  color: #101827 !important;
+}
+
+#root .workspace-selector .ws-tab.active,
+#root .ws-tabs .ws-tab.active,
+#root .workspace-selector .ws-tab.active:hover,
+#root .ws-tabs .ws-tab.active:hover,
+#root .workspace-selector .ws-tab.active:focus-visible,
+#root .ws-tabs .ws-tab.active:focus-visible {
+  overflow: hidden !important;
+  isolation: auto !important;
+  animation: none !important;
+  border-color: #0d1730 !important;
+  background: linear-gradient(180deg, #18243f 0%, #0a1020 100%) !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 8px 16px rgba(10, 16, 32, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+}
+
+#root .workspace-selector .ws-tab.active::before,
+#root .ws-tabs .ws-tab.active::before,
+#root .workspace-selector .ws-tab.active::after,
+#root .ws-tabs .ws-tab.active::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Final navigation accordion border: no blue outline on open/hovered sections. */
+#root .nav-sidebar .nav-sidebar-collapsible-section,
+#root .nav-sidebar .nav-sidebar-collapsible-section.open,
+#root .nav-sidebar .nav-sidebar-collapsible-section[data-state="open"],
+#root .nav-sidebar .nav-sidebar-collapsible-section.collapsed,
+#root .nav-sidebar .nav-sidebar-collapsible-section[data-state="closed"],
+#root .nav-sidebar .nav-sidebar-collapsible-section:not(.collapsed),
+#root .nav-sidebar .nav-sidebar-collapsible-section:hover {
+  border: 1px solid #c7d6e8 !important;
+  outline: 1px solid rgba(167, 190, 220, 0.72) !important;
+  outline-offset: -1px !important;
+  background: #ffffff !important;
+  box-shadow:
+    0 7px 16px rgba(15, 23, 42, 0.055),
+    inset 0 0 0 1px rgba(167, 190, 220, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+}
+
+#root .nav-sidebar > .nav-sidebar-collapsible-section:first-child {
+  margin-top: 0 !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-badge {
+  min-width: 32px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  padding: 0 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 7px !important;
+  background: #f2f7ff !important;
+  border: 1px solid #9ec7ff !important;
+  box-shadow: none !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-badge .waypoint-badge {
+  min-width: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--salus-blue-strong) !important;
+}
+
+/* File Operations: remove the internal separator under the section header. */
+#root .nav-sidebar .nav-sidebar-file-section,
+#root .nav-sidebar .nav-sidebar-file-section.collapsed,
+#root .nav-sidebar .nav-sidebar-file-section[data-state="closed"] {
+  border: 1px solid #c7d6e8 !important;
+  outline: 1px solid rgba(167, 190, 220, 0.72) !important;
+  outline-offset: -1px !important;
+  box-shadow:
+    0 7px 16px rgba(15, 23, 42, 0.055),
+    inset 0 0 0 1px rgba(167, 190, 220, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+}
+
+#root .nav-sidebar .nav-sidebar-file-section .nav-sidebar-section-header,
+#root .nav-sidebar .nav-sidebar-file-section.open .nav-sidebar-section-header,
+#root .nav-sidebar .nav-sidebar-file-section[data-state="open"] .nav-sidebar-section-header,
+#root .nav-sidebar .nav-sidebar-file-section:not(.collapsed) .nav-sidebar-section-header {
+  border: 0 !important;
+  border-bottom: 0 !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+#root .nav-sidebar .nav-sidebar-file-section .nav-sidebar-section-header:hover,
+#root .nav-sidebar .nav-sidebar-file-section.collapsed .nav-sidebar-section-header:hover,
+#root .nav-sidebar .nav-sidebar-file-section[data-state="closed"] .nav-sidebar-section-header:hover {
+  background: #f7f9fb !important;
+  color: var(--salus-ink) !important;
+}
+
+/* File Operations buttons stay neutral: no red/danger frame inside this section. */
+#root .nav-sidebar .nav-sidebar-file-section .nav-sidebar-section-content .ncb,
+#root .nav-sidebar .nav-sidebar-file-section .nav-sidebar-section-content .sec-btn,
+#root .nav-sidebar .nav-sidebar-file-section .nav-sidebar-section-content button {
+  border: 1.5px solid #1f2937 !important;
+  background: #ffffff !important;
+  color: var(--salus-ink) !important;
+  box-shadow:
+    0 4px 10px rgba(15, 23, 42, 0.055),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+#root .nav-sidebar .nav-sidebar-file-section .nav-sidebar-section-content .ncb:hover:not(:disabled),
+#root .nav-sidebar .nav-sidebar-file-section .nav-sidebar-section-content .sec-btn:hover:not(:disabled),
+#root .nav-sidebar .nav-sidebar-file-section .nav-sidebar-section-content button:hover:not(:disabled) {
+  border-color: #111827 !important;
+  background: #f8fbff !important;
+  color: var(--salus-ink) !important;
+}
+
+#root .nav-sidebar .nav-sidebar-file-section .button-face-icon,
+#root .nav-sidebar .nav-sidebar-file-section .bf-ico {
+  background: var(--salus-blue-soft) !important;
+  border: 1px solid rgba(36, 145, 255, 0.22) !important;
+  color: var(--salus-blue) !important;
+  box-shadow: none !important;
+}
+
+/* Final console tabs: match the compact dark/white segmented design. */
+#root .console-tabs,
+#root .con-tabs {
+  min-height: 38px !important;
+  padding: 5px 6px !important;
+  gap: 6px !important;
+  align-items: center !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #e4edf7 !important;
+}
+
+#root .console-tabs .con-tab,
+#root .con-tabs .con-tab {
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  border-radius: 7px !important;
+  border: 1px solid #dbe4ef !important;
+  background: #ffffff !important;
+  color: #18243a !important;
+  font-size: 11px !important;
+  font-weight: 780 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: uppercase !important;
+  box-shadow:
+    0 3px 8px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+#root .console-tabs .con-tab:hover:not(.active),
+#root .con-tabs .con-tab:hover:not(.active) {
+  border-color: #cbd7e6 !important;
+  background: #f8fbff !important;
+  color: #101827 !important;
+}
+
+#root .console-tabs .con-tab.active,
+#root .con-tabs .con-tab.active,
+#root .console-tabs .con-tab.active:hover,
+#root .con-tabs .con-tab.active:hover {
+  border-color: #0d1730 !important;
+  background: linear-gradient(180deg, #18243f 0%, #0a1020 100%) !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 8px 16px rgba(10, 16, 32, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+}
+
+#root .console-tabs .con-tab-icon,
+#root .con-tabs .con-tab-icon {
+  width: 14px !important;
+  height: 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: currentColor !important;
+}
+
+#root .console-tabs .con-tab-icon svg,
+#root .con-tabs .con-tab-icon svg {
+  width: 13px !important;
+  height: 13px !important;
+  stroke: currentColor !important;
+}
+
+#root .console-tabs .con-tab-label,
+#root .con-tabs .con-tab-label {
+  line-height: 1 !important;
+}
+
+/* Final Processes modal: align with the Info modal surface and disconnected reference. */
+#root .modal-card-modal-processes {
+  width: min(980px, calc(100vw - 32px)) !important;
+  max-width: min(980px, calc(100vw - 32px)) !important;
+  height: min(760px, calc(100vh - 32px)) !important;
+  max-height: calc(100vh - 32px) !important;
+  border: 1px solid #dce6f2 !important;
+  border-radius: 20px !important;
+  background: #ffffff !important;
+  box-shadow: 0 22px 52px rgba(15, 23, 42, 0.2) !important;
+}
+
+#root .modal-card-modal-processes:has(.process-modal-root.disconnected) {
+  width: min(560px, calc(100vw - 32px)) !important;
+  max-width: min(560px, calc(100vw - 32px)) !important;
+  height: auto !important;
+  max-height: calc(100vh - 32px) !important;
+}
+
+#root .modal-card-modal-processes .modal-header-shell {
+  min-height: 50px !important;
+  background: #0f172a !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 20px 20px 0 0 !important;
+}
+
+#root .modal-card-modal-processes .modal-title {
+  color: #f8fafc !important;
+  font-size: 15px !important;
+  font-weight: 760 !important;
+  letter-spacing: 0.01em !important;
+}
+
+#root .modal-card-modal-processes .modal-close-btn {
+  border-left: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 0 20px 0 0 !important;
+  color: #94a3b8 !important;
+  background: transparent !important;
+}
+
+#root .modal-card-modal-processes .modal-close-btn:hover {
+  background: rgba(220, 38, 38, 0.18) !important;
+  color: #f87171 !important;
+}
+
+#root .modal-card-modal-processes .modal-body {
+  padding: 16px !important;
+  background: #cbd1d7 !important;
+  overflow: auto !important;
+}
+
+#root .process-modal-root {
+  height: 100% !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  gap: 14px !important;
+  background: transparent !important;
+}
+
+#root .process-modal-root.disconnected {
+  height: auto !important;
+  min-height: 224px !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(138px, 1fr) !important;
+  align-content: stretch !important;
+}
+
+#root .process-modal-root > .status-pill.bad {
+  min-height: auto !important;
+  padding: 11px 16px !important;
+  border: 1.5px solid rgba(219, 39, 119, 0.28) !important;
+  border-radius: 18px !important;
+  background: rgba(252, 231, 243, 0.78) !important;
+  color: #fb7185 !important;
+  font-size: 13px !important;
+  font-weight: 740 !important;
+  line-height: 1.35 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  box-shadow: none !important;
+}
+
+#root .process-modal-root.disconnected .info-placeholder-card {
+  min-height: 138px !important;
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 6px !important;
+  padding: 26px 20px !important;
+  border: 1px solid #7d8b9d !important;
+  border-radius: 14px !important;
+  background: #ffffff !important;
+  text-align: center !important;
+  box-shadow: none !important;
+}
+
+#root .process-modal-root.disconnected .info-placeholder-card strong {
+  display: block !important;
+  margin: 0 !important;
+  color: #020617 !important;
+  font-size: 15px !important;
+  font-weight: 780 !important;
+}
+
+#root .process-modal-root.disconnected .info-placeholder-card .muted {
+  margin: 0 !important;
+  color: #4f6690 !important;
+  font-size: 13px !important;
+}
+
+/* Match the lost-connection alert to the compact disconnected Processes modal. */
+#root .global-dialog-card-connection-lost {
+  width: min(560px, calc(100vw - 32px)) !important;
+  max-width: min(560px, calc(100vw - 32px)) !important;
+  border: 1px solid #dce6f2 !important;
+  border-radius: 20px !important;
+  background: #ffffff !important;
+  box-shadow: 0 22px 52px rgba(15, 23, 42, 0.2) !important;
+}
+
+#root .global-dialog-card-connection-lost .global-dialog-header-shell {
+  min-height: 50px !important;
+  background: #0f172a !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 20px 20px 0 0 !important;
+}
+
+#root .global-dialog-card-connection-lost .global-dialog-header {
+  min-height: 50px !important;
+  padding: 0 16px !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+#root .global-dialog-card-connection-lost .global-dialog-header strong {
+  color: #f8fafc !important;
+  font-size: 15px !important;
+  font-weight: 760 !important;
+  letter-spacing: 0.01em !important;
+}
+
+#root .global-dialog-card-connection-lost .global-dialog-close-btn {
+  border-left: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 0 20px 0 0 !important;
+  color: #94a3b8 !important;
+  background: transparent !important;
+}
+
+#root .global-dialog-card-connection-lost .global-dialog-close-btn:hover:not(:disabled) {
+  background: rgba(220, 38, 38, 0.18) !important;
+  color: #f87171 !important;
+}
+
+#root .global-dialog-card-connection-lost .global-dialog-body {
+  min-height: 138px !important;
+  margin: 16px !important;
+  padding: 26px 20px !important;
+  place-content: center !important;
+  justify-items: center !important;
+  border: 1px solid #7d8b9d !important;
+  border-radius: 14px !important;
+  background: #ffffff !important;
+  text-align: center !important;
+}
+
+#root .global-dialog-card-connection-lost .global-dialog-message {
+  max-width: 430px !important;
+  margin: 0 !important;
+  color: #4f6690 !important;
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+}
+
+#root .global-dialog-card-connection-lost .global-dialog-actions {
+  min-height: 66px !important;
+  padding: 10px 16px !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  border-top: 1px solid #dce6f2 !important;
+  background: #ffffff !important;
+}
+
+#root .global-dialog-card-connection-lost .global-dialog-actions .danger-btn {
+  min-height: 40px !important;
+  padding: 0 18px !important;
+  border: 1.5px solid rgba(219, 39, 119, 0.28) !important;
+  border-radius: 12px !important;
+  background: rgba(252, 231, 243, 0.78) !important;
+  color: #be185d !important;
+  font-size: 14px !important;
+  font-weight: 740 !important;
+  box-shadow: none !important;
+}
+
+#root .global-dialog-card-connection-lost .global-dialog-actions .danger-btn:hover:not(:disabled) {
+  background: rgba(251, 207, 232, 0.92) !important;
+  color: #9d174d !important;
+}
+
+#root .process-modal-layout {
+  gap: 14px !important;
+}
+
+#root .process-modal-sidebar,
+#root .process-modal-content,
+#root .process-modal-output-panel {
+  border: 1px solid #dbe4ef !important;
+  border-radius: 14px !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+}
+
+#root .process-modal-list,
+#root .process-modal-details,
+#root .process-modal-toggle-row,
+#root .process-modal-output-empty {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  background: #f8fafe !important;
+  box-shadow: none !important;
+}
+
+#root .process-modal-process-btn {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 11px !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  box-shadow: none !important;
+}
+
+#root .process-modal-process-btn:hover:not(:disabled) {
+  border-color: #cbd5e1 !important;
+  background: #f8fbff !important;
+}
+
+#root .process-modal-process-btn.active {
+  border-color: #0f172a !important;
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.16) !important;
+}
+
+#root .process-modal-process-btn.active .process-list-button-label,
+#root .process-modal-process-btn.active .process-list-button-meta {
+  color: #f8fafc !important;
+}
+
+#root .process-list-button-label,
+#root .process-modal-header strong {
+  color: #0f172a !important;
+}
+
+#root .process-modal-kicker,
+#root .process-modal-sidebar-copy,
+#root .process-list-button-meta,
+#root .process-modal-toggle-note,
+#root .process-modal-output-title {
+  color: #64748b !important;
+}
+
+#root .process-modal-output-text {
+  border: 1px solid #111827 !important;
+  border-radius: 12px !important;
+  background: #050816 !important;
+  color: #e2e8f0 !important;
+}
+
+/* Final nav option icons: the symbol tile stays white, never animated/blue. */
+#root .nav-sidebar .nav-sidebar-section-content .button-face-icon,
+#root .nav-sidebar .nav-sidebar-section-content .bf-ico,
+#root .nav-sidebar .nav-sidebar-section-content button .button-face-icon,
+#root .nav-sidebar .nav-sidebar-section-content button .bf-ico,
+#root .nav-sidebar .nav-sidebar-section-content button:hover .button-face-icon,
+#root .nav-sidebar .nav-sidebar-section-content button:hover .bf-ico,
+#root .nav-sidebar .nav-sidebar-section-content button:disabled .button-face-icon,
+#root .nav-sidebar .nav-sidebar-section-content button:disabled .bf-ico {
+  background: #ffffff !important;
+  background-image: none !important;
+  border: 1px solid #d8e2ef !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06) !important;
+  animation: none !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content .button-face-icon::before,
+#root .nav-sidebar .nav-sidebar-section-content .button-face-icon::after,
+#root .nav-sidebar .nav-sidebar-section-content .bf-ico::before,
+#root .nav-sidebar .nav-sidebar-section-content .bf-ico::after {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+  animation: none !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content .button-face-icon svg,
+#root .nav-sidebar .nav-sidebar-section-content .bf-ico svg {
+  background: transparent !important;
+  color: currentColor !important;
+  stroke: currentColor !important;
+}
+
+/* Final Recording buttons: all three controls keep the same black frame. */
+#root .nav-sidebar .nav-sidebar-recording-section .nav-sidebar-section-content .ncb,
+#root .nav-sidebar .nav-sidebar-recording-section .nav-sidebar-section-content .sec-btn,
+#root .nav-sidebar .nav-sidebar-recording-section .nav-sidebar-section-content button {
+  border: 1.5px solid #1f2937 !important;
+  background: #ffffff !important;
+  color: var(--salus-ink) !important;
+  box-shadow:
+    0 4px 10px rgba(15, 23, 42, 0.055),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+#root .nav-sidebar .nav-sidebar-recording-section .nav-sidebar-section-content .ncb:hover:not(:disabled),
+#root .nav-sidebar .nav-sidebar-recording-section .nav-sidebar-section-content .sec-btn:hover:not(:disabled),
+#root .nav-sidebar .nav-sidebar-recording-section .nav-sidebar-section-content button:hover:not(:disabled) {
+  border-color: #111827 !important;
+  background: #f8fbff !important;
+  color: var(--salus-ink) !important;
+}
+
+/* Final Manual mode state: match Goal Mode active styling. */
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:nth-child(2),
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:nth-child(2):hover,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:nth-child(2):focus,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:nth-child(2):focus-visible,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content button.ncb.active:nth-child(2),
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content button.ncb.active:nth-child(2):hover,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content button.ncb.active:nth-child(2):focus,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content button.ncb.active:nth-child(2):focus-visible {
+  border: 1.5px solid var(--salus-blue) !important;
+  outline: none !important;
+  outline-offset: 0 !important;
+  background:
+    linear-gradient(120deg, #ffffff 0%, #eef6ff 34%, #dbeafe 58%, #f8fbff 78%, #ffffff 100%) !important;
+  background-size: 240% 240% !important;
+  color: var(--salus-blue-strong) !important;
+  box-shadow:
+    0 6px 14px rgba(36, 145, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  animation: salus-active-option-flow 7.5s ease-in-out infinite !important;
+}
+
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:nth-child(2) .button-face-label,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:nth-child(2) .button-face-meta,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:nth-child(2) .button-face-icon {
+  color: #111827 !important;
+}
+
+/* Final Waypoints controls: disabled/idle buttons must not look selected. */
+#root .nav-sidebar .nav-sidebar-waypoints-section .nav-sidebar-section-content .ncb:not(.active),
+#root .nav-sidebar .nav-sidebar-waypoints-section .nav-sidebar-section-content .ncb:not(.active):focus,
+#root .nav-sidebar .nav-sidebar-waypoints-section .nav-sidebar-section-content .ncb:not(.active):focus-visible,
+#root .nav-sidebar .nav-sidebar-waypoints-section .nav-sidebar-section-content .ncb:not(.active):disabled,
+#root .nav-sidebar .nav-sidebar-waypoints-section .nav-sidebar-section-content button.ncb:not(.active),
+#root .nav-sidebar .nav-sidebar-waypoints-section .nav-sidebar-section-content button.ncb:not(.active):focus,
+#root .nav-sidebar .nav-sidebar-waypoints-section .nav-sidebar-section-content button.ncb:not(.active):focus-visible,
+#root .nav-sidebar .nav-sidebar-waypoints-section .nav-sidebar-section-content button.ncb:not(.active):disabled {
+  border: 1px solid #d8e2ef !important;
+  outline: none !important;
+  background: #ffffff !important;
+  color: var(--salus-ink) !important;
+  box-shadow:
+    0 3px 8px rgba(15, 23, 42, 0.045),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+#root .nav-sidebar .nav-sidebar-waypoints-section .nav-sidebar-section-content .ncb:not(.active):hover:not(:disabled),
+#root .nav-sidebar .nav-sidebar-waypoints-section .nav-sidebar-section-content button.ncb:not(.active):hover:not(:disabled) {
+  border-color: #c7d6e8 !important;
+  background: #f8fbff !important;
+  color: var(--salus-ink) !important;
+}
+
+#root .nav-sidebar .nav-sidebar-waypoints-section .nav-sidebar-section-content .ncb:not(.active):disabled,
+#root .nav-sidebar .nav-sidebar-waypoints-section .nav-sidebar-section-content button.ncb:not(.active):disabled {
+  opacity: 0.72 !important;
+}
+
+/* Final debug Recorder card: green animated gradient like the active telemetry treatment. */
+#root .debug-sidebar-panel .debug-sidebar-actions .button-primary.button-tile,
+#root .debug-sidebar-panel .debug-sidebar-actions .prim-btn.button-tile {
+  position: relative !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+  background:
+    linear-gradient(120deg, #dcfce7 0%, #86efac 34%, #bbf7d0 58%, #5eea9f 78%, #dcfce7 100%) !important;
+  background-size: 240% 240% !important;
+  border: 1px solid rgba(34, 197, 94, 0.38) !important;
+  color: #15803d !important;
+  animation: salus-recorder-gradient-flow 8s ease-in-out infinite !important;
+}
+
+#root .debug-sidebar-panel .debug-sidebar-actions .button-primary.button-tile::before,
+#root .debug-sidebar-panel .debug-sidebar-actions .prim-btn.button-tile::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: -72% !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.28) 0 9%, rgba(255, 255, 255, 0.1) 10% 20%, transparent 36%),
+    radial-gradient(circle at 82% 74%, rgba(255, 255, 255, 0.18) 0 12%, rgba(34, 197, 94, 0.24) 13% 25%, transparent 41%),
+    radial-gradient(circle at 52% 48%, rgba(255, 255, 255, 0.08) 0 17%, transparent 43%) !important;
+  filter: blur(5px) !important;
+  opacity: 0.68 !important;
+  animation: salus-gradient-circle 15s linear infinite !important;
+}
+
+#root .debug-sidebar-panel .debug-sidebar-actions .button-primary.button-tile::after,
+#root .debug-sidebar-panel .debug-sidebar-actions .prim-btn.button-tile::after {
+  z-index: 2 !important;
+  color: rgba(21, 128, 61, 0.62) !important;
+}
+
+#root .debug-sidebar-panel .debug-sidebar-actions .button-primary.button-tile .button-face,
+#root .debug-sidebar-panel .debug-sidebar-actions .prim-btn.button-tile .button-face {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+#root .debug-sidebar-panel .debug-sidebar-actions .button-primary.button-tile:hover:not(:disabled),
+#root .debug-sidebar-panel .debug-sidebar-actions .prim-btn.button-tile:hover:not(:disabled) {
+  animation-play-state: paused !important;
+  background:
+    linear-gradient(120deg, #bbf7d0 0%, #5eea9f 42%, #86efac 70%, #dcfce7 100%) !important;
+  background-size: 240% 240% !important;
+}
+
+#root .debug-sidebar-panel .debug-sidebar-actions .button-primary.button-tile:hover:not(:disabled)::before,
+#root .debug-sidebar-panel .debug-sidebar-actions .prim-btn.button-tile:hover:not(:disabled)::before {
+  animation-play-state: paused !important;
+}
+
+@keyframes salus-recorder-gradient-flow {
+  0% {
+    background-position: 0% 44%;
+  }
+  50% {
+    background-position: 100% 56%;
+  }
+  100% {
+    background-position: 0% 44%;
+  }
+}
+
+/* Final Settings sidebar action: animated original blue-navy in the normal state. */
+#root .settings-sidebar-action {
+  position: relative !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+  background:
+    linear-gradient(120deg, #0f172a 0%, #1e3a5f 32%, #274b78 56%, #172554 76%, #0f172a 100%) !important;
+  background-size: 250% 250% !important;
+  border: 1px solid rgba(96, 165, 250, 0.22) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.24) !important;
+  animation: salus-settings-gradient-flow 8s ease-in-out infinite !important;
+}
+
+#root .settings-sidebar-action::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: -70% !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.16) 0 9%, rgba(255, 255, 255, 0.06) 10% 20%, transparent 36%),
+    radial-gradient(circle at 84% 76%, rgba(96, 165, 250, 0.2) 0 12%, rgba(255, 255, 255, 0.04) 13% 25%, transparent 41%),
+    radial-gradient(circle at 48% 50%, rgba(255, 255, 255, 0.06) 0 17%, transparent 43%) !important;
+  filter: blur(5px) !important;
+  opacity: 0.62 !important;
+  animation: salus-gradient-circle 15s linear infinite !important;
+}
+
+#root .settings-sidebar-action .button-face {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+#root .settings-sidebar-action .button-face-icon {
+  background: rgba(255, 255, 255, 0.09) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+}
+
+#root .settings-sidebar-action .button-face-label {
+  color: #ffffff !important;
+}
+
+#root .settings-sidebar-action .button-face-meta {
+  color: rgba(241, 245, 249, 0.68) !important;
+}
+
+#root .settings-sidebar-action:hover:not(:disabled) {
+  animation-play-state: paused !important;
+  background:
+    linear-gradient(120deg, #1e3a5f 0%, #274b78 40%, #172554 72%, #0f172a 100%) !important;
+  background-size: 250% 250% !important;
+}
+
+#root .settings-sidebar-action:hover:not(:disabled)::before {
+  animation-play-state: paused !important;
+}
+
+@keyframes salus-settings-gradient-flow {
+  0% {
+    background-position: 0% 42%;
+  }
+  50% {
+    background-position: 100% 58%;
+  }
+  100% {
+    background-position: 0% 42%;
+  }
+}
+
+/* Final active navigation options: selected states are blue and animated. */
+#root .nav-sidebar .nav-sidebar-section-content .ncb.active,
+#root .nav-sidebar .nav-sidebar-section-content .bt.active,
+#root .nav-sidebar .nav-sidebar-section-content .sec-btn.active,
+#root .nav-sidebar .nav-sidebar-section-content button.active,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:nth-child(1),
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:nth-child(2) {
+  position: relative !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+  border: 1.5px solid var(--salus-blue) !important;
+  outline: none !important;
+  background:
+    linear-gradient(120deg, #ffffff 0%, #eef6ff 34%, #dbeafe 58%, #f8fbff 78%, #ffffff 100%) !important;
+  background-size: 240% 240% !important;
+  color: var(--salus-blue-strong) !important;
+  opacity: 1 !important;
+  box-shadow:
+    0 6px 14px rgba(36, 145, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  animation: salus-active-option-flow 7.5s ease-in-out infinite !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content .ncb.active::before,
+#root .nav-sidebar .nav-sidebar-section-content .bt.active::before,
+#root .nav-sidebar .nav-sidebar-section-content .sec-btn.active::before,
+#root .nav-sidebar .nav-sidebar-section-content button.active::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  inset: -70% !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.46) 0 9%, rgba(96, 165, 250, 0.16) 10% 22%, transparent 38%),
+    radial-gradient(circle at 84% 76%, rgba(36, 145, 255, 0.18) 0 12%, rgba(255, 255, 255, 0.1) 13% 25%, transparent 42%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.16) 0 17%, transparent 43%) !important;
+  filter: blur(5px) !important;
+  opacity: 0.78 !important;
+  animation: salus-gradient-circle 15s linear infinite !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content .ncb.active::after,
+#root .nav-sidebar .nav-sidebar-section-content .bt.active::after,
+#root .nav-sidebar .nav-sidebar-section-content .sec-btn.active::after,
+#root .nav-sidebar .nav-sidebar-section-content button.active::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  inset: -45% !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(96, 165, 250, 0.18) 0 13%, rgba(255, 255, 255, 0.12) 14% 24%, transparent 40%),
+    radial-gradient(circle at 16% 84%, rgba(36, 145, 255, 0.14) 0 14%, transparent 42%) !important;
+  filter: blur(6px) !important;
+  opacity: 0.7 !important;
+  animation: salus-gradient-horizontal 10s ease-in-out infinite !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content .ncb.active .button-face,
+#root .nav-sidebar .nav-sidebar-section-content .bt.active .button-face,
+#root .nav-sidebar .nav-sidebar-section-content .sec-btn.active .button-face,
+#root .nav-sidebar .nav-sidebar-section-content button.active .button-face {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content .ncb.active .button-face-label,
+#root .nav-sidebar .nav-sidebar-section-content .ncb.active .bf-label,
+#root .nav-sidebar .nav-sidebar-section-content .ncb.active .button-face-meta,
+#root .nav-sidebar .nav-sidebar-section-content .ncb.active .bf-meta,
+#root .nav-sidebar .nav-sidebar-section-content button.active .button-face-label,
+#root .nav-sidebar .nav-sidebar-section-content button.active .bf-label,
+#root .nav-sidebar .nav-sidebar-section-content button.active .button-face-meta,
+#root .nav-sidebar .nav-sidebar-section-content button.active .bf-meta {
+  color: #111827 !important;
+  opacity: 1 !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content button .button-face-label,
+#root .nav-sidebar .nav-sidebar-section-content button .bf-label,
+#root .nav-sidebar .nav-sidebar-section-content button .button-face-meta,
+#root .nav-sidebar .nav-sidebar-section-content button .bf-meta,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header) * {
+  color: #111827 !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content .ncb.active .button-face-icon,
+#root .nav-sidebar .nav-sidebar-section-content .ncb.active .bf-ico,
+#root .nav-sidebar .nav-sidebar-section-content button.active .button-face-icon,
+#root .nav-sidebar .nav-sidebar-section-content button.active .bf-ico {
+  position: relative !important;
+  z-index: 1 !important;
+  background: #eef6ff !important;
+  background-image: none !important;
+  border: 1px solid rgba(36, 145, 255, 0.24) !important;
+  color: var(--salus-blue) !important;
+  box-shadow: 0 1px 2px rgba(36, 145, 255, 0.08) !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content .ncb.active:hover,
+#root .nav-sidebar .nav-sidebar-section-content .bt.active:hover,
+#root .nav-sidebar .nav-sidebar-section-content .sec-btn.active:hover,
+#root .nav-sidebar .nav-sidebar-section-content button.active:hover {
+  animation-play-state: paused !important;
+  border-color: var(--salus-blue-strong) !important;
+  background:
+    linear-gradient(120deg, #eef6ff 0%, #dbeafe 44%, #f8fbff 78%, #ffffff 100%) !important;
+  background-size: 240% 240% !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content .ncb.active:hover::before,
+#root .nav-sidebar .nav-sidebar-section-content .ncb.active:hover::after,
+#root .nav-sidebar .nav-sidebar-section-content button.active:hover::before,
+#root .nav-sidebar .nav-sidebar-section-content button.active:hover::after {
+  animation-play-state: paused !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content .ncb.active:focus,
+#root .nav-sidebar .nav-sidebar-section-content .ncb.active:focus-visible,
+#root .nav-sidebar .nav-sidebar-section-content .ncb.active:active,
+#root .nav-sidebar .nav-sidebar-section-content .bt.active:focus,
+#root .nav-sidebar .nav-sidebar-section-content .bt.active:focus-visible,
+#root .nav-sidebar .nav-sidebar-section-content .bt.active:active,
+#root .nav-sidebar .nav-sidebar-section-content .sec-btn.active:focus,
+#root .nav-sidebar .nav-sidebar-section-content .sec-btn.active:focus-visible,
+#root .nav-sidebar .nav-sidebar-section-content .sec-btn.active:active,
+#root .nav-sidebar .nav-sidebar-section-content button.active:focus,
+#root .nav-sidebar .nav-sidebar-section-content button.active:focus-visible,
+#root .nav-sidebar .nav-sidebar-section-content button.active:active {
+  border-color: var(--salus-blue) !important;
+  outline: none !important;
+  box-shadow:
+    0 6px 14px rgba(36, 145, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+#root .nav-sidebar input[type="checkbox"]:checked {
+  border-color: var(--salus-blue) !important;
+  background:
+    linear-gradient(45deg, transparent 52%, #ffffff 52% 63%, transparent 63%) 3px 8px / 8px 8px no-repeat,
+    linear-gradient(-45deg, transparent 47%, #ffffff 47% 58%, transparent 58%) 7px 5px / 11px 11px no-repeat,
+    linear-gradient(180deg, var(--salus-blue), var(--salus-blue-strong)) !important;
+  box-shadow: 0 2px 6px rgba(36, 145, 255, 0.18) !important;
+}
+
+#root .nav-sidebar .nav-loop-check input[type="checkbox"]:checked {
+  border-color: #16a34a !important;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='11' viewBox='0 0 14 11' fill='none'%3E%3Cpath d='M1.4 5.7 5.1 9.1 12.6 1.4' stroke='%23ffffff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 13px 10px no-repeat,
+    linear-gradient(180deg, #22c55e, #16a34a) !important;
+  border-radius: 5px !important;
+  box-shadow:
+    0 2px 6px rgba(22, 163, 74, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
+}
+
+@keyframes salus-active-option-flow {
+  0% {
+    background-position: 0% 45%;
+  }
+  50% {
+    background-position: 100% 55%;
+  }
+  100% {
+    background-position: 0% 45%;
+  }
+}
+
+/* Final correction: only selected/running options are blue; everything else stays neutral. */
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):not(.active):not(:disabled),
+#root .nav-sidebar .nav-sidebar-section-content .ncb:not(.active):not(:disabled),
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:not(.active):not(:disabled),
+#root .nav-sidebar .nav-sidebar-section-content .bt:not(.active):not(:disabled),
+#root .nav-sidebar .nav-sidebar-section-content .sec-btn:not(.active):not(:disabled),
+#root .nav-sidebar .nav-sidebar-section-content .prim-btn:not(.active):not(:disabled),
+#root .nav-sidebar .nav-sidebar-section-content .send-btn:not(.active):not(:disabled),
+#root .nav-sidebar .nav-sidebar-section-content .danger-btn:not(.active):not(:disabled),
+#root .nav-sidebar .nav-sidebar-section-content .cancel-btn:not(.active):not(:disabled) {
+  border: 1px solid #d8e2ef !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #111827 !important;
+  box-shadow:
+    0 3px 8px rgba(15, 23, 42, 0.045),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  animation: none !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):not(.active):not(:disabled)::before,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):not(.active):not(:disabled)::after,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:not(.active):not(:disabled)::before,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:not(.active):not(:disabled)::after,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:not(.active):not(:disabled)::before,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:not(.active):not(:disabled)::after {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+  animation: none !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):not(.active):not(:disabled):hover,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):not(.active):not(:disabled):focus,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):not(.active):not(:disabled):focus-visible,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):not(.active):not(:disabled):active,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:not(.active):not(:disabled):hover,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:not(.active):not(:disabled):focus,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:not(.active):not(:disabled):focus-visible,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:not(.active):not(:disabled):active,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:not(.active):not(:disabled):hover,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:not(.active):not(:disabled):focus,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:not(.active):not(:disabled):focus-visible,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:not(.active):not(:disabled):active {
+  outline: none !important;
+  border-color: #c7d6e8 !important;
+  background: #f8fbff !important;
+  background-image: none !important;
+  color: #111827 !important;
+  animation: none !important;
+  box-shadow:
+    0 3px 8px rgba(15, 23, 42, 0.045),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):not(.active):not(:disabled):hover::before,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):not(.active):not(:disabled):hover::after,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):not(.active):not(:disabled):focus::before,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):not(.active):not(:disabled):focus::after,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):not(.active):not(:disabled):focus-visible::before,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):not(.active):not(:disabled):focus-visible::after,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):not(.active):not(:disabled):active::before,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):not(.active):not(:disabled):active::after,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:not(.active):not(:disabled):hover::before,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:not(.active):not(:disabled):hover::after,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:not(.active):not(:disabled):focus::before,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:not(.active):not(:disabled):focus::after,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:not(.active):not(:disabled):focus-visible::before,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:not(.active):not(:disabled):focus-visible::after,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:not(.active):not(:disabled):active::before,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:not(.active):not(:disabled):active::after {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+  animation: none !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active),
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active),
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active),
+#root .nav-sidebar .nav-sidebar-section-content .bt:disabled:not(.active),
+#root .nav-sidebar .nav-sidebar-section-content .sec-btn:disabled:not(.active),
+#root .nav-sidebar .nav-sidebar-section-content .prim-btn:disabled:not(.active),
+#root .nav-sidebar .nav-sidebar-section-content .send-btn:disabled:not(.active),
+#root .nav-sidebar .nav-sidebar-section-content .danger-btn:disabled:not(.active),
+#root .nav-sidebar .nav-sidebar-section-content .cancel-btn:disabled:not(.active) {
+  position: relative !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+  border: 1px solid #d8e2ef !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #111827 !important;
+  opacity: 1 !important;
+  box-shadow:
+    0 3px 8px rgba(15, 23, 42, 0.035),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  animation: none !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active)::before,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active)::after,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active)::before,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active)::after,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active)::before,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active)::after {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+  animation: none !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active) *,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active) *,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active) * {
+  color: #111827 !important;
+  opacity: 1 !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active) .button-face-icon,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active) .button-face-icon,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active) .button-face-icon,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active) .bf-ico,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active) .bf-ico,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active) .bf-ico {
+  background: #ffffff !important;
+  border: 1px solid #d8e2ef !important;
+  color: #111827 !important;
+}
+
+/* Final override: CONTROL MODE active buttons must never show the old black focus frame. */
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:hover,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:focus,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:focus-visible,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:active,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content button.ncb.active,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content button.ncb.active:hover,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content button.ncb.active:focus,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content button.ncb.active:focus-visible,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content button.ncb.active:active,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:nth-child(1),
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:nth-child(2),
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:nth-child(1):hover,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:nth-child(2):hover,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:nth-child(1):focus,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:nth-child(2):focus,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:nth-child(1):focus-visible,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:nth-child(2):focus-visible,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:nth-child(1):active,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active:nth-child(2):active {
+  border: 1.5px solid var(--salus-blue) !important;
+  outline: none !important;
+  box-shadow:
+    0 6px 14px rgba(36, 145, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active .button-face-icon,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content .ncb.active .bf-ico,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content button.ncb.active .button-face-icon,
+#root .nav-sidebar .nav-sidebar-control-section .nav-sidebar-section-content button.ncb.active .bf-ico {
+  border: 1px solid rgba(36, 145, 255, 0.24) !important;
+  color: var(--salus-blue) !important;
+}
+
+/* Final disabled option style: soft gray with lock indicator. Active/running disabled buttons stay blue. */
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active),
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active),
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active),
+#root .nav-sidebar .nav-sidebar-section-content .bt:disabled:not(.active),
+#root .nav-sidebar .nav-sidebar-section-content .sec-btn:disabled:not(.active),
+#root .nav-sidebar .nav-sidebar-section-content .prim-btn:disabled:not(.active),
+#root .nav-sidebar .nav-sidebar-section-content .send-btn:disabled:not(.active),
+#root .nav-sidebar .nav-sidebar-section-content .danger-btn:disabled:not(.active),
+#root .nav-sidebar .nav-sidebar-section-content .cancel-btn:disabled:not(.active) {
+  cursor: not-allowed !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+  background-image: none !important;
+  color: #94a3b8 !important;
+  opacity: 1 !important;
+  box-shadow:
+    0 2px 5px rgba(15, 23, 42, 0.035),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82) !important;
+  filter: grayscale(0.12) !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active) *,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active) *,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active) *,
+#root .nav-sidebar .nav-sidebar-section-content .bt:disabled:not(.active) *,
+#root .nav-sidebar .nav-sidebar-section-content .sec-btn:disabled:not(.active) *,
+#root .nav-sidebar .nav-sidebar-section-content .prim-btn:disabled:not(.active) *,
+#root .nav-sidebar .nav-sidebar-section-content .send-btn:disabled:not(.active) *,
+#root .nav-sidebar .nav-sidebar-section-content .danger-btn:disabled:not(.active) *,
+#root .nav-sidebar .nav-sidebar-section-content .cancel-btn:disabled:not(.active) * {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active) .button-face-icon,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active) .bf-ico,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active) .button-face-icon,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active) .bf-ico,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active) .button-face-icon,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active) .bf-ico {
+  background: #f1f5f9 !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #94a3b8 !important;
+  box-shadow: none !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active) .button-face-copy,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active) .bf-copy,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active) .button-face-copy,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active) .bf-copy,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active) .button-face-copy,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active) .bf-copy {
+  position: relative !important;
+  padding-right: 16px !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active) .button-face-copy::before,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active) .bf-copy::before,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active) .button-face-copy::before,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active) .bf-copy::before,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active) .button-face-copy::before,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active) .bf-copy::before {
+  content: "" !important;
+  position: absolute !important;
+  right: 2px !important;
+  top: 5px !important;
+  width: 7px !important;
+  height: 6px !important;
+  border: 1.4px solid #94a3b8 !important;
+  border-bottom: 0 !important;
+  border-radius: 7px 7px 0 0 !important;
+  background: transparent !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active) .button-face-copy::after,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active) .bf-copy::after,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active) .button-face-copy::after,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active) .bf-copy::after,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active) .button-face-copy::after,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active) .bf-copy::after {
+  content: "" !important;
+  position: absolute !important;
+  right: 1px !important;
+  top: 11px !important;
+  width: 10px !important;
+  height: 8px !important;
+  border: 1.4px solid #94a3b8 !important;
+  border-radius: 2px !important;
+  background: #f8fafc !important;
+}
+
+/* Final lock placement: attach the lock to the disabled button, not the text block. */
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active),
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active),
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active) {
+  position: relative !important;
+  padding-right: 34px !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active) .button-face-copy,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active) .bf-copy,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active) .button-face-copy,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active) .bf-copy,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active) .button-face-copy,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active) .bf-copy {
+  padding-right: 0 !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active) .button-face-copy::before,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active) .button-face-copy::after,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active) .bf-copy::before,
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active) .bf-copy::after,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active) .button-face-copy::before,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active) .button-face-copy::after,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active) .bf-copy::before,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active) .bf-copy::after,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active) .button-face-copy::before,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active) .button-face-copy::after,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active) .bf-copy::before,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active) .bf-copy::after {
+  display: none !important;
+  content: none !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active)::before,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active)::before,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active)::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  inset: auto !important;
+  left: auto !important;
+  bottom: auto !important;
+  right: 16px !important;
+  top: calc(50% - 8px) !important;
+  width: 8px !important;
+  height: 7px !important;
+  border: 1.4px solid #94a3b8 !important;
+  border-bottom: 0 !important;
+  border-radius: 8px 8px 0 0 !important;
+  background: transparent !important;
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+  animation: none !important;
+  z-index: 3 !important;
+}
+
+#root .nav-sidebar .nav-sidebar-section-content button:not(.nav-sidebar-section-header):disabled:not(.active)::after,
+#root .nav-sidebar .nav-sidebar-section-content .ncb:disabled:not(.active)::after,
+#root .nav-sidebar .nav-sidebar-section-content .ncb-wide:disabled:not(.active)::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  inset: auto !important;
+  left: auto !important;
+  bottom: auto !important;
+  right: 14px !important;
+  top: calc(50% - 2px) !important;
+  width: 12px !important;
+  height: 9px !important;
+  border: 1.4px solid #94a3b8 !important;
+  border-radius: 2px !important;
+  background: #f8fafc !important;
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+  animation: none !important;
+  z-index: 3 !important;
+}
+
+/* Final disconnected connection state: strong static red for the global badge. */
+#root .connection-footer-status-badge.disconnected {
+  position: relative !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+  background: #e6003f !important;
+  background-size: auto !important;
+  border-color: rgba(160, 0, 43, 0.34) !important;
+  color: #111827 !important;
+  text-shadow: none !important;
+  box-shadow:
+    0 7px 16px rgba(160, 0, 43, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.52) !important;
+  animation: none !important;
+}
+
+#root .connection-footer-status-badge.disconnected::before {
+  content: none !important;
+  display: none !important;
+}
+
+#root .connection-footer-status-badge.disconnected::after {
+  content: none !important;
+  display: none !important;
+}
+
+#root .connection-footer-status-badge.disconnected > .connection-state-label {
+  position: relative !important;
+  z-index: 1 !important;
+  color: #111827 !important;
+  text-shadow: none !important;
+}
+
+#root .nav-sidebar .status-pill:not(.ok):not(.pending) {
+  border-color: rgba(245, 158, 11, 0.5) !important;
+}
+
+#root .nav-sidebar .status-pill:not(.ok):not(.pending) .status-dot {
+  background: #facc15 !important;
+  box-shadow:
+    0 0 0 0 rgba(250, 204, 21, 0.68),
+    0 0 10px rgba(250, 204, 21, 0.78) !important;
+  animation: salus-wait-dot-blink 1s ease-in-out infinite !important;
+}
+
+/* Final Patrol status color: match the Recording status box. */
+#root .nav-sidebar .nav-sidebar-patrol-section .status-pill.nav-route-status,
+#root .nav-sidebar .nav-sidebar-patrol-section .status-pill.nav-route-status.ok {
+  background: #ffffff !important;
+  background-image: none !important;
+  border: 1px solid #111827 !important;
+  color: #111827 !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+@keyframes salus-disconnected-flow {
+  0% {
+    background-position: 0% 45%;
+  }
+  50% {
+    background-position: 100% 55%;
+  }
+  100% {
+    background-position: 0% 45%;
+  }
+}
+
+@keyframes salus-wait-dot-blink {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(0.86);
+    box-shadow:
+      0 0 0 0 rgba(250, 204, 21, 0),
+      0 0 4px rgba(250, 204, 21, 0.42);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+    box-shadow:
+      0 0 0 5px rgba(250, 204, 21, 0.22),
+      0 0 12px rgba(250, 204, 21, 0.9);
+  }
+}
+
+/* Final close control color: red close box with a white cross everywhere it is reused. */
+#root .modal-close-btn,
+#root .global-dialog-close-btn,
+#root .modal-close,
+#root .modal-card-modal-processes .modal-close-btn {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  border-left-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+#root .modal-close-btn:hover:not(:disabled),
+#root .global-dialog-close-btn:hover:not(:disabled),
+#root .modal-close:hover:not(:disabled),
+#root .modal-card-modal-processes .modal-close-btn:hover:not(:disabled) {
+  background: #b91c1c !important;
+  color: #ffffff !important;
+}
+
+/* Final splitter handle: two short close grab lines, no long separator. */
+#root .splitter-vertical,
+#root .spl-v {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  justify-self: center !important;
+  width: 18px !important;
+  min-width: 18px !important;
+  margin-inline: -7px !important;
+  cursor: col-resize !important;
+  touch-action: none !important;
+  z-index: 20 !important;
+  background: transparent !important;
+}
+
+#root .splitter-vertical::before,
+#root .spl-v::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: 2px !important;
+  width: 1px !important;
+  height: 18px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  transform: translateY(-50%) !important;
+  pointer-events: none !important;
+}
+
+#root .splitter-vertical::after,
+#root .spl-v::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 5px !important;
+  width: 1px !important;
+  height: 18px !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  transform: translateY(-50%) !important;
+  pointer-events: none !important;
+}
+
+#root .splitter-vertical:hover::before,
+#root .spl-v:hover::before {
+  background: transparent !important;
+}
+
+#root .splitter-vertical:hover::after,
+#root .spl-v:hover::after {
+  background: transparent !important;
+}
+
+/* ── PTY terminal panel ─────────────────────────────────────────────────────── */
+
+/* neutralise the .con-body padding/overflow so xterm fills the area cleanly */
+#root .con-body:has(.pty-shell-wrap),
+#root .console-tab-content:has(.pty-shell-wrap) {
+  position: relative !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+#root .pty-shell-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  color: #111827;
+  font-family: var(--font-mono);
+}
+
+#root .pty-tabbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 6px;
+  border-bottom: 1px solid rgba(15,23,42,0.12);
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+#root .pty-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  overflow: hidden;
+  height: 100%;
+}
+
+#root .pty-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font: 700 11px/1 var(--font-mono, monospace);
+  white-space: nowrap;
+  transition: color 120ms, background 120ms;
+}
+
+#root .pty-tab:hover { color: #111827; background: rgba(15,23,42,0.05); }
+
+#root .pty-tab--active {
+  color: #111827;
+  background: #ffffff;
+  border-bottom: 2px solid #528bff;
+}
+
+#root .pty-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+#root .pty-dot--on  { background: #98c379; }
+#root .pty-dot--off { background: #e06c75; }
+
+#root .pty-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+#root .pty-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid rgba(15,23,42,0.14);
+  border-radius: 5px;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font: 700 12px/1 var(--font-mono, monospace);
+  transition: color 120ms, border-color 120ms, background 120ms;
+}
+#root .pty-btn:hover:not(:disabled) {
+  color: #111827;
+  border-color: rgba(15,23,42,0.28);
+  background: rgba(15,23,42,0.06);
+}
+#root .pty-btn:disabled { opacity: 0.3; cursor: default; }
+#root .pty-btn--reconnect { color: #98c379; border-color: rgba(152,195,121,0.35); }
+#root .pty-btn--reconnect:hover { background: rgba(152,195,121,0.1) !important; }
+
+#root .pty-viewport {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+#root .pty-term-slot {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Make xterm.js fill the slot completely */
+#root .pty-term-slot .xterm {
+  width: 100% !important;
+  height: 100% !important;
+  padding: 4px 28px 0 !important;
+  background: #ffffff !important;
+}
+
+#root .pty-term-slot .xterm-viewport {
+  background: #ffffff !important;
+  width: auto !important;
+  height: auto !important;
+  overflow-y: scroll !important;
+  overflow-x: hidden !important;
+}
+
+#root .pty-term-slot .xterm-screen {
+  background: #ffffff !important;
+  width: 100% !important;
+}
+
+/* Compact terminal controls: short tab names, explicit target picker, live cwd. */
+#root .pty-tabbar {
+  height: 28px !important;
+  padding: 0 10px !important;
+}
+
+#root .pty-tabs {
+  gap: 6px !important;
+}
+
+#root .pty-tab {
+  height: 22px !important;
+  min-width: 34px !important;
+  padding: 0 10px !important;
+  border-radius: 6px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #6b7280 !important;
+  background: #f3f4f6 !important;
+}
+
+#root .pty-tab:hover {
+  background: #e5e7eb !important;
+  color: #374151 !important;
+}
+
+#root .pty-tab--active,
+#root .pty-tab--active:hover {
+  background: #131929 !important;
+  color: #ffffff !important;
+}
+
+#root .pty-tab--active::after {
+  display: none !important;
+}
+
+#root .pty-tab-label {
+  display: inline-block !important;
+  max-width: 44px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+#root .pty-actions {
+  gap: 8px !important;
+}
+
+#root .pty-btn {
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 6px !important;
+  font-size: 14px !important;
+}
+
+#root .pty-btn--reconnect {
+  min-width: 98px !important;
+  height: 34px !important;
+  font-size: 12px !important;
+}
+
+#root .pty-term-slot {
+  padding: 0 !important;
+  left: -10px !important;
+  top: 0 !important;
+  bottom: 0 !important;
+}
+
+/* "bash ↓" chip */
+#root .pty-status-item--shell {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: 28px !important;
+  padding: 0 10px !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 7px !important;
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: default !important;
+}
+
+/* target toggle pill */
+#root .pty-target-toggle {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+  padding: 2px !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 8px !important;
+  background: #f9fafb !important;
+  flex-shrink: 0 !important;
+}
+
+#root .pty-target-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: 26px !important;
+  padding: 0 10px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #6b7280 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+  transform: none !important;
+  cursor: pointer !important;
+}
+
+#root .pty-target-btn:hover:not(:disabled) {
+  background: #f3f4f6 !important;
+  color: #374151 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+#root .pty-target-btn--active,
+#root .pty-target-btn--active:hover:not(:disabled) {
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important;
+}
+
+#root .pty-target-led {
+  width: 7px !important;
+  height: 7px !important;
+  border-radius: 999px !important;
+  background: #d1d5db !important;
+  flex: 0 0 7px !important;
+}
+
+#root .pty-target-led--on {
+  background: #16a34a !important;
+  box-shadow: 0 0 0 2px rgba(22,163,74,0.18) !important;
+}
+
+/* path */
+#root .pty-status-item--path {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  color: #374151 !important;
+}
+
+#root .pty-status-path-text {
+  display: block !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-weight: 500 !important;
+}
+
+/* resize handle dots */
+#root .pty-status-resize {
+  flex: 0 0 auto !important;
+  color: #9ca3af !important;
+  font-size: 18px !important;
+  letter-spacing: 1px !important;
+}
+
+/* Reference status row: terminals | host | cwd */
+#root .pty-statusbar {
+  display: flex !important;
+  flex-shrink: 0 !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 12px !important;
+  gap: 0 !important;
+  border-top: 1px solid #edf0f4 !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-family: var(--font-ui) !important;
+  align-items: center !important;
+}
+
+#root .pty-status-item {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  height: 24px !important;
+  padding: 0 10px !important;
+  border: 0 !important;
+  border-radius: 7px !important;
+  background: transparent !important;
+  color: #111827 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  box-shadow: none !important;
+}
+
+#root .pty-status-button {
+  min-height: 32px !important;
+  justify-content: flex-start !important;
+  transform: none !important;
+  cursor: pointer !important;
+}
+
+#root .pty-status-button:hover:not(:disabled) {
+  background: #f8fafc !important;
+  filter: none !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+#root .pty-status-icon {
+  width: 14px !important;
+  height: 14px !important;
+  flex: 0 0 14px !important;
+  color: #111827 !important;
+}
+
+#root .pty-status-separator {
+  width: 1px !important;
+  height: 20px !important;
+  flex: 0 0 1px !important;
+  background: #e7ebf0 !important;
+}
+
+#root .pty-status-item--terminals,
+#root .pty-status-item--target {
+  flex: 0 0 auto !important;
+}
+
+#root .pty-status-item--path {
+  flex: 1 1 auto !important;
+  overflow: hidden !important;
+}
+
+#root .pty-status-path-text {
+  display: block !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  color: #111827 !important;
+  font-weight: 700 !important;
+}
+
+/* Terminal session tabs: match the compact Log / Terminal / Telemetry tab size. */
+#root .pty-tabbar {
+  height: 39px !important;
+  padding: 5px 12px 0 !important;
+  gap: 10px !important;
+  border-bottom: 1px solid #e8ebf1 !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(252, 253, 255, 0.98)) !important;
+  box-shadow: inset 0 -1px 0 rgba(15, 23, 42, 0.03) !important;
+}
+
+#root .pty-tabs {
+  height: 100% !important;
+  gap: 6px !important;
+  align-items: flex-end !important;
+  flex: 1 1 auto !important;
+}
+
+#root .pty-tab {
+  width: auto !important;
+  min-width: 52px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 14px !important;
+  border: 1px solid #e2e7f0 !important;
+  border-bottom-color: #d7dee9 !important;
+  border-radius: 7px 7px 0 0 !important;
+  background: #ffffff !important;
+  color: #77778d !important;
+  font-family: var(--font-ui) !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  transform: none !important;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease, transform 140ms ease !important;
+}
+
+#root .pty-tab:hover {
+  background: #fbfcff !important;
+  border-color: #dfe3eb !important;
+  color: #55576a !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+#root .pty-tab--active,
+#root .pty-tab--active:hover {
+  border-color: #151a2f !important;
+  background:
+    radial-gradient(circle at 30% 12%, rgba(255, 255, 255, 0.13), transparent 36%),
+    linear-gradient(180deg, #171c32 0%, #090d1d 100%) !important;
+  color: #ffffff !important;
+  box-shadow:
+    inset 0 -3px 0 #6d39ff,
+    inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+}
+
+#root .pty-dot {
+  display: none !important;
+}
+
+#root .pty-tab-label {
+  max-width: none !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  line-height: 1 !important;
+  color: currentColor !important;
+}
+
+#root .pty-actions {
+  height: 100% !important;
+  gap: 8px !important;
+  align-items: flex-start !important;
+  margin-left: auto !important;
+}
+
+#root .pty-btn {
+  width: 36px !important;
+  min-width: 36px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 !important;
+  border: 1px solid #e7eaf0 !important;
+  border-radius: 7px !important;
+  background: #ffffff !important;
+  color: #76768e !important;
+  font-family: var(--font-ui) !important;
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  box-shadow: 0 2px 8px rgba(17, 24, 39, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  transform: none !important;
+}
+
+#root .pty-btn:hover:not(:disabled) {
+  background: #ffffff !important;
+  border-color: #dfe3eb !important;
+  color: #55576a !important;
+  filter: none !important;
+  transform: none !important;
+  box-shadow: 0 3px 10px rgba(17, 24, 39, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+#root .pty-btn:disabled {
+  opacity: 0.42 !important;
+  color: #9ca3af !important;
+  background: #f8fafc !important;
+}
+
+#root .pty-btn--close {
+  position: relative !important;
+  font-size: 0 !important;
+}
+
+#root .pty-btn--close::before,
+#root .pty-btn--close::after {
+  content: "" !important;
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  width: 14px !important;
+  height: 2px !important;
+  border-radius: 999px !important;
+  background: currentColor !important;
+  transform-origin: center !important;
+}
+
+#root .pty-btn--close::before {
+  transform: translate(-50%, -50%) rotate(45deg) !important;
+}
+
+#root .pty-btn--close::after {
+  transform: translate(-50%, -50%) rotate(-45deg) !important;
+}
+
+#root .pty-btn--reconnect {
+  width: auto !important;
+  min-width: 92px !important;
+  padding: 0 12px !important;
+  font-size: 11px !important;
+}
+
+@media (max-width: 760px) {
+  #root .pty-tabbar {
+    height: 39px !important;
+    padding: 5px 8px 0 !important;
+    gap: 6px !important;
+  }
+
+  #root .pty-tabs {
+    gap: 8px !important;
+  }
+
+  #root .pty-tab {
+    width: auto !important;
+    min-width: 46px !important;
+    height: 28px !important;
+    padding: 0 10px !important;
+    border-radius: 7px 7px 0 0 !important;
+    font-size: 11px !important;
+  }
+
+  #root .pty-actions {
+    gap: 10px !important;
+  }
+
+  #root .pty-btn {
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    border-radius: 7px !important;
+    font-size: 19px !important;
+  }
+}
+
+/* Final console tabs: same compact button language as Map / Camera. */
+#root .console-tabs,
+#root .con-tabs {
+  min-height: 39px !important;
+  height: 39px !important;
+  padding: 5px 6px !important;
+  gap: 6px !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  background: transparent !important;
+  border-bottom: 1px solid #dbe4ef !important;
+  box-shadow: none !important;
+}
+
+#root .console-tabs .con-tab,
+#root .con-tabs .con-tab {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 14px !important;
+  border: 1px solid #dbe4ef !important;
+  border-radius: 7px !important;
+  background: #ffffff !important;
+  color: #18243a !important;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 780 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+  box-shadow:
+    0 3px 8px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+#root .console-tabs .con-tab:hover:not(.active),
+#root .con-tabs .con-tab:hover:not(.active) {
+  border-color: #cbd7e6 !important;
+  background: #f8fbff !important;
+  color: #101827 !important;
+}
+
+#root .console-tabs .con-tab.active,
+#root .con-tabs .con-tab.active,
+#root .console-tabs .con-tab.active:hover,
+#root .con-tabs .con-tab.active:hover,
+#root .console-tabs .con-tab.active:focus-visible,
+#root .con-tabs .con-tab.active:focus-visible {
+  border-color: #0d1730 !important;
+  background: linear-gradient(180deg, #18243f 0%, #0a1020 100%) !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 8px 16px rgba(10, 16, 32, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+}
+
+#root .console-tabs .con-tab::before,
+#root .con-tabs .con-tab::before,
+#root .console-tabs .con-tab::after,
+#root .con-tabs .con-tab::after {
+  display: none !important;
+  content: none !important;
+}
+
+#root .console-tabs .con-tab-icon,
+#root .con-tabs .con-tab-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 14px !important;
+  height: 14px !important;
+  flex: 0 0 14px !important;
+  color: currentColor !important;
+}
+
+#root .console-tabs .con-tab-icon svg,
+#root .con-tabs .con-tab-icon svg {
+  width: 13px !important;
+  height: 13px !important;
+  stroke: currentColor !important;
+}
+
+#root .console-tabs .con-tab-label,
+#root .con-tabs .con-tab-label {
+  line-height: 1 !important;
+  font-size: 11px !important;
+  font-weight: 780 !important;
+  text-transform: none !important;
+}
+
+#root .con-sp {
+  flex: 1 1 auto !important;
+}
+
+#root .con-pane {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+#root .con-pane[hidden] {
+  display: none !important;
+}
+
+#root .cockpit-log-console-empty {
+  min-height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 8px 16px !important;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+#root .cockpit-log-empty-state {
+  width: min(520px, 100%) !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 18px 22px 16px !important;
+  border: 1px solid #dbe4ef !important;
+  border-radius: 14px !important;
+  background: #ffffff !important;
+  box-shadow:
+    0 14px 30px rgba(15, 23, 42, 0.08),
+    0 2px 8px rgba(15, 23, 42, 0.06) !important;
+  text-align: center !important;
+  color: #111827 !important;
+}
+
+#root .cockpit-log-empty-icon {
+  width: 48px !important;
+  height: 48px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-bottom: 10px !important;
+  border-radius: 14px !important;
+  background: linear-gradient(180deg, #f3f7ff 0%, #eef4ff 100%) !important;
+  color: #172033 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+#root .cockpit-log-empty-icon svg {
+  width: 34px !important;
+  height: 34px !important;
+}
+
+#root .cockpit-log-empty-state h3 {
+  margin: 0 0 8px !important;
+  color: #111827 !important;
+  font-size: 18px !important;
+  line-height: 1.15 !important;
+  font-weight: 850 !important;
+  letter-spacing: 0 !important;
+}
+
+#root .cockpit-log-empty-state p {
+  max-width: 440px !important;
+  margin: 0 0 6px !important;
+  color: #526174 !important;
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  font-weight: 620 !important;
+}
+
+#root .cockpit-log-empty-divider {
+  width: 100% !important;
+  height: 1px !important;
+  margin: 10px 0 10px !important;
+  background: linear-gradient(90deg, transparent, #dbe4ef 18%, #dbe4ef 82%, transparent) !important;
+}
+
+#root .cockpit-log-empty-tags {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+#root .cockpit-log-empty-tag {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  min-height: 22px !important;
+  padding: 0 10px !important;
+  border-radius: 999px !important;
+  font-size: 10px !important;
+  font-weight: 820 !important;
+  line-height: 1 !important;
+}
+
+#root .cockpit-log-empty-tag svg {
+  width: 12px !important;
+  height: 12px !important;
+  stroke: currentColor !important;
+}
+
+#root .cockpit-log-empty-tag-logs {
+  background: #eaf2ff !important;
+  color: #2563eb !important;
+}
+
+#root .cockpit-log-empty-tag-alerts {
+  background: #fff2df !important;
+  color: #f97316 !important;
+}
+
+#root .cockpit-log-empty-tag-telemetry {
+  background: #f0e9ff !important;
+  color: #6d35f2 !important;
+}
+
+#root .record-toggle-btn:disabled {
+  position: relative !important;
+  padding-right: 48px !important;
+  border: 1px solid #e1e8f2 !important;
+  background: rgba(248, 250, 252, 0.52) !important;
+  background-image: none !important;
+  color: #a6b4c7 !important;
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.035),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78) !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+#root .record-toggle-btn:disabled::before {
+  border: 2px solid rgba(166, 180, 199, 0.28) !important;
+  background:
+    radial-gradient(circle, #a6b4c7 0 5px, transparent 5.5px),
+    rgba(166, 180, 199, 0.06) !important;
+  box-shadow: none !important;
+}
+
+#root .record-toggle-btn:disabled .record-toggle-btn-label,
+#root .record-toggle-btn:disabled .record-toggle-btn-meta {
+  color: #a6b4c7 !important;
+  opacity: 1 !important;
+}
+
+#root .record-toggle-btn:disabled .record-toggle-lock {
+  position: absolute !important;
+  right: 24px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 22px !important;
+  height: 22px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #a6b4c7 !important;
+  box-shadow: none !important;
+  pointer-events: none !important;
+}
+
+#root .record-toggle-btn:disabled .record-toggle-lock svg {
+  width: 19px !important;
+  height: 19px !important;
+  stroke: currentColor !important;
+  stroke-width: 2 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+/* Terminal session tabs inline in the console tab row */
+#root .con-tabs-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
+  height: 100%;
+}
+
+#root .pty-inline-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  padding-right: 6px;
+}
+
+#root .pty-inline-bar .pty-tabs {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 100%;
+}
+
+#root .pty-inline-bar .pty-actions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 4px;
 }

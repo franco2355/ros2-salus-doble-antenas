@@ -1,0 +1,44 @@
+# ublox_dual_gps.yaml
+#
+# Configuracion del ZED-F9P adicional usado para heading por moving baseline.
+#
+# En este repo el URDF real (`cuatri_real.urdf`) modela `gps1_link` y
+# `gps2_link` sobre la linea central del vehiculo, separados en el eje X
+# (front/rear). Por eso el default de `yaw_offset_rad` en los launches se
+# mantiene en `0.0`: la intencion es que el heading crudo ya quede alineado con
+# el forward del robot.
+#
+# Si el montaje real usa otra geometria o si base/rover quedaron invertidos,
+# ajustar `yaw_offset_rad` en `dual_gps_heading_hw.launch.py` / `real.launch.py`
+# en lugar de tocar `robot_localization`.
+
+ublox_rover:
+  ros__parameters:
+    device: /dev/ttyUSB1
+    # `dual_gps_heading_real` republishs body-aligned yaw on `/dual_gps/heading`,
+    # so the raw navheading is consumed internally and does not need a dedicated
+    # antenna TF in the default setup.
+    frame_id: base_link
+    uart1:
+      baudrate: 115200
+
+    publish_all: false
+    publish:
+      nav:
+        heading: true
+        pvt: false
+        relposned: false
+      rxm:
+        rtcm: false
+      inf:
+        error: true
+        warning: true
+        notice: false
+        debug: false
+        test: false
+
+    rate: 10.0
+    dynamic_model: portable
+
+    rtcm:
+      rate: 1.0

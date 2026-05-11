@@ -1,5 +1,6 @@
 from diagnostic_msgs.msg import DiagnosticStatus
 
+from map_tools.web_zone_server import COCKPIT_NAV2_UI_CONFIG_DEFAULTS
 from map_tools.web_zone_server import ROSBAG_TOPIC_PROFILES, WebZoneServerNode
 
 
@@ -14,9 +15,15 @@ class _FakeNode:
     _should_surface_diagnostic = WebZoneServerNode._should_surface_diagnostic
     _rosbag_topics_for_profile = staticmethod(WebZoneServerNode._rosbag_topics_for_profile)
     _normalize_gps_status_text = staticmethod(WebZoneServerNode._normalize_gps_status_text)
+    _normalize_camera_frame_encoding = staticmethod(
+        WebZoneServerNode._normalize_camera_frame_encoding
+    )
     _build_gps_status_payload = staticmethod(WebZoneServerNode._build_gps_status_payload)
     _build_gps_status_payload_from_navsat = staticmethod(
         WebZoneServerNode._build_gps_status_payload_from_navsat
+    )
+    _normalize_cockpit_nav2_ui_config = staticmethod(
+        WebZoneServerNode._normalize_cockpit_nav2_ui_config
     )
 
 
@@ -97,3 +104,61 @@ def test_build_gps_status_payload_from_navsat_falls_back_to_3d_fix():
     assert payload["label"] == "3D FIX"
     assert payload["level"] == "warn"
     assert payload["source"] == "gps_fix"
+
+
+def test_normalize_camera_frame_encoding_defaults_to_jpeg():
+    assert _FakeNode._normalize_camera_frame_encoding("png") == "png"
+    assert _FakeNode._normalize_camera_frame_encoding("jpg") == "jpeg"
+    assert _FakeNode._normalize_camera_frame_encoding("unexpected") == "jpeg"
+
+
+def test_normalize_cockpit_nav2_ui_config_uses_defaults_for_invalid_payload():
+    payload = _FakeNode._normalize_cockpit_nav2_ui_config(None)
+
+    assert payload == COCKPIT_NAV2_UI_CONFIG_DEFAULTS
+
+
+def test_normalize_cockpit_nav2_ui_config_clamps_and_validates_ranges():
+    payload = _FakeNode._normalize_cockpit_nav2_ui_config(
+        {
+            "ws_real_host": " salus ",
+            "ws_real_port": 99999,
+            "ws_sim_host": "",
+            "ws_sim_port": -10,
+            "camera_probe_timeout_ms": 200,
+            "camera_load_timeout_ms": 50,
+            "map_default_center_lat": -31.5,
+            "map_default_center_lon": -64.2,
+            "map_default_zoom": 99,
+            "manual_linear_speed_min": 2.0,
+            "manual_linear_speed_max": 1.0,
+            "manual_linear_speed_default": 9.0,
+            "manual_angular_speed_min": 0.8,
+            "manual_angular_speed_max": 0.2,
+            "manual_angular_speed_default": 5.0,
+            "manual_loop_interval_ms": 5,
+        }
+    )
+
+    assert payload["ws_real_host"] == "salus"
+    assert payload["ws_real_port"] == 65535
+    assert payload["ws_sim_host"] == COCKPIT_NAV2_UI_CONFIG_DEFAULTS["ws_sim_host"]
+    assert payload["ws_sim_port"] == 1
+    assert payload["camera_probe_timeout_ms"] == 500
+    assert payload["camera_load_timeout_ms"] == 1000
+    assert payload["map_default_center_lat"] == -31.5
+    assert payload["map_default_center_lon"] == -64.2
+    assert payload["map_default_zoom"] == 22
+    assert payload["manual_linear_speed_min"] == COCKPIT_NAV2_UI_CONFIG_DEFAULTS["manual_linear_speed_min"]
+    assert payload["manual_linear_speed_max"] == COCKPIT_NAV2_UI_CONFIG_DEFAULTS["manual_linear_speed_max"]
+    assert (
+        payload["manual_linear_speed_default"]
+        == COCKPIT_NAV2_UI_CONFIG_DEFAULTS["manual_linear_speed_max"]
+    )
+    assert payload["manual_angular_speed_min"] == COCKPIT_NAV2_UI_CONFIG_DEFAULTS["manual_angular_speed_min"]
+    assert payload["manual_angular_speed_max"] == COCKPIT_NAV2_UI_CONFIG_DEFAULTS["manual_angular_speed_max"]
+    assert (
+        payload["manual_angular_speed_default"]
+        == COCKPIT_NAV2_UI_CONFIG_DEFAULTS["manual_angular_speed_max"]
+    )
+    assert payload["manual_loop_interval_ms"] == 20

@@ -23,11 +23,11 @@ export class MissionDispatcher extends Nav2DispatcherBase {
   }
 
   async startRosbag(): Promise<Nav2IncomingMessage> {
-    return this.request("start_record", {}, { timeoutMs: 6000 });
+    return this.request("start_rosbag", {}, { timeoutMs: 6000 });
   }
 
   async stopRosbag(): Promise<Nav2IncomingMessage> {
-    return this.request("stop_record", {}, { timeoutMs: 6000 });
+    return this.request("stop_rosbag", {}, { timeoutMs: 6000 });
   }
 
   async requestRosbagStatus(): Promise<Nav2IncomingMessage> {

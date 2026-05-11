@@ -11,6 +11,8 @@ from launch_ros.descriptions import ParameterFile
 from launch_ros.parameter_descriptions import ParameterValue
 from nav2_common.launch import RewrittenYaml
 
+from navegacion_gps.navigation_profiles import load_navigation_profile
+
 
 def _resolve_config_file_path(package_share_dir: str, filename: str) -> str:
     package_share_path = Path(package_share_dir)
@@ -45,11 +47,16 @@ def generate_launch_description():
     default_no_keepout_overrides = _resolve_config_file_path(
         gps_wpf_dir, "nav2_local_v2_no_keepout_overrides.yaml"
     )
+    navigation_profiles_file = _resolve_config_file_path(
+        gps_wpf_dir, "navigation_profiles.yaml"
+    )
+    local_profile = load_navigation_profile(navigation_profiles_file, "local_v2")
     use_sim_time = LaunchConfiguration("use_sim_time")
     use_keepout = LaunchConfiguration("use_keepout")
     nav2_params_file = LaunchConfiguration("nav2_params_file")
     collision_monitor_params_file = LaunchConfiguration("collision_monitor_params_file")
     keepout_mask_yaml = LaunchConfiguration("keepout_mask_yaml")
+    keepout_mask_frame = LaunchConfiguration("keepout_mask_frame")
     selected_nav2_overrides_file = PythonExpression(
         [
             "'",
@@ -101,12 +108,16 @@ def generate_launch_description():
                 default_value=default_collision_monitor_params,
             ),
             DeclareLaunchArgument("keepout_mask_yaml", default_value=default_keepout_mask),
+            DeclareLaunchArgument(
+                "keepout_mask_frame",
+                default_value=local_profile.keepout_mask_frame,
+            ),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(keepout_launch),
                 launch_arguments={
                     "use_sim_time": use_sim_time,
                     "keepout_mask_yaml": keepout_mask_yaml,
-                    "keepout_mask_frame": "odom",
+                    "keepout_mask_frame": keepout_mask_frame,
                 }.items(),
                 condition=IfCondition(use_keepout),
             ),

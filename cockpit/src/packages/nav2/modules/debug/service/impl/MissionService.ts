@@ -62,7 +62,7 @@ export class MissionService {
     return {
       active: source.active === true,
       profile: String(source.profile ?? "core"),
-      outputPath: String(source.output_path ?? source.outputPath ?? "n/a"),
+      outputPath: String(source.output_path ?? source.output_dir ?? source.outputPath ?? "n/a"),
       logPath: String(source.log_path ?? source.logPath ?? "n/a")
     };
   }

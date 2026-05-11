@@ -625,7 +625,6 @@ function SettingsSidebarPanel({ runtime }: { runtime: AppRuntime }): JSX.Element
         <span className="settings-sidebar-kicker">Control Surface</span>
         <div className="settings-sidebar-header">
           <h3>Settings</h3>
-          <span className="status-pill">Ready</span>
         </div>
         <p className="muted settings-sidebar-copy">
           Abrí la superficie de configuración para ajustar notificaciones globales y runtime settings de cada paquete.

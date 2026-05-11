@@ -15,6 +15,8 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 
+from navegacion_gps.navigation_profiles import load_navigation_profile
+
 
 def _read_file(path: str) -> str:
     with open(path, "r", encoding="utf-8") as file_handle:
@@ -59,6 +61,10 @@ def generate_launch_description():
     map_tools_dir = get_package_share_directory("map_tools")
     sensores_dir = get_package_share_directory("sensores")
     default_rviz = os.path.join(gps_wpf_dir, "config", "rviz_local_v2.rviz")
+    navigation_profiles_file = _resolve_config_file_path(
+        gps_wpf_dir, "navigation_profiles.yaml"
+    )
+    local_profile = load_navigation_profile(navigation_profiles_file, "local_v2")
 
     lidar_to_scan_params = _resolve_config_file_path(
         gps_wpf_dir, "pointcloud_to_laserscan.yaml"
@@ -76,6 +82,9 @@ def generate_launch_description():
     web_app_port = LaunchConfiguration("web_app_port")
     use_rviz = LaunchConfiguration("use_rviz")
     rviz_config = LaunchConfiguration("rviz_config")
+    map_frame = LaunchConfiguration("map_frame")
+    fromll_frame = LaunchConfiguration("fromll_frame")
+    odom_topic = LaunchConfiguration("odom_topic")
     vx_deadband_mps = LaunchConfiguration("vx_deadband_mps")
     vx_min_effective_mps = LaunchConfiguration("vx_min_effective_mps")
     invert_steer_from_cmd_vel = LaunchConfiguration("invert_steer_from_cmd_vel")
@@ -113,6 +122,9 @@ def generate_launch_description():
             DeclareLaunchArgument("web_app_port", default_value="8766"),
             DeclareLaunchArgument("use_rviz", default_value="True"),
             DeclareLaunchArgument("rviz_config", default_value=default_rviz),
+            DeclareLaunchArgument("map_frame", default_value=local_profile.map_frame),
+            DeclareLaunchArgument("fromll_frame", default_value=local_profile.fromll_frame),
+            DeclareLaunchArgument("odom_topic", default_value=local_profile.odom_topic),
             DeclareLaunchArgument("vx_deadband_mps", default_value="0.01"),
             DeclareLaunchArgument("vx_min_effective_mps", default_value="0.5"),
             DeclareLaunchArgument("invert_steer_from_cmd_vel", default_value="True"),
@@ -205,8 +217,8 @@ def generate_launch_description():
                         "fromll_service": "/fromLL",
                         "fromll_service_fallback": "/navsat_transform/fromLL",
                         "fromll_wait_timeout_s": 2.0,
-                        "fromll_frame": "odom",
-                        "map_frame": "odom",
+                        "fromll_frame": fromll_frame,
+                        "map_frame": map_frame,
                         "gps_topic": "/gps/fix",
                         "cmd_vel_safe_topic": "/cmd_vel_safe",
                         "cmd_vel_final_topic": "/cmd_vel_final",
@@ -269,7 +281,8 @@ def generate_launch_description():
                 launch_arguments={
                     "ws_host": "0.0.0.0",
                     "ws_port": web_app_port,
-                    "map_frame": "odom",
+                    "odom_topic": odom_topic,
+                    "map_frame": map_frame,
                     "launch_zones_manager": "false",
                     "launch_nav_command_server": "false",
                     "launch_nav_snapshot_server": "false",

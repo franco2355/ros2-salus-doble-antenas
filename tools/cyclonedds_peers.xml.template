@@ -1,0 +1,37 @@
+<!--
+  cyclonedds_peers.xml.template
+  Configuración de peers explícitos para CycloneDDS cuando multicast no funciona.
+
+  CUÁNDO USAR:
+    - PC y Raspberry Pi en redes distintas (VPN, bridge, etc.)
+    - Router que bloquea multicast UDP (algunos routers WiFi)
+    - Si "ros2 topic echo /vision/target" en la Raspi no recibe nada
+
+  CÓMO USAR:
+    1. Copiá este archivo en cada máquina:
+         cp tools/cyclonedds_peers.xml.template ~/cyclonedds.xml
+    2. Reemplazá <PC_IP> y <PI_IP> con las IPs reales.
+    3. En la PC:
+         export CYCLONEDDS_URI=file:///home/<user>/cyclonedds.xml
+    4. En la Raspi:
+         export CYCLONEDDS_URI=file:///home/pi/cyclonedds.xml
+    Ambas deben tener el mismo archivo con ambas IPs.
+
+  SI USÁS LA MISMA RED LAN (caso habitual):
+    No hace falta este archivo. Multicast funciona automáticamente
+    si ROS_DOMAIN_ID y RMW_IMPLEMENTATION coinciden.
+-->
+<CycloneDDS>
+  <Domain>
+    <Discovery>
+      <Peers>
+        <Peer address="<PC_IP>"/>
+        <Peer address="<PI_IP>"/>
+      </Peers>
+    </Discovery>
+    <General>
+      <!-- Desactivar multicast si la red lo bloquea -->
+      <!-- <AllowMulticast>false</AllowMulticast> -->
+    </General>
+  </Domain>
+</CycloneDDS>

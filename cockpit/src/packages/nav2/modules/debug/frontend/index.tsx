@@ -5,16 +5,24 @@ import { ShellCommands } from "../../../../../app/shellCommands";
 import { MissionDispatcher } from "../dispatcher/impl/MissionDispatcher";
 import { MissionService } from "../service/impl/MissionService";
 import type { RosbagStatus } from "../dispatcher/impl/MissionDispatcher";
-import { RosBridgeTransport } from "../transport/impl/RosBridgeTransport";
 import { NavigationCommands } from "../../navigation/commands";
+import type { ConnectionService } from "../../navigation/service/impl/ConnectionService";
 
-const TRANSPORT_ID = "transport.rosbridge";
+const TRANSPORT_ID = "transport.ws.core";
 const DISPATCHER_ID = "dispatcher.mission";
 const SERVICE_ID = "service.mission";
+const CONNECTION_SERVICE_ID = "service.connection";
 const OPEN_RECORD_MODAL_COMMAND_ID = "nav2.debug.openRecordModal";
 
 function RecordModal({ runtime }: { runtime: ModuleContext }): JSX.Element {
   const missionService = runtime.services.getService<MissionService>(SERVICE_ID);
+  let connectionService: ConnectionService | null = null;
+  try {
+    connectionService = runtime.services.getService<ConnectionService>(CONNECTION_SERVICE_ID);
+  } catch {
+    connectionService = null;
+  }
+  const [connected, setConnected] = useState(connectionService?.getState().connected ?? false);
   const [status, setStatus] = useState<RosbagStatus>({
     active: false,
     profile: "core",
@@ -22,6 +30,11 @@ function RecordModal({ runtime }: { runtime: ModuleContext }): JSX.Element {
     logPath: "n/a"
   });
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!connectionService) return;
+    return connectionService.subscribe((next) => setConnected(next.connected));
+  }, [connectionService]);
 
   useEffect(() => {
     const unsubscribe = missionService.subscribeRosbagStatus((next) => {
@@ -60,8 +73,13 @@ function RecordModal({ runtime }: { runtime: ModuleContext }): JSX.Element {
       <button
         type="button"
         className={stateClassName}
+        disabled={!connected}
         onClick={async () => {
           setError("");
+          if (!connected) {
+            setError("Backend no conectado");
+            return;
+          }
           try {
             const next = status.active ? await missionService.stopRosbag() : await missionService.startRosbag();
             setStatus(next);
@@ -71,7 +89,8 @@ function RecordModal({ runtime }: { runtime: ModuleContext }): JSX.Element {
               timestamp: Date.now()
             });
           } catch (cause) {
-            setError(String(cause));
+            const msg = String(cause);
+            setError(msg.includes("disconnected") ? "Backend no conectado" : msg);
           }
         }}
       >
@@ -79,6 +98,15 @@ function RecordModal({ runtime }: { runtime: ModuleContext }): JSX.Element {
           <span className="record-toggle-btn-label">{status.active ? "Detener grabación" : "Iniciar grabación"}</span>
           <span className="record-toggle-btn-meta">{status.active ? "Cerrar rosbag actual" : "Crear nueva captura"}</span>
         </span>
+        {!connected ? (
+          <span className="record-toggle-lock" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <rect x="6" y="10" width="12" height="10" rx="2" />
+              <path d="M8.5 10V7.5a3.5 3.5 0 0 1 7 0V10" />
+              <path d="M12 14v2" />
+            </svg>
+          </span>
+        ) : null}
       </button>
       <p className={`record-status-legend ${status.active ? "recording" : "stopped"}`}>
         Estado: {stateText}
@@ -204,12 +232,6 @@ export function createDebugModule(): CockpitModule {
     version: "1.1.0",
     enabledByDefault: true,
     register(ctx: ModuleContext): void {
-      const transport = new RosBridgeTransport(TRANSPORT_ID, ({ env }) => env.rosbridgeUrl);
-      ctx.transports.registerTransport({
-        id: transport.id,
-        transport
-      });
-
       const dispatcher = new MissionDispatcher(DISPATCHER_ID, TRANSPORT_ID);
       ctx.dispatchers.registerDispatcher({
         id: dispatcher.id,

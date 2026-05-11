@@ -4,6 +4,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV ROS_DISTRO=humble
 ENV QT_X11_NO_MITSHM=1
 ENV GZ_VERSION=fortress
+# Needed by NVIDIA Container Toolkit to expose GPU inside container
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
 # Paquetes base de build + ROS + utilidades del stack
 RUN apt-get update \
@@ -53,7 +56,13 @@ RUN apt-get update \
     ros-${ROS_DISTRO}-rqt-reconfigure \
     ros-${ROS_DISTRO}-rmw-cyclonedds-cpp \
     ros-${ROS_DISTRO}-mavros \
-    ros-${ROS_DISTRO}-mavros-extras
+    ros-${ROS_DISTRO}-mavros-extras \
+    # --- VISION PIPELINE ---
+    ros-${ROS_DISTRO}-cv-bridge \
+    ros-${ROS_DISTRO}-vision-msgs \
+    ros-${ROS_DISTRO}-image-transport \
+    ros-${ROS_DISTRO}-image-transport-plugins \
+    ros-${ROS_DISTRO}-v4l2-camera
 
 # Mapviz: en amd64 hay binarios; en ARM64 se omite (headless).
 RUN arch="$(dpkg --print-architecture)" && \
@@ -73,10 +82,31 @@ RUN wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/
   && ./install_geographiclib_datasets.sh \
   && rm install_geographiclib_datasets.sh
 
+# CUDA 12 runtime libs para onnxruntime-gpu (solo amd64; ARM64 usa CPU)
+RUN arch="$(dpkg --print-architecture)" && \
+  if [ "$arch" = "amd64" ]; then \
+    curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb \
+      -o /tmp/cuda-keyring.deb \
+    && dpkg -i /tmp/cuda-keyring.deb \
+    && rm /tmp/cuda-keyring.deb \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+       cuda-cudart-12-6 \
+       libcublas-12-6 \
+       libcurand-12-6 \
+       libcufft-12-6 \
+       libcusparse-12-6 \
+       libcudnn9-cuda-12 \
+    && rm -rf /var/lib/apt/lists/*; \
+  else \
+    echo "CUDA runtime omitido en ARM64."; \
+  fi
+
 # Dependencias Python del proyecto
 RUN python3 -m pip install --upgrade pip \
-  && python3 -m pip install --no-cache-dir --force-reinstall \
+  && python3 -m pip install --no-cache-dir \
     numpy==1.26.4 \
+    onnxruntime-gpu \
     flask==2.3.0 \
     matplotlib==3.7.0 \
     "websockets>=11.0.0" \
@@ -89,7 +119,7 @@ RUN rosdep init || true \
   && rosdep update
 
 # PAQUETES EXTRA
-RUN apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
       ros-${ROS_DISTRO}-pointcloud-to-laserscan \
       ros-${ROS_DISTRO}-nav2-rviz-plugins \
       libpcap-dev \

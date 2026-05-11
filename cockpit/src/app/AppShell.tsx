@@ -122,6 +122,7 @@ const SENSOR_INFO_SERVICE_ID = "service.sensor-info";
 const TELEMETRY_SERVICE_ID = "service.telemetry";
 const SIDEBAR_RAIL_WIDTH = 46;
 const SPLITTER_THICKNESS = 4;
+const SHELL_BODY_GAP = 6;
 
 function routeStatusLabel(state: ReturnType<NavigationServiceLike["getState"]> | null): string {
   if (!state) return "No data";
@@ -167,7 +168,7 @@ export function AppShell({ runtime, layoutMode = "default" }: AppShellProps): JS
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [consoleCollapsed, setConsoleCollapsed] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(320);
-  const [consoleHeight, setConsoleHeight] = useState(168);
+  const [consoleHeight, setConsoleHeight] = useState(360);
   const [zoomController] = useState(() => new UiZoomController());
   const [shellConnectionState, setShellConnectionState] = useState<SidebarConnectionState | null>(null);
   const [shellNavigationState, setShellNavigationState] = useState<ReturnType<NavigationServiceLike["getState"]> | null>(null);
@@ -663,7 +664,13 @@ export function AppShell({ runtime, layoutMode = "default" }: AppShellProps): JS
     const shellBody = event.currentTarget.closest(".shell-body") as HTMLElement | null;
     const onMove = (moveEvent: MouseEvent): void => {
       const maxWidthByViewport = shellBody
-        ? Math.max(260, Math.floor(shellBody.getBoundingClientRect().width) - SIDEBAR_RAIL_WIDTH - SPLITTER_THICKNESS)
+        ? Math.max(
+            260,
+            Math.floor(shellBody.getBoundingClientRect().width) -
+              SIDEBAR_RAIL_WIDTH -
+              SPLITTER_THICKNESS -
+              SHELL_BODY_GAP * 3
+          )
         : Number.POSITIVE_INFINITY;
       const next = Math.max(260, Math.min(maxWidthByViewport, initial + (moveEvent.clientX - startX)));
       setSidebarWidth(next);
@@ -710,6 +717,7 @@ export function AppShell({ runtime, layoutMode = "default" }: AppShellProps): JS
       <div
         className="shell-body"
         style={{
+          gap: SHELL_BODY_GAP,
           gridTemplateColumns: shellColumns
         }}
       >

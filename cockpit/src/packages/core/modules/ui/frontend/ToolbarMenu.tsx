@@ -110,7 +110,7 @@ export function ToolbarMenu({ runtime, menus, statusItems = [] }: ToolbarMenuPro
         {secondaryItems.map((item) => (
           <div
             key={item.id}
-            className={`toolbar-mini-badge toolbar-mini-badge-${item.tone ?? "neutral"}`}
+            className={`toolbar-mini-badge toolbar-mini-badge-${item.tone ?? "neutral"} toolbar-mini-badge-id-${item.id}`}
             title={item.detail ?? item.label}
             aria-label={`${item.label}: ${item.value}`}
           >

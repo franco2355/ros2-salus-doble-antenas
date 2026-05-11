@@ -35,6 +35,13 @@ class ArbitrationResult:
     fresh: bool
 
 
+@dataclass(slots=True)
+class ReverseTransitionState:
+    request_latched: bool = False
+    brake_active: bool = False
+    brake_started_s: float = 0.0
+
+
 def safe_command() -> DesiredCommand:
     return DesiredCommand(
         drive_enabled=False,
@@ -108,10 +115,14 @@ def command_from_cmd_vel(
     max_reverse = max(0.0, float(max_reverse_mps))
     deadband = max(0.0, float(vx_deadband_mps))
     min_effective = clamp(float(vx_min_effective_mps), 0.0, max_speed)
+    angular_limit = max(0.0, abs(float(max_abs_angular_z)))
 
     linear = float(linear_x)
     angular = float(angular_z)
-    _ = float(max_abs_angular_z)
+    if angular_limit <= 1.0e-6:
+        angular = 0.0
+    else:
+        angular = clamp(angular, -angular_limit, angular_limit)
     speed = 0.0
     speed_limited = False
     min_speed_enforced = False
@@ -189,3 +200,112 @@ def select_effective_command(
     if auto_fresh:
         return ArbitrationResult(command=auto_cmd, source="auto", fresh=True)
     return ArbitrationResult(command=safe_command(), source="auto_timeout", fresh=False)
+
+
+def is_reverse_requested(
+    cmd: DesiredCommand,
+    *,
+    speed_epsilon_mps: float = 1.0e-3,
+) -> bool:
+    return (not bool(cmd.estop)) and float(cmd.speed_mps) < -abs(float(speed_epsilon_mps))
+
+
+def build_reverse_transition_command(
+    cmd: DesiredCommand,
+    *,
+    reverse_brake_pct: int,
+) -> DesiredCommand:
+    brake_pct = int(clamp(float(reverse_brake_pct), 0.0, 100.0))
+    if brake_pct <= 0:
+        return cmd
+    return DesiredCommand(
+        drive_enabled=bool(cmd.drive_enabled),
+        estop=False,
+        speed_mps=0.0,
+        steer_pct=0,
+        brake_pct=brake_pct,
+        requested_linear_x_mps=cmd.requested_linear_x_mps,
+        requested_angular_z_rps=cmd.requested_angular_z_rps,
+        steering_reference_speed_mps=cmd.steering_reference_speed_mps,
+        requested_curvature_inv_m=cmd.requested_curvature_inv_m,
+        applied_curvature_inv_m=0.0,
+        requested_steer_rad=cmd.requested_steer_rad,
+        applied_steer_rad=0.0,
+        steer_saturated=False,
+        used_steering_speed_fallback=cmd.used_steering_speed_fallback,
+        speed_limited=cmd.speed_limited,
+        min_speed_enforced=cmd.min_speed_enforced,
+    )
+
+
+def reverse_transition_complete(
+    *,
+    now_s: float,
+    started_s: float,
+    min_hold_s: float,
+    measured_speed_mps: float | None,
+    telemetry_fresh: bool,
+    stop_speed_threshold_mps: float,
+) -> bool:
+    if (float(now_s) - float(started_s)) < max(0.0, float(min_hold_s)):
+        return False
+    if bool(telemetry_fresh) and measured_speed_mps is not None:
+        return abs(float(measured_speed_mps)) <= max(0.0, float(stop_speed_threshold_mps))
+    return True
+
+
+def apply_reverse_transition(
+    *,
+    now_s: float,
+    cmd: DesiredCommand,
+    source: str,
+    state: ReverseTransitionState,
+    reverse_brake_pct: int,
+    min_hold_s: float,
+    measured_speed_mps: float | None,
+    telemetry_fresh: bool,
+    stop_speed_threshold_mps: float,
+) -> tuple[DesiredCommand, str, ReverseTransitionState]:
+    if reverse_brake_pct <= 0 or (not is_reverse_requested(cmd)):
+        return cmd, source, ReverseTransitionState()
+
+    request_latched = bool(state.request_latched)
+    brake_active = bool(state.brake_active)
+    brake_started_s = float(state.brake_started_s)
+
+    if (not request_latched) and (not brake_active):
+        brake_active = True
+        brake_started_s = float(now_s)
+
+    if brake_active:
+        if not reverse_transition_complete(
+            now_s=now_s,
+            started_s=brake_started_s,
+            min_hold_s=min_hold_s,
+            measured_speed_mps=measured_speed_mps,
+            telemetry_fresh=telemetry_fresh,
+            stop_speed_threshold_mps=stop_speed_threshold_mps,
+        ):
+            return (
+                build_reverse_transition_command(
+                    cmd,
+                    reverse_brake_pct=reverse_brake_pct,
+                ),
+                "reverse_brake_transition",
+                ReverseTransitionState(
+                    request_latched=True,
+                    brake_active=True,
+                    brake_started_s=brake_started_s,
+                ),
+            )
+        brake_active = False
+
+    return (
+        cmd,
+        source,
+        ReverseTransitionState(
+            request_latched=True,
+            brake_active=brake_active,
+            brake_started_s=brake_started_s,
+        ),
+    )

@@ -47,7 +47,14 @@ class _FakeFuture:
 
 class _FakeNode:
     _is_valid_fix = staticmethod(MapGpsAbsoluteMeasurementNode._is_valid_fix)
+    _apply_base_to_gps_offset = staticmethod(
+        MapGpsAbsoluteMeasurementNode._apply_base_to_gps_offset
+    )
     _build_odometry_message = staticmethod(MapGpsAbsoluteMeasurementNode._build_odometry_message)
+    _gps_frame_candidates = MapGpsAbsoluteMeasurementNode._gps_frame_candidates
+    _correct_map_point_to_base_frame = (
+        MapGpsAbsoluteMeasurementNode._correct_map_point_to_base_frame
+    )
     _resolve_fromll_client = MapGpsAbsoluteMeasurementNode._resolve_fromll_client
     _handle_fromll_result = MapGpsAbsoluteMeasurementNode._handle_fromll_result
     _on_fromll_done = MapGpsAbsoluteMeasurementNode._on_fromll_done
@@ -59,6 +66,9 @@ class _FakeNode:
         self.fromll_service = "/fromLL"
         self.fromll_service_fallback = "/navsat_transform/fromLL"
         self.fromll_wait_timeout_s = 0.2
+        self.base_frame = "base_footprint"
+        self.odom_topic = "/odometry/local"
+        self.gps_frame_id_fallback = "gps_link"
         self._fromll_client = _FakeClient(available=True)
         self._fromll_fallback_client = _FakeClient(available=True)
         self._active_fromll_client = None
@@ -66,12 +76,19 @@ class _FakeNode:
         self._pending_future = None
         self._pending_fix = None
         self._queued_fix = None
+        self._latest_base_yaw_rad = None
+        self._missing_base_yaw_warned = False
+        self._missing_gps_tf_warned = set()
+        self.mount_offset = None
         self._odom_pub = _FakePublisher()
         self._logger = _FakeLogger()
         self.requested_fixes = []
 
     def get_logger(self) -> _FakeLogger:
         return self._logger
+
+    def _lookup_gps_mount_offset_xy(self, fix_msg: NavSatFix):
+        return self.mount_offset
 
     def _request_fromll_for_fix(self, msg: NavSatFix) -> None:
         self.requested_fixes.append(msg)
@@ -136,6 +153,47 @@ def test_handle_fromll_result_publishes_absolute_map_odometry() -> None:
     assert published.pose.pose.position.y == -2.5
     assert published.pose.covariance[0] == 0.05
     assert published.pose.covariance[7] == 0.05
+
+
+def test_apply_base_to_gps_offset_reprojects_antenna_point_to_base() -> None:
+    corrected_x, corrected_y = MapGpsAbsoluteMeasurementNode._apply_base_to_gps_offset(
+        map_x=10.0,
+        map_y=5.0,
+        base_yaw_rad=0.0,
+        base_to_gps_x=1.0,
+        base_to_gps_y=0.25,
+    )
+
+    assert corrected_x == 9.0
+    assert corrected_y == 4.75
+
+
+def test_handle_fromll_result_compensates_mount_offset_when_yaw_is_available() -> None:
+    node = _FakeNode()
+    node.mount_offset = (1.0, 0.25)
+    node._latest_base_yaw_rad = 0.0
+    response = FromLL.Response()
+    response.map_point = Point(x=1.25, y=-2.5, z=0.0)
+
+    node._handle_fromll_result(_make_fix(), response)
+
+    published = node._odom_pub.messages[-1]
+    assert published.pose.pose.position.x == 0.25
+    assert published.pose.pose.position.y == -2.75
+
+
+def test_handle_fromll_result_defers_publish_until_yaw_is_available() -> None:
+    node = _FakeNode()
+    node.mount_offset = (1.0, 0.25)
+    response = FromLL.Response()
+    response.map_point = Point(x=1.25, y=-2.5, z=0.0)
+
+    node._handle_fromll_result(_make_fix(), response)
+
+    assert node._odom_pub.messages == []
+    assert node._logger.warnings == [
+        "No odometry yaw available yet; deferring absolute GPS map measurement"
+    ]
 
 
 def test_on_gps_fix_ignores_invalid_fix() -> None:

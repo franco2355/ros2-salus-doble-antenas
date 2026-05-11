@@ -371,17 +371,10 @@ class LoopPatrolRunnerNode(Node):
 
     def _build_goal_request(
         self,
-        waypoint: Dict[str, Any],
-        *,
-        approach_yaw_deg: Optional[float] = None,
+        ordered_waypoints: List[Dict[str, Any]],
     ) -> Tuple[Optional[SetNavGoalLL.Request], str]:
-        lat = _finite_float(waypoint.get("lat"))
-        lon = _finite_float(waypoint.get("lon"))
-        if approach_yaw_deg is not None and math.isfinite(approach_yaw_deg):
-            yaw_deg: float = approach_yaw_deg
-        else:
-            stored = _finite_float(waypoint.get("yaw_deg", 0.0))
-            yaw_deg = stored if stored is not None else 0.0
+        if len(ordered_waypoints) == 0:
+            return None, "at least one waypoint is required"
 
         if self._nav_mode == "local" and not self._warned_local_fallback:
             self.get_logger().warning(
@@ -390,16 +383,49 @@ class LoopPatrolRunnerNode(Node):
             )
             self._warned_local_fallback = True
 
-        if lat is None or lon is None:
-            return None, "waypoint is missing lat/lon required by /nav_command_server/set_goal_ll"
+        lats: List[float] = []
+        lons: List[float] = []
+        yaws_deg: List[float] = []
+        total = len(ordered_waypoints)
+        for index, waypoint in enumerate(ordered_waypoints):
+            lat = _finite_float(waypoint.get("lat"))
+            lon = _finite_float(waypoint.get("lon"))
+            if lat is None or lon is None:
+                return (
+                    None,
+                    "waypoint is missing lat/lon required by /nav_command_server/set_goal_ll",
+                )
+
+            approach_yaw_deg: Optional[float] = None
+            if total >= 2:
+                prev_waypoint = ordered_waypoints[index - 1]
+                lat_from = _finite_float(prev_waypoint.get("lat"))
+                lon_from = _finite_float(prev_waypoint.get("lon"))
+                if lat_from is not None and lon_from is not None:
+                    approach_yaw_deg = _compute_approach_bearing_enu(
+                        lat_from,
+                        lon_from,
+                        lat,
+                        lon,
+                    )
+
+            if approach_yaw_deg is not None and math.isfinite(approach_yaw_deg):
+                yaw_deg = float(approach_yaw_deg)
+            else:
+                stored = _finite_float(waypoint.get("yaw_deg", 0.0))
+                yaw_deg = stored if stored is not None else 0.0
+
+            lats.append(float(lat))
+            lons.append(float(lon))
+            yaws_deg.append(float(yaw_deg))
 
         req = SetNavGoalLL.Request()
-        req.lat = float(lat)
-        req.lon = float(lon)
-        req.yaw_deg = float(yaw_deg)
-        req.lats = [float(lat)]
-        req.lons = [float(lon)]
-        req.yaws_deg = [float(yaw_deg)]
+        req.lat = float(lats[0])
+        req.lon = float(lons[0])
+        req.yaw_deg = float(yaws_deg[0])
+        req.lats = lats
+        req.lons = lons
+        req.yaws_deg = yaws_deg
         req.loop = False
         return req, ""
 
@@ -407,26 +433,13 @@ class LoopPatrolRunnerNode(Node):
         with self._lock:
             if not self._active or len(self._waypoints) == 0:
                 return
-            current_idx = self._current_index
-            prev_idx = self._prev_wp_index
-            waypoint = dict(self._waypoints[current_idx])
             n = len(self._waypoints)
-            prev_wp = dict(
-                self._waypoints[(current_idx - 1) % n if prev_idx < 0 else prev_idx]
-            ) if n >= 2 else None
+            current_idx = self._current_index % n
+            ordered_waypoints = [
+                dict(self._waypoints[(current_idx + offset) % n]) for offset in range(n)
+            ]
 
-        approach_yaw_deg: Optional[float] = None
-        if prev_wp is not None:
-            lat_from = _finite_float(prev_wp.get("lat"))
-            lon_from = _finite_float(prev_wp.get("lon"))
-            lat_to = _finite_float(waypoint.get("lat"))
-            lon_to = _finite_float(waypoint.get("lon"))
-            if all(v is not None for v in (lat_from, lon_from, lat_to, lon_to)):
-                approach_yaw_deg = _compute_approach_bearing_enu(
-                    lat_from, lon_from, lat_to, lon_to  # type: ignore[arg-type]
-                )
-
-        request, err = self._build_goal_request(waypoint, approach_yaw_deg=approach_yaw_deg)
+        request, err = self._build_goal_request(ordered_waypoints)
         if request is None:
             self._handle_goal_failure(err)
             return
@@ -478,8 +491,7 @@ class LoopPatrolRunnerNode(Node):
             self._goal_in_flight = False
             self._goal_sent_monotonic = None
             self._retry_count = 0
-            self._prev_wp_index = self._current_index
-            self._current_index = (self._current_index + 1) % len(self._waypoints)
+            self._prev_wp_index = (self._current_index - 1) % len(self._waypoints)
             self._next_dispatch_monotonic = time.monotonic() + self._loop_delay_s
 
     def _handle_goal_timeout(self) -> None:

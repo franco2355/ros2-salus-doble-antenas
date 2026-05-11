@@ -26,7 +26,7 @@ def test_sim_global_v2_launch_reuses_current_sim_stack_without_rviz() -> None:
         '"enable_map_gps_absolute_measurement": enable_map_gps_absolute_measurement'
     )
     gps_heading_enable_arg = (
-        'DeclareLaunchArgument("enable_gps_course_heading", default_value="true")'
+        'DeclareLaunchArgument("enable_gps_course_heading", default_value="false")'
     )
     gps_heading_distance_arg = (
         'DeclareLaunchArgument("gps_course_heading_min_distance_m", default_value="1.0")'
@@ -35,10 +35,10 @@ def test_sim_global_v2_launch_reuses_current_sim_stack_without_rviz() -> None:
         'DeclareLaunchArgument("gps_course_heading_min_speed_mps", default_value="0.4")'
     )
     gps_heading_steer_arg = (
-        'DeclareLaunchArgument("gps_course_heading_max_abs_steer_deg", default_value="3.0")'
+        'DeclareLaunchArgument("gps_course_heading_max_abs_steer_deg", default_value="8.0")'
     )
     gps_heading_yaw_rate_arg = (
-        'DeclareLaunchArgument("gps_course_heading_max_abs_yaw_rate_rps", default_value="0.06")'
+        'DeclareLaunchArgument("gps_course_heading_max_abs_yaw_rate_rps", default_value="0.12")'
     )
     gps_heading_hold_arg = (
         'DeclareLaunchArgument("gps_course_heading_invalid_hold_s", default_value="0.8")'
@@ -50,7 +50,7 @@ def test_sim_global_v2_launch_reuses_current_sim_stack_without_rviz() -> None:
         'DeclareLaunchArgument("gps_course_heading_publish_hz", default_value="10.0")'
     )
     gps_heading_variance_arg = (
-        'DeclareLaunchArgument("gps_course_heading_yaw_variance_rad2", default_value="0.05")'
+        'DeclareLaunchArgument("gps_course_heading_yaw_variance_rad2", default_value="0.3")'
     )
     gps_heading_hold_variance_arg = (
         'DeclareLaunchArgument(\n                "gps_course_heading_hold_yaw_variance_multiplier",'
@@ -59,15 +59,21 @@ def test_sim_global_v2_launch_reuses_current_sim_stack_without_rviz() -> None:
     approx_lon_arg = '"approx_fromll_datum_lon": ParameterValue(datum_lon, value_type=float)'
 
     assert "sim_v2_base.launch.py" in launch_contents
+    assert "navigation_profiles.yaml" in launch_contents
+    assert 'load_navigation_profile(navigation_profiles_file, "global_v2")' in launch_contents
+    assert 'default_value=os.path.join(gps_wpf_dir, "models", "cuatri_2gps.urdf")' in launch_contents
     assert "localization_global_v2.launch.py" in launch_contents
     assert "nav_global_v2.launch.py" in launch_contents
     assert "no_go_editor.launch.py" in launch_contents
-    assert '"fromll_frame": "map"' in launch_contents
-    assert '"map_frame": "map"' in launch_contents
+    assert 'DeclareLaunchArgument("map_frame", default_value=global_profile.map_frame)' in launch_contents
+    assert 'DeclareLaunchArgument("fromll_frame", default_value=global_profile.fromll_frame)' in launch_contents
+    assert 'DeclareLaunchArgument("odom_topic", default_value=global_profile.odom_topic)' in launch_contents
+    assert '"fromll_frame": fromll_frame' in launch_contents
+    assert '"map_frame": map_frame' in launch_contents
     assert '"approx_fromll_fallback_enabled": True' in launch_contents
-    assert 'DeclareLaunchArgument("datum_lat", default_value="-31.4858037")' in launch_contents
-    assert 'DeclareLaunchArgument("datum_lon", default_value="-64.2410570")' in launch_contents
-    assert 'DeclareLaunchArgument("datum_yaw_deg", default_value="0.0")' in launch_contents
+    assert 'DeclareLaunchArgument("datum_lat", default_value=str(global_profile.datum_lat))' in launch_contents
+    assert 'DeclareLaunchArgument("datum_lon", default_value=str(global_profile.datum_lon))' in launch_contents
+    assert 'default_value=str(global_profile.datum_yaw_deg)' in launch_contents
     assert map_gps_enable_arg in launch_contents
     assert map_gps_topic_arg in launch_contents
     assert map_gps_cov_arg in launch_contents
@@ -76,6 +82,7 @@ def test_sim_global_v2_launch_reuses_current_sim_stack_without_rviz() -> None:
     assert map_gps_param_ref in launch_contents
     assert '"map_gps_absolute_topic": map_gps_absolute_topic' in launch_contents
     assert '"map_gps_fromll_service_fallback": map_gps_fromll_service_fallback' in launch_contents
+    assert 'DeclareLaunchArgument("invert_steer_from_cmd_vel", default_value="True")' in launch_contents
     assert gps_heading_enable_arg in launch_contents
     assert gps_heading_distance_arg in launch_contents
     assert gps_heading_speed_arg in launch_contents
@@ -87,12 +94,19 @@ def test_sim_global_v2_launch_reuses_current_sim_stack_without_rviz() -> None:
     assert gps_heading_variance_arg in launch_contents
     assert gps_heading_hold_variance_arg in launch_contents
     assert 'DeclareLaunchArgument("gps_profile", default_value="ideal")' in launch_contents
+    assert 'executable="dual_gps_heading_sim"' in launch_contents
     assert 'executable="gps_course_heading"' in launch_contents
+    assert '"output_topic": "/ublox_rover/navheading"' in launch_contents
+    assert '"odom_heading_topic": "/odom_raw"' in launch_contents
+    assert '"sim_invert_actuation_steer_sign": True' in launch_contents
+    assert '"sim_max_joint_odom_steer_delta_deg": 0.0' in launch_contents
     assert '"gps_profile": gps_profile' in launch_contents
     assert approx_lat_arg in launch_contents
     assert approx_lon_arg in launch_contents
     assert '"approx_fromll_datum_yaw_deg": ParameterValue(' in launch_contents
-    assert '"navsat_use_odometry_yaw": "false"' in launch_contents
+    assert '"forward_cmd_vel_safe_without_goal": False' in launch_contents
+    assert "global_profile.navsat_use_odometry_yaw" in launch_contents
+    assert '"navsat_use_odometry_yaw": navsat_use_odometry_yaw' in launch_contents
     assert '"enable_gps_course_heading": enable_gps_course_heading' in launch_contents
     assert '"gps_course_heading_topic": "/gps/course_heading"' in launch_contents
     assert '"invalid_hold_s": ParameterValue(' in launch_contents
@@ -100,14 +114,13 @@ def test_sim_global_v2_launch_reuses_current_sim_stack_without_rviz() -> None:
     assert '"publish_hz": ParameterValue(' in launch_contents
     assert '"hold_yaw_variance_multiplier": ParameterValue(' in launch_contents
     assert 'DeclareLaunchArgument("launch_web_app", default_value="True")' in launch_contents
-    assert '"odom_topic": "/odometry/global"' in launch_contents
+    assert '"odom_topic": odom_topic' in launch_contents
     assert '"launch_nav_command_server": "false"' in launch_contents
     assert 'executable="rviz2"' not in launch_contents
 
 
 def test_localization_global_v2_launch_adds_map_filter_and_navsat_support() -> None:
     launch_contents = _read("launch/localization_global_v2.launch.py")
-    navsat_yaw_arg = 'DeclareLaunchArgument("navsat_use_odometry_yaw", default_value="false")'
     odom_gate_arg = 'DeclareLaunchArgument(\n                "enable_global_odom_stationary_gate"'
     imu_gate_arg = 'DeclareLaunchArgument(\n                "enable_global_imu_stationary_gate"'
     yaw_hold_arg = 'DeclareLaunchArgument(\n                "enable_global_stationary_yaw_hold"'
@@ -121,6 +134,8 @@ def test_localization_global_v2_launch_adds_map_filter_and_navsat_support() -> N
     )
 
     assert "localization_v2.launch.py" in launch_contents
+    assert "navigation_profiles.yaml" in launch_contents
+    assert 'load_navigation_profile(navigation_profiles_file, "global_v2")' in launch_contents
     assert 'name="global_odom_stationary_gate"' in launch_contents
     assert 'name="global_imu_stationary_gate"' in launch_contents
     assert 'name="global_yaw_stationary_hold"' in launch_contents
@@ -128,7 +143,7 @@ def test_localization_global_v2_launch_adds_map_filter_and_navsat_support() -> N
     assert 'name="ekf_filter_node_map"' in launch_contents
     assert 'name="navsat_transform"' in launch_contents
     assert 'DeclareLaunchArgument("datum_setter", default_value="false")' in launch_contents
-    assert navsat_yaw_arg in launch_contents
+    assert "global_profile.navsat_use_odometry_yaw" in launch_contents
     assert odom_gate_arg in launch_contents
     assert 'DeclareLaunchArgument(\n                "global_odom_gated_topic"' in launch_contents
     assert imu_gate_arg in launch_contents
@@ -167,6 +182,20 @@ def test_nav2_global_params_switch_global_frame_to_map() -> None:
     assert "odom_topic: /odometry/local" in params_contents
 
 
+def test_nav2_global_goal_closure_slows_before_goal() -> None:
+    params_contents = _read("config/nav2_global_v2_params.yaml")
+
+    assert "use_final_approach_orientation: true" in params_contents
+    assert 'plugin: "nav2_controller::SimpleGoalChecker"' in params_contents
+    assert "movement_time_allowance: 8.0" in params_contents
+    assert "xy_goal_tolerance: 0.35" in params_contents
+    assert "yaw_goal_tolerance: 0.20" in params_contents
+    assert "desired_linear_vel: 1.0" in params_contents
+    assert "min_approach_linear_velocity: 0.4" in params_contents
+    assert "approach_velocity_scaling_dist: 2.5" in params_contents
+    assert "regulated_linear_scaling_min_speed: 0.4" in params_contents
+
+
 def test_rviz_global_config_and_launch_target_map() -> None:
     rviz_contents = _read("config/rviz_global_v2.rviz")
     launch_contents = _read("launch/rviz_sim_global_v2.launch.py")
@@ -175,4 +204,11 @@ def test_rviz_global_config_and_launch_target_map() -> None:
     assert "/odometry/global" in rviz_contents
     assert "/gps/odometry_map" in rviz_contents
     assert "GPS Map Odom" in rviz_contents
+    assert "GPS Course Heading" in rviz_contents
+    assert "Name: Odom Grid (Debug)" in rviz_contents
+    assert "Enabled: false" in rviz_contents
+    assert "/gps/course_heading_pose" in rviz_contents
     assert "rviz_global_v2.rviz" in launch_contents
+    assert 'default_value="/gps/course_heading"' in launch_contents
+    assert 'default_value="/gps/course_heading_pose"' in launch_contents
+    assert 'name="course_heading_pose_bridge"' in launch_contents

@@ -334,7 +334,7 @@ export class SensorInfoService {
           String(snapshot.selected_topic ?? "") === topics.pendingTopic || message.ok === false ? "" : topics.pendingTopic,
         catalog
       };
-      if (message.ok !== false && String(snapshot.error ?? "").trim()) {
+      if (message.ok !== false && message.implemented === true && String(snapshot.error ?? "").trim()) {
         errors.topics = String(snapshot.error);
       }
     }

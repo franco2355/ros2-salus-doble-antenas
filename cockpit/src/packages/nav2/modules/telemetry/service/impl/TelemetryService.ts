@@ -18,6 +18,9 @@ export interface TelemetrySnapshot {
   } | null;
   cmdVelSafe: string;
   goalActive: boolean;
+  currentWaypoint: number;
+  totalWaypoints: number;
+  loopTotalWaypoints: number;
   navResultStatus: number;
   navResultText: string;
   navResultEventId: number;
@@ -25,6 +28,9 @@ export interface TelemetrySnapshot {
   controlLockReason: string;
   recentEvents: TelemetryEvent[];
   alerts: TelemetryEvent[];
+  rtkSourceState: Record<string, unknown> | null;
+  datum: Record<string, unknown> | null;
+  gpsStatus: Record<string, unknown> | null;
 }
 
 function normalizeEventLevel(raw: unknown): string {
@@ -185,13 +191,19 @@ export class TelemetryService {
     robotPose: null,
     cmdVelSafe: "n/a",
     goalActive: false,
+    currentWaypoint: 0,
+    totalWaypoints: 0,
+    loopTotalWaypoints: 0,
     navResultStatus: 0,
     navResultText: "idle",
     navResultEventId: 0,
     controlLocked: false,
     controlLockReason: "",
     recentEvents: [],
-    alerts: []
+    alerts: [],
+    rtkSourceState: null,
+    datum: null,
+    gpsStatus: null
   };
 
   constructor(private readonly robotDispatcher: RobotDispatcher, eventBus: EventBus) {
@@ -219,6 +231,15 @@ export class TelemetryService {
             .map((entry) => this.normalizeTelemetryEvent(entry))
             .filter((entry): entry is TelemetryEvent => entry !== null)
         );
+      }
+      if (message.rtk_source_state && typeof message.rtk_source_state === "object") {
+        this.snapshot = { ...this.snapshot, rtkSourceState: message.rtk_source_state as Record<string, unknown> };
+      }
+      if (message.datum && typeof message.datum === "object") {
+        this.snapshot = { ...this.snapshot, datum: message.datum as Record<string, unknown> };
+      }
+      if (message.gps_status && typeof message.gps_status === "object") {
+        this.snapshot = { ...this.snapshot, gpsStatus: message.gps_status as Record<string, unknown> };
       }
       this.emit();
     });
@@ -254,6 +275,14 @@ export class TelemetryService {
       this.emit();
     });
 
+    this.robotDispatcher.subscribeRtkSourceState((message) => {
+      const state = message.rtk_source_state;
+      if (state && typeof state === "object") {
+        this.snapshot = { ...this.snapshot, rtkSourceState: state as Record<string, unknown> };
+        this.emit();
+      }
+    });
+
     eventBus.on<{ level: string; text: string; timestamp: number }>("console.event", (event) => {
       this.pushEvent({
         level: event.level,
@@ -273,13 +302,19 @@ export class TelemetryService {
       robotPose: this.snapshot.robotPose ? { ...this.snapshot.robotPose } : null,
       cmdVelSafe: this.snapshot.cmdVelSafe,
       goalActive: this.snapshot.goalActive,
+      currentWaypoint: this.snapshot.currentWaypoint,
+      totalWaypoints: this.snapshot.totalWaypoints,
+      loopTotalWaypoints: this.snapshot.loopTotalWaypoints,
       navResultStatus: this.snapshot.navResultStatus,
       navResultText: this.snapshot.navResultText,
       navResultEventId: this.snapshot.navResultEventId,
       controlLocked: this.snapshot.controlLocked,
       controlLockReason: this.snapshot.controlLockReason,
       recentEvents: [...this.snapshot.recentEvents],
-      alerts: [...this.snapshot.alerts]
+      alerts: [...this.snapshot.alerts],
+      rtkSourceState: this.snapshot.rtkSourceState ? { ...this.snapshot.rtkSourceState } : null,
+      datum: this.snapshot.datum ? { ...this.snapshot.datum } : null,
+      gpsStatus: this.snapshot.gpsStatus ? { ...this.snapshot.gpsStatus } : null
     };
   }
 
@@ -361,6 +396,9 @@ export class TelemetryService {
       },
       cmdVelSafe: String(payload.cmd_vel_safe ?? this.snapshot.cmdVelSafe),
       goalActive: payload.goal_active === true ? true : payload.goal_active === false ? false : this.snapshot.goalActive,
+      currentWaypoint: Number.isFinite(Number(payload.current_waypoint)) ? Number(payload.current_waypoint) : this.snapshot.currentWaypoint,
+      totalWaypoints: Number.isFinite(Number(payload.total_waypoints)) ? Number(payload.total_waypoints) : this.snapshot.totalWaypoints,
+      loopTotalWaypoints: Number.isFinite(Number(payload.loop_total_waypoints)) ? Number(payload.loop_total_waypoints) : this.snapshot.loopTotalWaypoints,
       navResultStatus: Number.isFinite(Number(payload.nav_result_status))
         ? Number(payload.nav_result_status)
         : this.snapshot.navResultStatus,

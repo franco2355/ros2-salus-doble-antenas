@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import os
+import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Dict, Optional, Tuple
@@ -105,6 +106,10 @@ class CamaraNode(Node):
         self.declare_parameter("camera_zoom_fixed_level", 4.0)
         self.declare_parameter("camera_zoom_zero_level", 1.0)
         self.declare_parameter("camera_zoom_initial_in", False)
+        self.declare_parameter("camera_state_poll_sec", 1.0)
+        self.declare_parameter("camera_external_move_grace_sec", 2.0)
+        self.declare_parameter("camera_state_change_log_threshold_deg", 1.0)
+        self.declare_parameter("camera_state_change_log_threshold_zoom", 0.05)
 
         self._host = str(self.get_parameter("camera_host").value)
         self._port = int(self.get_parameter("camera_port").value)
@@ -129,6 +134,16 @@ class CamaraNode(Node):
             self._zoom_max,
         )
         self._zoom_in = bool(self.get_parameter("camera_zoom_initial_in").value)
+        self._state_poll_sec = max(0.2, float(self.get_parameter("camera_state_poll_sec").value))
+        self._external_move_grace_sec = max(
+            0.0, float(self.get_parameter("camera_external_move_grace_sec").value)
+        )
+        self._state_change_log_threshold_deg = max(
+            0.1, float(self.get_parameter("camera_state_change_log_threshold_deg").value)
+        )
+        self._state_change_log_threshold_zoom = max(
+            0.01, float(self.get_parameter("camera_state_change_log_threshold_zoom").value)
+        )
         self._base_url = (
             f"http://{self._host}:{self._port}/ISAPI/PTZCtrl/channels/{self._channel}"
         )
@@ -139,6 +154,8 @@ class CamaraNode(Node):
         self._ready = False
         self._ready_error = ""
         self._last_command = "none"
+        self._last_service_command_monotonic = 0.0
+        self._last_observed_state: Optional[Tuple[float, float, float]] = None
 
         self._connect_isapi()
 
@@ -149,12 +166,13 @@ class CamaraNode(Node):
             self._on_camera_zoom_toggle,
         )
         self.create_service(CameraStatus, "/camara/camera_status", self._on_camera_status)
+        self.create_timer(self._state_poll_sec, self._poll_camera_state)
 
         self.get_logger().info(
             "camara node ready "
             f"(env_file={self._env_file}, host={self._host}:{self._port}, "
             f"channel={self._channel}, absolute_url={self._absolute_url}, "
-            f"isapi_ready={self._ready})"
+            f"isapi_ready={self._ready}, poll={self._state_poll_sec}s)"
         )
 
     def _env_cfg(self, key: str, default: str) -> str:
@@ -301,9 +319,63 @@ class CamaraNode(Node):
             return True, ""
         return False, set_err
 
+    def _mark_service_command(self, command: str) -> None:
+        self._last_service_command_monotonic = time.monotonic()
+        self._last_command = command
+
+    def _state_changed(
+        self,
+        previous: Tuple[float, float, float],
+        current: Tuple[float, float, float],
+    ) -> bool:
+        prev_el, prev_az, prev_zoom = previous
+        cur_el, cur_az, cur_zoom = current
+        return (
+            abs(cur_el - prev_el) >= self._state_change_log_threshold_deg
+            or abs(cur_az - prev_az) >= self._state_change_log_threshold_deg
+            or abs(cur_zoom - prev_zoom) >= self._state_change_log_threshold_zoom
+        )
+
+    def _poll_camera_state(self) -> None:
+        if not self._ready:
+            return
+
+        state, err = self._get_absolute_state()
+        if state is None:
+            self.get_logger().warning(f"camera state poll failed: {err}")
+            return
+
+        current = (float(state[0]), float(state[1]), float(state[2]))
+        previous = self._last_observed_state
+        self._last_observed_state = current
+        if previous is None or not self._state_changed(previous, current):
+            return
+
+        recent_service = (
+            time.monotonic() - self._last_service_command_monotonic
+        ) <= self._external_move_grace_sec
+        if recent_service:
+            self.get_logger().info(
+                "camera state changed after service command "
+                f"(from el={previous[0]:.1f}, az={previous[1]:.1f}, zoom={previous[2]:.2f} "
+                f"to el={current[0]:.1f}, az={current[1]:.1f}, zoom={current[2]:.2f}; "
+                f"last_command={self._last_command})"
+            )
+            return
+
+        self.get_logger().warning(
+            "camera state changed without recent ROS camera service command "
+            f"(from el={previous[0]:.1f}, az={previous[1]:.1f}, zoom={previous[2]:.2f} "
+            f"to el={current[0]:.1f}, az={current[1]:.1f}, zoom={current[2]:.2f}; "
+            f"last_command={self._last_command})"
+        )
+
     def _on_camera_pan(
         self, request: CameraPan.Request, response: CameraPan.Response
     ) -> CameraPan.Response:
+        self.get_logger().info(
+            f"camera_pan request received (angle_deg={float(request.angle_deg):.2f})"
+        )
         if not self._ready:
             response.ok = False
             response.error = self._ready_error or "camera is not ready"
@@ -324,12 +396,20 @@ class CamaraNode(Node):
         response.error = "" if ok else err
         response.applied_angle_deg = float(applied_angle)
         if ok:
-            self._last_command = f"angle:{applied_angle:.1f}"
+            self._mark_service_command(f"angle:{applied_angle:.1f}")
+            self.get_logger().info(
+                f"camera_pan applied (requested={input_angle:.2f}, applied={applied_angle:.2f})"
+            )
+        else:
+            self.get_logger().warning(
+                f"camera_pan failed (requested={input_angle:.2f}, applied={applied_angle:.2f}, error={err})"
+            )
         return response
 
     def _on_camera_zoom_toggle(
         self, _request: Trigger.Request, response: Trigger.Response
     ) -> Trigger.Response:
+        self.get_logger().info("camera_zoom_toggle request received")
         if not self._ready:
             response.success = False
             response.message = self._ready_error or "camera is not ready"
@@ -339,7 +419,10 @@ class CamaraNode(Node):
         response.success = bool(ok)
         response.message = "" if ok else err
         if ok:
-            self._last_command = "zoom_toggle"
+            self._mark_service_command("zoom_toggle")
+            self.get_logger().info("camera_zoom_toggle applied")
+        else:
+            self.get_logger().warning(f"camera_zoom_toggle failed ({err})")
         return response
 
     def _on_camera_status(

@@ -59,8 +59,9 @@ function panelGlyph(panel: SidebarContribution): JSX.Element {
   if (id.includes("debug")) {
     return (
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="4 17 10 11 4 5" />
-        <line x1="12" y1="19" x2="20" y2="19" />
+        <rect x="4" y="7" width="11" height="10" rx="2" />
+        <path d="m15 11 5-3v8l-5-3" />
+        <circle cx="7.5" cy="10.5" r="1" fill="currentColor" stroke="none" />
       </svg>
     );
   }
@@ -147,9 +148,7 @@ export function Panel({
               <div className="sidebar-panel-header sidebar-hdr">
                 <div className="sidebar-panel-heading-row">
                   <span className="sidebar-panel-kicker sidebar-title">{activePanel.label}</span>
-                  {activePanel.id !== "sidebar.navigation" ? (
-                    <span className="sidebar-panel-heading-badge" aria-hidden="true">{panelCode(activePanel)}</span>
-                  ) : null}
+                  <span className="sidebar-panel-heading-badge" aria-hidden="true">{panelCode(activePanel)}</span>
                 </div>
               </div>
               <div className="sidebar-panel-body sidebar-scroll">{activePanel.render()}</div>

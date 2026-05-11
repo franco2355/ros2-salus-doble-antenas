@@ -678,6 +678,9 @@ def generate_launch_description():
                     "launch_nav_snapshot_server": "false",
                     "teleop_cmd_topic": "/cmd_vel_teleop",
                     "gps_status_topic": gps_rtk_status_topic,
+                    "datum_lat": datum_lat,
+                    "datum_lon": datum_lon,
+                    "datum_yaw_deg": datum_yaw_deg,
                 }.items(),
                 condition=IfCondition(launch_web_app),
             ),
@@ -689,6 +692,22 @@ def generate_launch_description():
                 arguments=["-d", rviz_config],
                 parameters=[{"use_sim_time": ParameterValue(use_sim_time, value_type=bool)}],
                 condition=IfCondition(use_rviz),
+            ),
+
+            # ── Obstacle recovery (siempre activo) ──────────────────────────
+            # Escucha /fusion/brake_active. Sin percepción activa no hace nada.
+            Node(
+                package="lidar_camara",
+                executable="obstacle_recovery",
+                name="obstacle_recovery",
+                output="screen",
+                parameters=[{
+                    "require_consecutive": 3,
+                    "backup_speed_mps": 0.3,
+                    "backup_duration_s": 2.0,
+                    "cooldown_s": 6.0,
+                    "cmd_hz": 10.0,
+                }],
             ),
 
             # ── Percepción: pipeline USB (cámara V4L2 + YOLO) ───────────────

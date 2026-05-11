@@ -2,6 +2,7 @@ import { createElement } from "react";
 import type { CockpitModule, CockpitPackage, ModuleContext } from "../../core/types/module";
 import { createMetricsModule } from "./modules/metrics/frontend";
 import { LogConsoleTab } from "./modules/ui/frontend/LogConsoleTab";
+import { TerminalConsoleTab } from "./modules/ui/frontend/TerminalConsoleTab";
 
 // UI components
 export { ToolbarMenu } from "./modules/ui/frontend/ToolbarMenu";
@@ -40,6 +41,13 @@ const uiModule: CockpitModule = {
       label: "Log",
       order: -10,
       render: () => createElement(LogConsoleTab, { runtime: ctx })
+    });
+    ctx.contributions.register({
+      id: "console.terminal",
+      slot: "console",
+      label: "Terminal",
+      order: -5,
+      render: () => createElement(TerminalConsoleTab, { runtime: ctx })
     });
   }
 };

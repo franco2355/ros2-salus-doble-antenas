@@ -158,7 +158,7 @@ def generate_launch_description():
             DeclareLaunchArgument("use_sim_time", default_value="True"),
             DeclareLaunchArgument(
                 "custom_urdf",
-                default_value=os.path.join(gps_wpf_dir, "models", "cuatri_real.urdf"),
+                default_value=os.path.join(gps_wpf_dir, "models", "cuatri_2gps.urdf"),
             ),
             DeclareLaunchArgument("world", default_value=world_path),
             DeclareLaunchArgument("world_name", default_value="vacio"),
@@ -169,7 +169,7 @@ def generate_launch_description():
                 PythonLaunchDescriptionSource(
                     os.path.join(ros_gz_sim_dir, "launch", "gz_sim.launch.py")
                 ),
-                launch_arguments={"gz_args": [TextSubstitution(text="-r "), world]}.items(),
+                launch_arguments={"gz_args": [TextSubstitution(text="-r -s "), world]}.items(),
             ),
             OpaqueFunction(
                 function=_build_gz_bridge, kwargs={"bridge_config": bridge_config}

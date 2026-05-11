@@ -8,22 +8,23 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
   <style>
     :root {
-      --bg: #ffffff;
-      --panel: #ffffff;
-      --line: #5d7590;
-      --text: #102235;
-      --muted: #2f4358;
-      --accent: #005ec4;
-      --good: #0f7a3c;
-      --warn: #b54708;
-      --bad: #b42318;
+      --bg: #0a1628;
+      --panel: #0a1628;
+      --line: rgba(100,160,230,0.18);
+      --text: #dde8f5;
+      --muted: #6b8aaa;
+      --accent: #3b9eff;
+      --good: #22c55e;
+      --warn: #f59e0b;
+      --bad: #ef4444;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: #ffffff;
+      background: #0a1628;
       color: var(--text);
+      overflow: hidden;
     }
     .layout {
       display: grid;
@@ -483,42 +484,159 @@
       left: 56px;
       z-index: 1280;
       display: none;
-      width: min(430px, calc(100% - 68px));
+      width: min(520px, calc(100% - 68px));
       pointer-events: none;
-      gap: 6px;
-      flex-direction: column;
+      color: #102235;
     }
     #viewStage.mode-gps-main .map-tools-toolbar {
-      display: flex;
+      display: block;
     }
-    .map-tools-grid {
+    .map-tools-card {
+      pointer-events: auto;
+      background: rgba(248, 251, 254, 0.95);
+      border: 1px solid #5d7590;
+      border-radius: 10px;
+      box-shadow: 0 10px 26px rgba(17, 34, 52, 0.22);
+      overflow: hidden;
+      backdrop-filter: blur(3px);
+    }
+    .map-tools-header {
       display: flex;
-      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(93, 117, 144, 0.65);
+      background: rgba(255, 255, 255, 0.86);
+    }
+    .map-tools-title {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: #0f2236;
+    }
+    .map-tools-readout {
+      margin-top: 2px;
+      font-family: "Consolas", "Monaco", monospace;
+      font-size: 11px;
+      line-height: 1.25;
+      color: #2f4358;
+      white-space: nowrap;
+    }
+    .map-tools-body {
+      display: grid;
+      gap: 8px;
+      padding: 8px 10px 10px;
+    }
+    .map-tools-controls-row {
+      display: grid;
+      grid-template-columns: minmax(130px, 1fr) auto;
+      gap: 8px;
+      align-items: end;
+    }
+    .map-tools-select-label {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #2f4358;
+    }
+    .map-tools-select-label select {
+      min-height: 32px;
+      padding: 5px 8px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 650;
+      letter-spacing: 0;
+      text-transform: none;
+      background: #ffffff;
+    }
+    .map-tools-quick-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 5px;
+      min-width: 0;
+    }
+    .map-tools-row-title {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #2f4358;
+    }
+    .map-tools-grid,
+    .map-tools-fit-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 38px);
       justify-content: flex-start;
       gap: 6px;
-      pointer-events: auto;
     }
-    .map-tools-grid button {
+    .map-tools-overlays {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+    }
+    .map-overlay-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      min-width: 0;
+      min-height: 30px;
+      padding: 5px 6px;
+      border: 1px solid #8aa1b6;
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.86);
+      color: #102235;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.1;
+      cursor: pointer;
+      user-select: none;
+    }
+    .map-overlay-toggle input {
+      width: auto;
+      margin: 0;
+      padding: 0;
+      flex: 0 0 auto;
+    }
+    .map-overlay-toggle:has(input:checked) {
+      border-color: #006fba;
+      background: #dff1ff;
+    }
+    .map-tools-grid button,
+    .map-tools-fit-grid button,
+    .map-tools-quick-actions button {
       width: 38px;
       min-width: 38px;
       max-width: 38px;
       min-height: 34px;
       padding: 4px;
-      font-size: 20px;
+      font-size: 18px;
       line-height: 1;
       white-space: nowrap;
     }
+    .map-tools-quick-actions button {
+      width: 36px;
+      min-width: 36px;
+      max-width: 36px;
+      min-height: 32px;
+      font-size: 16px;
+    }
     .map-tool-info {
-      pointer-events: auto;
-      background: rgba(255, 255, 255, 0.92);
-      border: 1px solid #5d7590;
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid #b2c3d4;
       color: #102235;
-      border-radius: 8px;
-      padding: 6px 8px;
+      border-radius: 7px;
+      padding: 5px 7px;
       font-size: 12px;
       line-height: 1.25;
       min-height: 30px;
-      box-shadow: 0 4px 10px rgba(17, 34, 52, 0.18);
     }
     .leaflet-tooltip.map-measure-tooltip {
       background: rgba(16, 34, 53, 0.9);
@@ -910,21 +1028,1154 @@
       }
       .map-tools-toolbar {
         left: 48px;
-        width: min(390px, calc(100% - 58px));
+        width: min(430px, calc(100% - 58px));
       }
-      .map-tools-grid {
+      .map-tools-header {
+        padding: 7px 8px;
+      }
+      .map-tools-body {
+        padding: 7px 8px 8px;
+      }
+      .map-tools-controls-row {
+        grid-template-columns: 1fr;
+      }
+      .map-tools-quick-actions {
+        justify-content: flex-start;
+      }
+      .map-tools-grid,
+      .map-tools-fit-grid {
+        grid-template-columns: repeat(6, 34px);
         gap: 5px;
       }
-      .map-tools-grid button {
+      .map-tools-grid button,
+      .map-tools-fit-grid button,
+      .map-tools-quick-actions button {
         width: 34px;
         min-width: 34px;
         max-width: 34px;
         min-height: 32px;
         font-size: 18px;
       }
+      .map-tools-overlays {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .map-tools-readout {
+        white-space: normal;
+      }
       .panel-section.mini-viewer {
         display: none !important;
       }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       DARK THEME + FULL-SCREEN MAP HUD
+       ═══════════════════════════════════════════════════ */
+    .layout {
+      display: block !important;
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+    .layout > .panel { display: none !important; }
+    .visual-col {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      pointer-events: none;
+      gap: 0 !important;
+      padding: 0 !important;
+    }
+    #visualTopRow { display: none !important; }
+    #viewStage {
+      position: fixed !important;
+      inset: 0 !important;
+      flex: none !important;
+      height: 100vh !important;
+      width: 100vw !important;
+      border: none !important;
+      border-radius: 0 !important;
+      background: #0a1628;
+      pointer-events: auto;
+    }
+    /* Dark inputs / selects */
+    input, select {
+      background: rgba(15,30,52,0.95) !important;
+      color: var(--text) !important;
+      border-color: rgba(100,160,230,0.25) !important;
+    }
+    /* Modals */
+    .modal-backdrop { background: rgba(5,12,22,0.82) !important; }
+    .modal-card {
+      background: #0d1f34 !important;
+      border: 1px solid rgba(100,160,230,0.2) !important;
+      color: var(--text) !important;
+    }
+    .modal-card h3 { color: var(--text) !important; }
+    .modal-shortcuts { color: var(--muted) !important; }
+    .menu-section {
+      background: rgba(15,30,52,0.8) !important;
+      border-color: rgba(100,160,230,0.15) !important;
+    }
+    .menu-section h4, .menu-section p { color: var(--text) !important; }
+    .debug-card {
+      background: rgba(5,15,28,0.8) !important;
+      border-color: rgba(100,160,230,0.15) !important;
+      color: var(--text) !important;
+    }
+    /* Map tools card */
+    .map-tools-card {
+      background: rgba(10,22,40,0.94) !important;
+      border-color: rgba(100,160,230,0.18) !important;
+      color: var(--text) !important;
+    }
+    .map-tools-header {
+      background: rgba(10,22,40,0.88) !important;
+      border-bottom-color: rgba(100,160,230,0.12) !important;
+    }
+    .map-tools-title, .map-tools-row-title, .map-tools-select-label { color: var(--muted) !important; }
+    .map-tools-readout { color: var(--muted) !important; }
+    .map-tool-info {
+      background: rgba(15,30,52,0.9) !important;
+      border-color: rgba(100,160,230,0.15) !important;
+      color: var(--muted) !important;
+    }
+    .map-tools-select-label select {
+      background: rgba(15,30,52,0.95) !important;
+      color: var(--text) !important;
+      border-color: rgba(100,160,230,0.25) !important;
+    }
+    .map-overlay-toggle {
+      background: rgba(15,30,52,0.88) !important;
+      border-color: rgba(100,160,230,0.18) !important;
+      color: var(--text) !important;
+    }
+    .map-overlay-toggle:has(input:checked) {
+      border-color: var(--accent) !important;
+      background: rgba(59,158,255,0.15) !important;
+    }
+    .map-tools-grid button.secondary,
+    .map-tools-fit-grid button.secondary,
+    .map-tools-quick-actions button.secondary {
+      background: rgba(15,30,52,0.88) !important;
+      border-color: rgba(100,160,230,0.22) !important;
+      color: var(--text) !important;
+    }
+    .map-tools-grid button.secondary:hover,
+    .map-tools-fit-grid button.secondary:hover,
+    .map-tools-quick-actions button.secondary:hover {
+      background: rgba(59,158,255,0.14) !important;
+    }
+    /* Leaflet */
+    .leaflet-control-zoom a {
+      background: rgba(10,22,40,0.9) !important;
+      color: var(--text) !important;
+      border-color: rgba(100,160,230,0.18) !important;
+    }
+    .leaflet-control-zoom a:hover { background: rgba(59,158,255,0.18) !important; }
+    .leaflet-draw-toolbar a { background-color: rgba(10,22,40,0.88) !important; }
+    .leaflet-draw-actions a {
+      background-color: rgba(10,22,40,0.94) !important;
+      color: var(--text) !important;
+    }
+    /* Swap button */
+    #swapViewBtn {
+      background: rgba(10,22,40,0.88) !important;
+      border: 1px solid rgba(100,160,230,0.22) !important;
+      color: var(--text) !important;
+      backdrop-filter: blur(8px);
+      z-index: 300 !important;
+    }
+    /* Status text */
+    .status { color: var(--muted) !important; }
+    .status.good { color: var(--good) !important; }
+    .status.warn { color: var(--warn) !important; }
+    .status.bad  { color: var(--bad)  !important; }
+    /* Push Leaflet left-side controls below HUD left toolbar */
+    .leaflet-top.leaflet-left { top: 260px; }
+    /* Keep right controls away from HUD right panel */
+    .leaflet-top.leaflet-right { top: 14px; right: 278px; }
+    /* Move map-tools-toolbar below the stat cards */
+    .map-tools-toolbar { top: 170px !important; left: 72px !important; }
+
+    /* ─── HUD SHARED ─── */
+    .hud {
+      position: fixed;
+      z-index: 200;
+      pointer-events: auto;
+    }
+    /* Top-left stat cards */
+    .hud-topleft {
+      top: 14px;
+      left: 72px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .hud-stat-card {
+      background: rgba(10,22,40,0.9);
+      border: 1px solid rgba(100,160,230,0.14);
+      border-radius: 10px;
+      padding: 9px 14px 9px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      min-width: 188px;
+    }
+    .hud-stat-icon {
+      width: 22px; height: 22px;
+      color: var(--muted);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .hud-stat-icon svg { width: 20px; height: 20px; fill: currentColor; display: block; }
+    .hud-stat-label { font-size: 12px; color: var(--muted); flex: 1; }
+    .hud-stat-value {
+      font-size: 13px; font-weight: 700;
+      color: var(--accent);
+      white-space: nowrap;
+      font-family: "Consolas","Monaco",monospace;
+    }
+    .hud-stat-value.neutral { color: var(--text); }
+
+    /* Left toolbar */
+    .hud-left-toolbar {
+      top: 14px; left: 14px;
+      display: flex; flex-direction: column; gap: 4px;
+      padding: 6px;
+      background: rgba(10,22,40,0.9);
+      border: 1px solid rgba(100,160,230,0.14);
+      border-radius: 12px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .hud-tool-btn {
+      width: 40px; height: 40px; min-height: 40px; max-width: 40px;
+      padding: 0; border-radius: 8px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background 140ms, color 140ms, border-color 140ms;
+      font-size: 16px; line-height: 1; box-shadow: none;
+    }
+    .hud-tool-btn:hover {
+      background: rgba(59,158,255,0.12); color: var(--text);
+      border-color: rgba(59,158,255,0.28);
+      transform: none; filter: none;
+    }
+    .hud-tool-btn.active {
+      background: rgba(59,158,255,0.18); color: var(--accent);
+      border-color: rgba(59,158,255,0.4);
+    }
+    .hud-tool-btn svg { width: 20px; height: 20px; fill: currentColor; display: block; }
+    .hud-tool-separator { height: 1px; background: rgba(100,160,230,0.12); margin: 2px 0; }
+    .hud-conn-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--bad);
+      align-self: center;
+      transition: background 300ms;
+      flex-shrink: 0;
+    }
+    .hud-conn-dot.connected  { background: var(--good); }
+    .hud-conn-dot.connecting { background: var(--warn); animation: hudBlink 1s infinite; }
+    @keyframes hudBlink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* Bottom action bar */
+    .hud-bottom-bar {
+      bottom: 22px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px;
+      background: rgba(10,22,40,0.9);
+      border: 1px solid rgba(100,160,230,0.14);
+      border-radius: 18px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .hud-action-btn {
+      width: 48px; height: 48px; min-height: 48px; max-width: 48px;
+      padding: 0; border-radius: 12px;
+      background: rgba(59,158,255,0.06);
+      border: 1px solid rgba(100,160,230,0.16);
+      color: var(--text);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background 140ms, border-color 140ms, color 140ms;
+      font-size: 18px; line-height: 1; box-shadow: none;
+    }
+    .hud-action-btn:hover {
+      background: rgba(59,158,255,0.2); border-color: rgba(59,158,255,0.5);
+      color: #fff; transform: none; filter: none;
+    }
+    .hud-action-btn.active-tool {
+      background: rgba(59,158,255,0.24); border-color: rgba(59,158,255,0.6);
+      color: var(--accent);
+    }
+    .hud-action-btn svg { width: 22px; height: 22px; fill: currentColor; display: block; }
+
+    /* Right panel column */
+    .hud-right-col {
+      top: 14px; right: 14px;
+      width: 250px;
+      display: flex; flex-direction: column; gap: 8px;
+      max-height: calc(100vh - 28px);
+      overflow-y: auto; overflow-x: hidden;
+      scrollbar-width: none;
+    }
+    .hud-right-col::-webkit-scrollbar { display: none; }
+
+    /* Mode/Zoom/Route dropdown panel */
+    .hud-dropdown-panel {
+      background: rgba(10,22,40,0.9);
+      border: 1px solid rgba(100,160,230,0.14);
+      border-radius: 12px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      overflow: hidden;
+    }
+    .hud-dropdown-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(100,160,230,0.09);
+    }
+    .hud-dropdown-row:last-child { border-bottom: none; }
+    .hud-dropdown-icon {
+      width: 18px; height: 18px; color: var(--muted); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .hud-dropdown-icon svg { width: 16px; height: 16px; fill: currentColor; display: block; }
+    .hud-dropdown-label { font-size: 13px; color: var(--text); flex: 1; }
+    .hud-dropdown-value {
+      font-size: 13px; font-weight: 700; color: var(--accent);
+      font-family: "Consolas","Monaco",monospace;
+    }
+    .hud-dropdown-arrow { color: var(--muted); font-size: 10px; margin-left: 2px; }
+
+    /* Camera & sliders wraps */
+    .hud-camera-wrap, .hud-sliders-wrap {
+      background: rgba(10,22,40,0.9);
+      border: 1px solid rgba(100,160,230,0.14);
+      border-radius: 12px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      overflow: hidden;
+    }
+    .hud-wrap-title {
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted);
+      padding: 10px 12px 6px;
+    }
+    .hud-sliders-wrap-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px 6px;
+    }
+    .hud-datum-btn {
+      background: linear-gradient(180deg,#1a6bc0,#1050a8);
+      border: 1px solid #093a80; color: #fff;
+      border-radius: 6px; padding: 3px 10px;
+      font-size: 12px; font-weight: 700;
+      cursor: pointer; width: auto; min-height: 26px; box-shadow: none;
+    }
+    .hud-datum-btn:hover { background: linear-gradient(180deg,#2278d0,#1560b8); transform: none; filter: none; }
+
+    /* Sliders section inside HUD */
+    #hudSlidersWrap .panel-section.sliders {
+      background: transparent !important;
+      border: none !important; border-radius: 0 !important;
+      padding: 2px 12px 12px !important;
+    }
+    #hudSlidersWrap .panel-section.sliders h2 { display: none !important; }
+    #hudSlidersWrap .panel-section.sliders label {
+      font-size: 12px !important; color: var(--muted) !important;
+      display: flex !important; align-items: center !important;
+      justify-content: space-between !important;
+      margin-bottom: 0 !important;
+    }
+    #hudSlidersWrap .panel-section.sliders label span {
+      font-weight: 700; color: var(--accent);
+      font-family: "Consolas","Monaco",monospace;
+    }
+    #hudSlidersWrap input[type="range"] {
+      accent-color: var(--accent);
+      border: none !important; background: transparent !important;
+      padding: 0 !important; border-radius: 0 !important;
+      height: 20px !important; margin: 2px 0 6px !important;
+    }
+
+    /* MiniViewer inside HUD camera wrap */
+    #hudCameraWrap .panel-section.mini-viewer {
+      display: block !important;
+      background: transparent !important;
+      border: none !important; border-radius: 0 !important;
+      padding: 0 12px 12px !important;
+    }
+    #hudCameraWrap .mini-viewer-host {
+      background: #050e1a !important;
+      border: 1px solid rgba(100,160,230,0.14) !important;
+      border-radius: 8px !important;
+      width: 100%; aspect-ratio: 4/2.6;
+    }
+    #hudCameraWrap .camera-stream-controls { gap: 6px; margin-top: 6px; }
+    #hudCameraWrap .camera-stream-toggle {
+      border-radius: 8px !important; font-size: 13px !important;
+    }
+    #hudCameraWrap .status { color: var(--muted) !important; font-size: 11px !important; }
+
+    /* Final cockpit HUD pass: match the satellite-map reference layout. */
+    :root {
+      --hud-bg: rgba(8, 18, 31, 0.9);
+      --hud-bg-strong: rgba(10, 24, 40, 0.96);
+      --hud-border: rgba(142, 176, 212, 0.2);
+      --hud-divider: rgba(142, 176, 212, 0.16);
+      --hud-blue: #2f9bff;
+      --hud-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+    }
+    body {
+      background: #050b13;
+    }
+    #map {
+      background: #050b13;
+      filter: saturate(1.08) contrast(1.08) brightness(0.82);
+    }
+    .leaflet-control-zoom {
+      display: none !important;
+    }
+    .leaflet-top.leaflet-left {
+      top: 22px !important;
+      left: 104px !important;
+    }
+    .leaflet-top.leaflet-left .leaflet-control {
+      margin-left: 0;
+    }
+    .leaflet-control-attribution {
+      background: rgba(8, 18, 31, 0.74) !important;
+      color: rgba(221, 232, 245, 0.72) !important;
+      border-radius: 8px 0 0 0;
+      font-size: 10px;
+    }
+    .map-tools-toolbar {
+      display: none !important;
+    }
+    .leaflet-draw {
+      display: none !important;
+    }
+    .hud {
+      z-index: 1400;
+    }
+    .hud-topleft {
+      top: 22px;
+      left: 16px;
+      width: min(342px, calc(100vw - 32px));
+      display: block;
+      background: var(--hud-bg);
+      border: 1px solid var(--hud-border);
+      border-radius: 14px;
+      box-shadow: var(--hud-shadow);
+      overflow: hidden;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .hud-stat-card {
+      min-width: 0;
+      min-height: 66px;
+      padding: 0 18px;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      display: grid;
+      grid-template-columns: 42px 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+    .hud-stat-card + .hud-stat-card {
+      border-top: 1px solid var(--hud-divider);
+    }
+    .hud-stat-icon {
+      width: 30px;
+      height: 30px;
+      color: #f3f8ff;
+      opacity: 0.96;
+    }
+    .hud-stat-icon svg {
+      width: 30px;
+      height: 30px;
+    }
+    .hud-stat-label {
+      color: #f3f8ff;
+      font-size: 17px;
+      font-weight: 500;
+    }
+    .hud-stat-value {
+      color: var(--hud-blue);
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+    .hud-stat-value.neutral {
+      color: var(--hud-blue);
+    }
+    .hud-left-toolbar {
+      top: 18px;
+      left: 14px;
+      width: 64px;
+      gap: 12px;
+      padding: 10px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background:
+        linear-gradient(180deg, rgba(10, 22, 34, 0.96), rgba(3, 9, 17, 0.98));
+      border: 1px solid rgba(92, 146, 184, 0.22);
+      border-radius: 28px;
+      box-shadow:
+        0 24px 48px rgba(0, 0, 0, 0.44),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+    .hud-tool-btn {
+      width: 52px;
+      height: 52px;
+      min-height: 52px;
+      max-width: 52px;
+      border-radius: 9px;
+      color: #f3f8ff;
+    }
+    .hud-tool-btn svg {
+      width: 28px;
+      height: 28px;
+    }
+    .hud-tool-btn.active {
+      background: #155ba5;
+      border-color: rgba(79, 160, 255, 0.65);
+      color: #ffffff;
+    }
+    .hud-tool-separator {
+      background: var(--hud-divider);
+      margin: 0;
+    }
+    .hud-conn-dot {
+      width: 10px;
+      height: 10px;
+      margin: 2px 0 0;
+    }
+    .hud-right-col {
+      top: 22px;
+      right: 16px;
+      width: clamp(304px, 20vw, 340px);
+      gap: 16px;
+      max-height: calc(100vh - 44px);
+    }
+    .hud-dropdown-panel,
+    .hud-camera-wrap,
+    .hud-sliders-wrap {
+      background: var(--hud-bg);
+      border: 1px solid var(--hud-border);
+      border-radius: 14px;
+      box-shadow: var(--hud-shadow);
+    }
+    .hud-dropdown-row {
+      width: 100%;
+      min-height: 64px;
+      padding: 0 16px;
+      border: 0;
+      border-bottom: 1px solid var(--hud-divider);
+      background: transparent;
+      color: inherit;
+      display: grid;
+      grid-template-columns: 34px 1fr auto 18px;
+      gap: 12px;
+      align-items: center;
+      font: inherit;
+      text-align: left;
+      cursor: default;
+      box-shadow: none;
+    }
+    button.hud-dropdown-row {
+      cursor: pointer;
+    }
+    button.hud-dropdown-row:hover {
+      background: rgba(47, 155, 255, 0.08);
+      transform: none;
+      filter: none;
+    }
+    .hud-dropdown-row:last-child,
+    .hud-dropdown-panel > .hud-dropdown-row:last-of-type {
+      border-bottom: 0;
+    }
+    .hud-dropdown-icon {
+      width: 28px;
+      height: 28px;
+      color: #f3f8ff;
+    }
+    .hud-dropdown-icon svg {
+      width: 26px;
+      height: 26px;
+    }
+    .hud-dropdown-label {
+      color: #f3f8ff;
+      font-size: 17px;
+      font-weight: 500;
+    }
+    .hud-dropdown-value {
+      color: var(--hud-blue);
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+    .hud-dropdown-arrow {
+      color: var(--hud-blue);
+      font-size: 18px;
+      line-height: 1;
+      transition: transform 140ms ease;
+    }
+    .hud-dropdown-row[aria-expanded="true"] .hud-dropdown-arrow {
+      transform: rotate(180deg);
+    }
+    .hud-menu {
+      display: none;
+      padding: 12px;
+      border-bottom: 1px solid var(--hud-divider);
+      background: rgba(5, 14, 25, 0.44);
+      gap: 10px;
+    }
+    .hud-menu.open {
+      display: grid;
+    }
+    .hud-menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .hud-menu-field {
+      display: grid;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .hud-menu-field input {
+      width: 100%;
+      min-height: 34px;
+      border-radius: 8px;
+      padding: 6px 9px;
+      font-size: 13px;
+    }
+    .hud-menu-check {
+      min-height: 36px;
+      padding: 7px 9px;
+      border: 1px solid rgba(142, 176, 212, 0.18);
+      border-radius: 8px;
+      color: #f3f8ff;
+      background: rgba(15, 33, 55, 0.72);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .hud-menu-check input {
+      width: auto;
+      margin: 0;
+    }
+    .hud-menu-action {
+      min-height: 36px;
+      border-radius: 8px;
+      border: 1px solid rgba(142, 176, 212, 0.18);
+      background: rgba(15, 33, 55, 0.84);
+      color: #f3f8ff;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: none;
+      cursor: pointer;
+    }
+    .hud-menu-action:hover:not(:disabled),
+    .hud-menu-action.active {
+      background: rgba(47, 155, 255, 0.22);
+      border-color: rgba(47, 155, 255, 0.55);
+      transform: none;
+      filter: none;
+    }
+    .hud-menu-action:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+    .hud-menu-action.danger {
+      color: #fecaca;
+      border-color: rgba(239, 68, 68, 0.34);
+    }
+    .hud-wrap-title {
+      color: #f3f8ff;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: none;
+      padding: 18px 16px 10px;
+    }
+    #hudCameraWrap .panel-section.mini-viewer {
+      padding: 0 16px 14px !important;
+    }
+    #hudCameraWrap .mini-viewer-host {
+      aspect-ratio: 16 / 9;
+      border-radius: 8px !important;
+      border-color: rgba(142, 176, 212, 0.2) !important;
+      background: #07101d !important;
+    }
+    #hudCameraWrap .camera-stream-controls {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    #hudCameraWrap .camera-stream-toggle {
+      width: auto !important;
+      min-width: 128px;
+      min-height: 38px;
+      padding: 8px 14px;
+      margin-left: auto;
+      border-radius: 8px !important;
+      font-size: 14px !important;
+      font-weight: 700;
+      box-shadow: none;
+    }
+    #hudCameraWrap .camera-stream-toggle .btn-icon {
+      display: none;
+    }
+    #hudCameraWrap .status {
+      margin: 0 !important;
+      min-width: 0;
+      color: rgba(221, 232, 245, 0.7) !important;
+      font-size: 12px !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    #hudCameraWrap.is-disabled {
+      opacity: 0.72;
+    }
+    .hud-sliders-wrap-header {
+      padding: 16px 16px 6px;
+    }
+    .hud-sliders-wrap-header .hud-wrap-title {
+      padding: 0;
+      font-size: 19px;
+    }
+    .hud-datum-btn {
+      min-height: 36px;
+      border-radius: 8px;
+      padding: 7px 16px;
+      background: #155ba5;
+      border-color: rgba(79, 160, 255, 0.45);
+      font-size: 14px;
+    }
+    #hudSlidersWrap .panel-section.sliders {
+      padding: 10px 16px 18px !important;
+    }
+    #hudSlidersWrap .panel-section.sliders label {
+      color: #f3f8ff !important;
+      font-size: 15px !important;
+      line-height: 1.3;
+    }
+    #hudSlidersWrap .panel-section.sliders label span {
+      color: var(--hud-blue);
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 18px;
+    }
+    #hudSlidersWrap input[type="range"] {
+      height: 28px !important;
+      margin: 6px 0 14px !important;
+      accent-color: #1f7ee8;
+    }
+    .hud-right-col {
+      width: clamp(430px, 34vw, 560px);
+    }
+    .hud-sliders-wrap {
+      overflow: hidden;
+      border-radius: 28px;
+      border-color: rgba(116, 160, 204, 0.42);
+      background:
+        radial-gradient(circle at 15% 12%, rgba(47, 155, 255, 0.13), transparent 34%),
+        linear-gradient(180deg, rgba(9, 23, 38, 0.92), rgba(3, 12, 22, 0.97));
+      box-shadow:
+        0 26px 58px rgba(0, 0, 0, 0.42),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20px) saturate(1.18);
+      -webkit-backdrop-filter: blur(20px) saturate(1.18);
+    }
+    .hud-sliders-wrap-header {
+      padding: 26px 28px 18px;
+      border-bottom: 1px solid rgba(142, 176, 212, 0.18);
+      align-items: center;
+    }
+    .hud-sliders-wrap-header .hud-wrap-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+      color: #f6fbff;
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .hud-speed-title-icon {
+      width: 38px;
+      height: 38px;
+      color: #2f8cff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hud-speed-title-icon svg {
+      width: 38px;
+      height: 38px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .hud-datum-btn {
+      min-height: 54px;
+      border-radius: 18px;
+      padding: 0 26px;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(180deg, rgba(22, 93, 150, 0.95), rgba(9, 62, 107, 0.98));
+      border: 2px solid rgba(69, 157, 255, 0.5);
+      color: #f4fbff;
+      font-size: 18px;
+      font-weight: 750;
+      box-shadow:
+        0 10px 24px rgba(0, 63, 126, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+    .hud-datum-btn svg {
+      width: 25px;
+      height: 25px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+    #hudSlidersWrap .panel-section.sliders {
+      padding: 26px 28px 0 !important;
+    }
+    #hudSlidersWrap .panel-section.sliders .stack {
+      gap: 0;
+    }
+    #hudSlidersWrap .panel-section.sliders label {
+      color: rgba(225, 235, 247, 0.88) !important;
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: baseline !important;
+      margin: 0 0 14px !important;
+      font-size: 22px !important;
+      font-weight: 800 !important;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+    #hudSlidersWrap .panel-section.sliders label span {
+      color: #3a96ff;
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      font-variant-numeric: tabular-nums;
+    }
+    #hudSlidersWrap input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 46px !important;
+      margin: 0 0 28px !important;
+      padding: 0 0 12px !important;
+      border: 0 !important;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(176, 198, 218, 0.62) 0 2px,
+          transparent 2px calc(100% / 14)
+        ) left bottom / 100% 10px no-repeat !important;
+      accent-color: #2f8cff;
+    }
+    #hudSlidersWrap input[type="range"]::-webkit-slider-runnable-track {
+      height: 12px;
+      border-radius: 999px;
+      background:
+        linear-gradient(90deg, #2f8cff 0 var(--hud-range-fill, 35%), rgba(53, 82, 108, 0.66) var(--hud-range-fill, 35%) 100%);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.38);
+    }
+    #hudSlidersWrap input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 38px;
+      height: 38px;
+      margin-top: -13px;
+      border-radius: 999px;
+      border: 5px solid #217cff;
+      background: radial-gradient(circle, #67d8ff 0 34%, #2792df 36% 100%);
+      box-shadow:
+        0 0 0 4px rgba(47, 140, 255, 0.25),
+        0 0 24px rgba(47, 140, 255, 0.72);
+    }
+    #hudSlidersWrap input[type="range"]::-moz-range-track {
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(53, 82, 108, 0.66);
+    }
+    #hudSlidersWrap input[type="range"]::-moz-range-progress {
+      height: 12px;
+      border-radius: 999px;
+      background: #2f8cff;
+    }
+    #hudSlidersWrap input[type="range"]::-moz-range-thumb {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      border: 5px solid #217cff;
+      background: #67d8ff;
+      box-shadow:
+        0 0 0 4px rgba(47, 140, 255, 0.25),
+        0 0 24px rgba(47, 140, 255, 0.72);
+    }
+    #hudSlidersWrap .map-tool-info {
+      margin: 0 28px 24px;
+      padding: 20px 0 0 48px;
+      min-height: 42px;
+      border: 0;
+      border-top: 1px solid rgba(142, 176, 212, 0.18);
+      border-radius: 0;
+      background: transparent;
+      color: rgba(220, 231, 243, 0.78);
+      box-shadow: none;
+      font-size: 20px;
+      line-height: 1.4;
+      position: relative;
+    }
+    #hudSlidersWrap .map-tool-info::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 17px;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: radial-gradient(circle, #72f06f 0 30%, rgba(75, 190, 107, 0.24) 34% 100%);
+      box-shadow: 0 0 22px rgba(91, 224, 103, 0.28);
+    }
+    .hud-bottom-bar {
+      bottom: 22px;
+      gap: 14px;
+      padding: 12px 16px;
+      background: var(--hud-bg);
+      border: 1px solid var(--hud-border);
+      border-radius: 18px;
+      box-shadow: var(--hud-shadow);
+    }
+    .hud-action-btn {
+      width: 76px;
+      height: 76px;
+      min-height: 76px;
+      max-width: 76px;
+      border-radius: 12px;
+      background: rgba(15, 33, 55, 0.84);
+      border-color: rgba(142, 176, 212, 0.24);
+    }
+    .hud-action-btn svg {
+      width: 34px;
+      height: 34px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .hud-left-toolbar .hud-action-btn {
+      width: 46px;
+      height: 46px;
+      min-height: 46px;
+      max-width: 46px;
+      border-radius: 15px;
+      background:
+        linear-gradient(180deg, rgba(24, 46, 66, 0.96), rgba(5, 16, 28, 0.98));
+      border-color: rgba(67, 122, 158, 0.24);
+      color: #f3f8ff;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 0 0 1px rgba(14, 50, 74, 0.36),
+        0 7px 14px rgba(0, 0, 0, 0.26);
+    }
+    .hud-left-toolbar .hud-action-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+    .hud-left-toolbar .hud-action-btn:disabled {
+      opacity: 0.58;
+      cursor: not-allowed;
+    }
+    .hud-left-toolbar .hud-action-btn:disabled:hover {
+      background: rgba(15, 33, 55, 0.84);
+      border-color: rgba(142, 176, 212, 0.24);
+      color: #f3f8ff;
+    }
+    .hud-action-btn:hover,
+    .hud-action-btn.active-tool {
+      background: rgba(47, 155, 255, 0.22);
+      border-color: rgba(47, 155, 255, 0.58);
+      color: #ffffff;
+    }
+    #swapViewBtn {
+      right: calc(clamp(304px, 20vw, 340px) + 32px);
+      left: auto;
+      bottom: 22px;
+    }
+    @media (max-width: 1080px) {
+      .hud-topleft {
+        top: 12px;
+        left: 12px;
+        width: calc(100vw - 24px);
+      }
+      .hud-left-toolbar {
+        top: 12px;
+        left: 10px;
+        bottom: auto;
+        width: 58px;
+        max-width: none;
+        gap: 10px;
+        padding: 9px 6px;
+        border-radius: 25px;
+        flex-direction: column;
+        overflow: visible;
+      }
+      .hud-right-col {
+        top: 226px;
+        right: 12px;
+        width: min(330px, calc(100vw - 24px));
+        max-height: calc(100vh - 324px);
+      }
+      .leaflet-top.leaflet-left {
+        top: 360px !important;
+        left: 12px !important;
+      }
+      .hud-bottom-bar {
+        display: none;
+      }
+      .hud-stat-card {
+        min-height: 52px;
+      }
+      .hud-stat-label,
+      .hud-dropdown-label {
+        font-size: 15px;
+      }
+      .hud-action-btn,
+      .hud-tool-btn {
+        flex: 0 0 auto;
+      }
+    }
+    /* Compact right-edge speed HUD override. */
+    .hud-right-col {
+      top: 12px !important;
+      right: 10px !important;
+      width: clamp(300px, 23vw, 340px) !important;
+      gap: 12px !important;
+      max-height: calc(100vh - 24px) !important;
+    }
+    .hud-sliders-wrap {
+      border-radius: 16px !important;
+      border-width: 1px !important;
+      box-shadow:
+        0 16px 34px rgba(0, 0, 0, 0.34),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    }
+    .hud-sliders-wrap-header {
+      padding: 14px 16px 10px !important;
+    }
+    .hud-sliders-wrap-header .hud-wrap-title {
+      gap: 10px !important;
+      font-size: 15px !important;
+      letter-spacing: 0.18em !important;
+    }
+    .hud-speed-title-icon,
+    .hud-speed-title-icon svg {
+      width: 24px !important;
+      height: 24px !important;
+    }
+    .hud-datum-btn {
+      min-height: 34px !important;
+      border-radius: 10px !important;
+      padding: 0 12px !important;
+      gap: 7px !important;
+      font-size: 12px !important;
+      border-width: 1px !important;
+    }
+    .hud-datum-btn svg {
+      width: 17px !important;
+      height: 17px !important;
+    }
+    #hudSlidersWrap .panel-section.sliders {
+      padding: 14px 16px 0 !important;
+    }
+    #hudSlidersWrap .panel-section.sliders label {
+      margin: 0 0 8px !important;
+      font-size: 12px !important;
+      letter-spacing: 0.08em !important;
+    }
+    #hudSlidersWrap .panel-section.sliders label span {
+      font-size: 15px !important;
+      letter-spacing: 0.04em !important;
+    }
+    #hudSlidersWrap input[type="range"] {
+      height: 28px !important;
+      margin: 0 0 16px !important;
+      padding: 0 0 8px !important;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(176, 198, 218, 0.55) 0 1px,
+          transparent 1px calc(100% / 12)
+        ) left bottom / 100% 7px no-repeat !important;
+    }
+    #hudSlidersWrap input[type="range"]::-webkit-slider-runnable-track {
+      height: 7px !important;
+    }
+    #hudSlidersWrap input[type="range"]::-webkit-slider-thumb {
+      width: 22px !important;
+      height: 22px !important;
+      margin-top: -7px !important;
+      border-width: 3px !important;
+      box-shadow:
+        0 0 0 3px rgba(47, 140, 255, 0.22),
+        0 0 16px rgba(47, 140, 255, 0.5) !important;
+    }
+    #hudSlidersWrap input[type="range"]::-moz-range-track,
+    #hudSlidersWrap input[type="range"]::-moz-range-progress {
+      height: 7px !important;
+    }
+    #hudSlidersWrap input[type="range"]::-moz-range-thumb {
+      width: 18px !important;
+      height: 18px !important;
+      border-width: 3px !important;
+    }
+    #hudSlidersWrap .map-tool-info {
+      margin: 0 16px 14px !important;
+      padding: 12px 0 0 28px !important;
+      min-height: 28px !important;
+      font-size: 12px !important;
+    }
+    #hudSlidersWrap .map-tool-info::before {
+      top: 10px !important;
+      width: 18px !important;
+      height: 18px !important;
     }
   </style>
 </head>
@@ -945,7 +2196,7 @@
               </select>
             </div>
             <div class="row">
-              <input id="wsHost" value="100.111.4.7" placeholder="Host" />
+              <input id="wsHost" value="localhost" placeholder="Host" />
               <input id="wsPort" value="8766" placeholder="Port" />
             </div>
             <div class="row">
@@ -1058,13 +2309,13 @@
           <h2>Sliders</h2>
           <div class="stack">
             <label>
-              Linear speed (m/2): <span id="manualLinearValue">1.20</span>
+              Linear speed (m/s): <span id="manualLinearValue">1.20</span>
             </label>
             <input id="manualLinearSlider" type="range" min="1.0" max="4.0" step="0.01" value="1.20" />
             <label>
-              Steering angle (deg): <span id="manualAngularValue">18.0</span>
+              Angular speed (rad/s): <span id="manualAngularValue">0.40</span>
             </label>
-            <input id="manualAngularSlider" type="range" min="1.0" max="30.0" step="0.5" value="18.0" />
+            <input id="manualAngularSlider" type="range" min="0.1" max="1.2" step="0.01" value="0.40" />
           </div>
         </section>
 
@@ -1126,7 +2377,7 @@
     </div>
     <div id="visualCol" class="visual-col">
       <div id="visualTopRow" class="visual-top-row"></div>
-      <div id="viewStage" class="mode-camera-main">
+      <div id="viewStage" class="mode-gps-main">
         <div id="cameraPane" class="view-pane">
           <iframe id="cameraFrame" title="Camera feed" loading="lazy" tabindex="-1"></iframe>
           <div id="cameraDisconnectedOverlay" class="camera-overlay visible">camara desconectada</div>
@@ -1134,13 +2385,63 @@
         <div id="gpsPane" class="view-pane">
           <div id="map"></div>
           <div id="mapToolsToolbar" class="map-tools-toolbar">
-            <div id="mapToolInfo" class="map-tool-info">Map tools idle.</div>
-            <div class="map-tools-grid">
-              <button id="mapToolRulerBtn" class="secondary" type="button" title="Ruler: measure distance by segments" aria-label="Ruler measure distance">📏</button>
-              <button id="mapToolAreaBtn" class="secondary" type="button" title="Area: measure polygon area and perimeter" aria-label="Area measure polygon">📐</button>
-              <button id="mapToolInspectBtn" class="secondary" type="button" title="Inspect: show and copy map coordinates" aria-label="Inspect coordinates">📍</button>
-              <button id="mapToolCenterRobotBtn" class="secondary" type="button" title="centrar vista en robot" aria-label="centrar vista en robot">🎯</button>
-              <button id="mapToolCloseBtn" class="secondary" type="button" title="Close: exit map tool mode" aria-label="Close map tools">❌</button>
+            <div class="map-tools-card">
+              <div class="map-tools-header">
+                <div>
+                  <div class="map-tools-title">Map tools</div>
+                  <div id="mapCursorReadout" class="map-tools-readout">cursor n/a · zoom --</div>
+                </div>
+                <div class="map-tools-quick-actions">
+                  <button id="mapToolFollowRobotBtn" class="secondary" type="button" title="seguir robot" aria-label="seguir robot">◎</button>
+                  <button id="mapToolHomeBtn" class="secondary" type="button" title="volver a vista inicial" aria-label="volver a vista inicial">⌂</button>
+                  <button id="mapToolCopyViewBtn" class="secondary" type="button" title="copiar centro/zoom" aria-label="copiar centro/zoom">⧉</button>
+                  <button id="mapToolCloseBtn" class="secondary" type="button" title="cerrar herramienta activa" aria-label="cerrar herramienta activa">×</button>
+                </div>
+              </div>
+              <div class="map-tools-body">
+                <div class="map-tools-controls-row">
+                  <label class="map-tools-select-label">
+                    Base map
+                    <select id="mapBaseLayerSelect" aria-label="Base map">
+                      <option value="satellite">Satellite</option>
+                      <option value="streets">Streets</option>
+                      <option value="topo">Topo</option>
+                      <option value="dark">Dark</option>
+                    </select>
+                  </label>
+                  <div class="map-tools-fit-grid" aria-label="Map fit tools">
+                    <button id="mapToolCenterRobotBtn" class="secondary" type="button" title="centrar vista en robot" aria-label="centrar vista en robot">🎯</button>
+                    <button id="mapToolFitRouteBtn" class="secondary" type="button" title="encuadrar ruta" aria-label="encuadrar ruta">⌁</button>
+                    <button id="mapToolFitZonesBtn" class="secondary" type="button" title="encuadrar zonas" aria-label="encuadrar zonas">▱</button>
+                    <button id="mapToolFitAllBtn" class="secondary" type="button" title="encuadrar operacion" aria-label="encuadrar operacion">⊕</button>
+                  </div>
+                </div>
+                <div class="map-tools-grid" aria-label="Map measurement tools">
+                  <button id="mapToolRulerBtn" class="secondary" type="button" title="Ruler: measure distance by segments" aria-label="Ruler measure distance">📏</button>
+                  <button id="mapToolAreaBtn" class="secondary" type="button" title="Area: measure polygon area and perimeter" aria-label="Area measure polygon">📐</button>
+                  <button id="mapToolInspectBtn" class="secondary" type="button" title="Inspect: show and copy map coordinates" aria-label="Inspect coordinates">📍</button>
+                  <button id="mapToolClearMeasureBtn" class="secondary" type="button" title="limpiar mediciones" aria-label="limpiar mediciones">⌫</button>
+                </div>
+                <div class="map-tools-overlays" aria-label="Map overlays">
+                  <label class="map-overlay-toggle">
+                    <input id="mapOverlayZones" type="checkbox" checked />
+                    Zones
+                  </label>
+                  <label class="map-overlay-toggle">
+                    <input id="mapOverlayRoute" type="checkbox" checked />
+                    Route
+                  </label>
+                  <label class="map-overlay-toggle">
+                    <input id="mapOverlayRobot" type="checkbox" checked />
+                    Robot
+                  </label>
+                  <label class="map-overlay-toggle">
+                    <input id="mapOverlayMeasure" type="checkbox" checked />
+                    Tools
+                  </label>
+                </div>
+                <div id="mapToolInfo" class="map-tool-info">Map tools idle.</div>
+              </div>
             </div>
           </div>
         </div>
@@ -1204,28 +2505,313 @@
     </div>
   </div>
 
+  <!-- ═══ HUD OVERLAYS ═══ -->
+
+  <!-- Left icon toolbar -->
+  <div class="hud hud-left-toolbar" id="hudLeftToolbar">
+    <button class="hud-action-btn" id="hudMeasureBtn" title="Medir distancia" aria-label="Medir distancia">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 15.5 15.5 4 20 8.5 8.5 20 4 15.5Z"/>
+        <path d="M8 15 9.5 16.5"/>
+        <path d="M10.5 12.5 12 14"/>
+        <path d="M13 10 14.5 11.5"/>
+        <path d="M15.5 7.5 17 9"/>
+      </svg>
+    </button>
+    <button class="hud-action-btn" id="hudAreaBtn" title="Medir área" aria-label="Medir área">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 4 21 20H3L12 4Z"/>
+      </svg>
+    </button>
+    <button class="hud-action-btn" id="hudInspectBtn" title="Inspeccionar coordenadas" aria-label="Inspeccionar coordenadas">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 3V7"/>
+        <path d="M12 17V21"/>
+        <path d="M3 12H7"/>
+        <path d="M17 12H21"/>
+        <circle cx="12" cy="12" r="4"/>
+      </svg>
+    </button>
+    <button class="hud-action-btn" id="hudCenterBtn" title="Centrar en robot" aria-label="Centrar en robot">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 2V5"/>
+        <path d="M12 19V22"/>
+        <path d="M2 12H5"/>
+        <path d="M19 12H22"/>
+        <circle cx="12" cy="12" r="6"/>
+        <circle cx="12" cy="12" r="2"/>
+      </svg>
+    </button>
+    <button class="hud-action-btn" id="hudToolCloseBtn" title="Cerrar herramientas" aria-label="Cerrar herramientas">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 6 18 18"/>
+        <path d="M18 6 6 18"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Right panel column -->
+  <div class="hud hud-right-col" id="hudRightCol">
+    <!-- Mode / Zoom / Route -->
+    <div class="hud-dropdown-panel" id="hudControlPanel">
+      <button class="hud-dropdown-row" id="hudModeMenuBtn" type="button" aria-expanded="false" aria-controls="hudModeMenu">
+        <span class="hud-dropdown-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+        </span>
+        <span class="hud-dropdown-label">Mode</span>
+        <span id="hudModeDisplay" class="hud-dropdown-value">Standby</span>
+        <span class="hud-dropdown-arrow">▾</span>
+      </button>
+      <div class="hud-menu" id="hudModeMenu">
+        <div class="hud-menu-grid">
+          <button class="hud-menu-action" id="hudModeRealBtn" type="button">Real</button>
+          <button class="hud-menu-action" id="hudModeSimBtn" type="button">Sim</button>
+        </div>
+        <div class="hud-menu-grid">
+          <label class="hud-menu-field">
+            Host
+            <input id="hudWsHostInput" type="text" autocomplete="off" />
+          </label>
+          <label class="hud-menu-field">
+            Port
+            <input id="hudWsPortInput" type="text" inputmode="numeric" autocomplete="off" />
+          </label>
+        </div>
+        <div class="hud-menu-grid">
+          <button class="hud-menu-action" id="hudConnectToggleBtn" type="button">Connect</button>
+          <button class="hud-menu-action" id="hudManualToggleBtn" type="button">Manual OFF</button>
+        </div>
+      </div>
+
+      <button class="hud-dropdown-row" id="hudZoomMenuBtn" type="button" aria-expanded="false" aria-controls="hudZoomMenu">
+        <span class="hud-dropdown-icon">
+          <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        </span>
+        <span class="hud-dropdown-label">Zoom</span>
+        <span id="hudZoomDisplay" class="hud-dropdown-value">16</span>
+        <span class="hud-dropdown-arrow">▾</span>
+      </button>
+      <div class="hud-menu" id="hudZoomMenu">
+        <div class="hud-menu-grid">
+          <button class="hud-menu-action" id="hudZoomInMenuBtn" type="button">Zoom in</button>
+          <button class="hud-menu-action" id="hudZoomOutMenuBtn" type="button">Zoom out</button>
+          <button class="hud-menu-action" id="hudHomeMenuBtn" type="button">Home</button>
+          <button class="hud-menu-action" id="hudFitAllMenuBtn" type="button">Fit all</button>
+        </div>
+      </div>
+
+      <button class="hud-dropdown-row" id="hudRouteMenuBtn" type="button" aria-expanded="false" aria-controls="hudRouteMenu">
+        <span class="hud-dropdown-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+        </span>
+        <span class="hud-dropdown-label">Route</span>
+        <span id="hudRouteDisplay" class="hud-dropdown-value">0 selected</span>
+        <span class="hud-dropdown-arrow">▾</span>
+      </button>
+      <div class="hud-menu" id="hudRouteMenu">
+        <div class="hud-menu-grid">
+          <button class="hud-menu-action" id="hudRouteSendBtn" type="button">Send</button>
+          <button class="hud-menu-action danger" id="hudRouteCancelBtn" type="button">Cancel</button>
+          <button class="hud-menu-action" id="hudRouteUndoBtn" type="button">Undo</button>
+          <button class="hud-menu-action danger" id="hudRouteClearBtn" type="button">Clear</button>
+          <button class="hud-menu-action" id="hudRouteSaveBtn" type="button">Save</button>
+          <button class="hud-menu-action" id="hudRouteLoadBtn" type="button">Load</button>
+        </div>
+        <label class="hud-menu-check">
+          <input id="hudGoalLoopMirror" type="checkbox" />
+          Loop route
+        </label>
+      </div>
+    </div>
+    <!-- Camera section: miniViewerSection moved here by JS -->
+    <div class="hud-camera-wrap" id="hudCameraWrap">
+      <div class="hud-wrap-title">Camera</div>
+    </div>
+    <!-- Speed limits: slidersSection moved here by JS -->
+    <div class="hud-sliders-wrap" id="hudSlidersWrap">
+      <div class="hud-sliders-wrap-header">
+        <div class="hud-wrap-title" style="padding:0">
+          <span class="hud-speed-title-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M5 18a8 8 0 1 1 14 0"/><path d="M12 18l4-7"/><path d="M7 14h2"/><path d="M15 14h2"/><path d="M12 8v2"/></svg>
+          </span>
+          <span>Speed limits</span>
+        </div>
+        <button class="hud-datum-btn" id="hudDatumBtn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M2 12h4"/><path d="M18 12h4"/></svg>
+          <span>Datum</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
   <script>
-    const REAL_WS_DEFAULT_HOST = '100.111.4.7';
-    const DEFAULT_WS_PORT = '8766';
+    const PAGE_UI_CONFIG_FALLBACK = Object.freeze({
+      ws_real_host: 'localhost',
+      ws_real_port: 8766,
+      ws_sim_host: 'localhost',
+      ws_sim_port: 8766,
+      camera_probe_timeout_ms: 3000,
+      camera_load_timeout_ms: 7000,
+      map_default_center_lat: -31.4201,
+      map_default_center_lon: -64.1888,
+      map_default_zoom: 16,
+      manual_linear_speed_min: 1.0,
+      manual_linear_speed_max: 4.0,
+      manual_linear_speed_default: 1.2,
+      manual_angular_speed_min: 0.1,
+      manual_angular_speed_max: 1.2,
+      manual_angular_speed_default: 0.4,
+      manual_loop_interval_ms: 50
+    });
+
+    function normalizeUiConfig(raw) {
+      const values = raw && typeof raw === 'object' ? raw : {};
+      const fallback = PAGE_UI_CONFIG_FALLBACK;
+
+      function stringValue(key) {
+        const value = String(values[key] ?? fallback[key] ?? '').trim();
+        return value || String(fallback[key] || '');
+      }
+
+      function intValue(key, minValue, maxValue = null) {
+        const parsed = Math.round(Number(values[key] ?? fallback[key]));
+        if (!Number.isFinite(parsed)) return Number(fallback[key]);
+        let next = Math.max(minValue, parsed);
+        if (maxValue != null) next = Math.min(maxValue, next);
+        return next;
+      }
+
+      function floatValue(key, minValue, maxValue = null) {
+        const parsed = Number(values[key] ?? fallback[key]);
+        if (!Number.isFinite(parsed)) return Number(fallback[key]);
+        let next = Math.max(minValue, parsed);
+        if (maxValue != null) next = Math.min(maxValue, next);
+        return next;
+      }
+
+      const linearMin = floatValue('manual_linear_speed_min', 0.0);
+      let linearMax = floatValue('manual_linear_speed_max', 0.0);
+      const angularMin = floatValue('manual_angular_speed_min', 0.0);
+      let angularMax = floatValue('manual_angular_speed_max', 0.0);
+      const normalized = {
+        ws_real_host: stringValue('ws_real_host'),
+        ws_real_port: intValue('ws_real_port', 1, 65535),
+        ws_sim_host: stringValue('ws_sim_host'),
+        ws_sim_port: intValue('ws_sim_port', 1, 65535),
+        camera_probe_timeout_ms: intValue('camera_probe_timeout_ms', 500),
+        camera_load_timeout_ms: intValue('camera_load_timeout_ms', 1000),
+        map_default_center_lat: floatValue('map_default_center_lat', -90.0, 90.0),
+        map_default_center_lon: floatValue('map_default_center_lon', -180.0, 180.0),
+        map_default_zoom: intValue('map_default_zoom', 1, 22),
+        manual_linear_speed_min: linearMin,
+        manual_linear_speed_max: linearMax,
+        manual_linear_speed_default: 0.0,
+        manual_angular_speed_min: angularMin,
+        manual_angular_speed_max: angularMax,
+        manual_angular_speed_default: 0.0,
+        manual_loop_interval_ms: intValue('manual_loop_interval_ms', 20)
+      };
+
+      if (!(linearMax > linearMin)) {
+        normalized.manual_linear_speed_min = Number(fallback.manual_linear_speed_min);
+        normalized.manual_linear_speed_max = Number(fallback.manual_linear_speed_max);
+      }
+      if (!(angularMax > angularMin)) {
+        normalized.manual_angular_speed_min = Number(fallback.manual_angular_speed_min);
+        normalized.manual_angular_speed_max = Number(fallback.manual_angular_speed_max);
+      }
+
+      normalized.manual_linear_speed_default = Math.min(
+        normalized.manual_linear_speed_max,
+        Math.max(
+          normalized.manual_linear_speed_min,
+          floatValue(
+            'manual_linear_speed_default',
+            normalized.manual_linear_speed_min,
+            normalized.manual_linear_speed_max
+          )
+        )
+      );
+      normalized.manual_angular_speed_default = Math.min(
+        normalized.manual_angular_speed_max,
+        Math.max(
+          normalized.manual_angular_speed_min,
+          floatValue(
+            'manual_angular_speed_default',
+            normalized.manual_angular_speed_min,
+            normalized.manual_angular_speed_max
+          )
+        )
+      );
+      return normalized;
+    }
+
+    const INITIAL_UI_CONFIG = normalizeUiConfig(PAGE_UI_CONFIG_FALLBACK);
+    const REAL_WS_DEFAULT_HOST = INITIAL_UI_CONFIG.ws_real_host;
+    const DEFAULT_WS_PORT = String(INITIAL_UI_CONFIG.ws_real_port);
     const REAL_CAMERA_IFRAME_URL = 'http://100.111.4.7:8889/cam3/';
     const CONNECTION_PRESET_STORAGE_KEY = 'map_tools.connection_presets.v1';
+    const MAP_OPTIONS_STORAGE_KEY = 'map_tools.map_options.v1';
     const CAMERA_DISABLED_SIM_ERROR = 'disabled in sim';
     const CAMERA_OPS = new Set(['camera_pan', 'camera_zoom_toggle', 'get_camera_status']);
     const GPS_MAX_ZOOM = 22;
-    const GPS_DEFAULT_ZOOM = GPS_MAX_ZOOM - 3;
+    const DEFAULT_BASE_MAP_KEY = 'satellite';
     const map = L.map('map', { zoomControl: true }).setView(
-      [-31.421785, -64.102448],
-      GPS_DEFAULT_ZOOM
+      [
+        INITIAL_UI_CONFIG.map_default_center_lat,
+        INITIAL_UI_CONFIG.map_default_center_lon
+      ],
+      INITIAL_UI_CONFIG.map_default_zoom
     );
-    const satelliteLayer = L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      {
-        maxZoom: GPS_MAX_ZOOM,
-        attribution: 'Tiles &copy; Esri'
+    const BASE_MAP_LAYERS = {
+      satellite: {
+        label: 'Satellite',
+        layer: L.tileLayer(
+          'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+          {
+            maxZoom: GPS_MAX_ZOOM,
+            attribution: 'Tiles &copy; Esri'
+          }
+        )
+      },
+      streets: {
+        label: 'Streets',
+        layer: L.tileLayer(
+          'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+          {
+            maxZoom: GPS_MAX_ZOOM,
+            maxNativeZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+          }
+        )
+      },
+      topo: {
+        label: 'Topo',
+        layer: L.tileLayer(
+          'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+          {
+            maxZoom: GPS_MAX_ZOOM,
+            maxNativeZoom: 19,
+            attribution: 'Tiles &copy; Esri'
+          }
+        )
+      },
+      dark: {
+        label: 'Dark',
+        layer: L.tileLayer(
+          'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+          {
+            maxZoom: GPS_MAX_ZOOM,
+            maxNativeZoom: 20,
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+          }
+        )
       }
-    );
+    };
+    const satelliteLayer = BASE_MAP_LAYERS.satellite.layer;
+    let activeBaseMapLayer = satelliteLayer;
     satelliteLayer.addTo(map);
 
     const drawnItems = new L.FeatureGroup();
@@ -1258,6 +2844,7 @@
     const state = {
       ws: null,
       connected: false,
+      uiConfig: { ...INITIAL_UI_CONFIG },
       connectionPreset: 'real',
       connectionPresetValues: {
         real: { host: REAL_WS_DEFAULT_HOST, port: DEFAULT_WS_PORT },
@@ -1267,7 +2854,7 @@
       frameId: 'map',
       lastZones: [],
       robotMarker: null,
-      primaryView: 'camera',
+      primaryView: 'gps',
       goalMode: false,
       goalWaypoints: [],
       selectedWaypointIndices: new Set(),
@@ -1319,13 +2906,22 @@
       manualControl: { enabled: false, linear_x_cmd: 0.0, angular_z_cmd: 0.0, last_cmd_age_s: null },
       manualKeys: { w: false, a: false, s: false, d: false },
       manualBrakeHeld: false,
-      manualCmd: { linearX: 0.0, angularZ: 0.0, steerDeg: 0.0 },
+      manualCmd: { linearX: 0.0, angularZ: 0.0 },
       manualLoopTimer: null,
       nextClientReqId: 1,
       requestRegistry: new Map(),
       pendingByOp: new Map(),
       pendingIdsByOp: new Map(),
       buttonBaseLabels: new Map(),
+      mapOptions: {
+        baseMap: DEFAULT_BASE_MAP_KEY,
+        showZones: true,
+        showRoute: true,
+        showRobot: true,
+        showMeasurements: true,
+        followRobot: false,
+        mouseLatLng: null
+      },
       connectAttemptActive: false,
       connectErrorDialogShown: false,
       userInitiatedDisconnect: false,
@@ -1354,15 +2950,170 @@
       return host || 'localhost';
     }
 
+    function getUiConfig() {
+      return state.uiConfig || INITIAL_UI_CONFIG;
+    }
+
+    function getPresetDefaultsFromConfig(preset, config) {
+      const cfg = config || INITIAL_UI_CONFIG;
+      if (normalizeConnectionPreset(preset) === 'sim') {
+        return {
+          host: String(cfg.ws_sim_host || PAGE_UI_CONFIG_FALLBACK.ws_sim_host),
+          port: String(cfg.ws_sim_port || PAGE_UI_CONFIG_FALLBACK.ws_sim_port)
+        };
+      }
+      return {
+        host: String(cfg.ws_real_host || PAGE_UI_CONFIG_FALLBACK.ws_real_host),
+        port: String(cfg.ws_real_port || PAGE_UI_CONFIG_FALLBACK.ws_real_port)
+      };
+    }
+
+    function getLegacyPresetDefaults(preset) {
+      if (normalizeConnectionPreset(preset) === 'sim') {
+        return { host: getPageHostnameOrLocalhost(), port: '8766' };
+      }
+      return { host: '100.111.4.7', port: '8766' };
+    }
+
+    function connectionConfigMatchesDefault(value, defaults) {
+      if (!value || typeof value !== 'object') return false;
+      const host = String(value.host || '').trim();
+      const port = String(value.port || '').trim();
+      return host === String(defaults.host || '') && port === String(defaults.port || '');
+    }
+
+    function clampSliderValue(value, fallback, minValue, maxValue) {
+      const parsed = Number(value);
+      const base = Number.isFinite(parsed) ? parsed : Number(fallback);
+      return Math.min(Number(maxValue), Math.max(Number(minValue), base));
+    }
+
+    function mapIsAtDefaultView(config) {
+      const center = map.getCenter();
+      const zoom = map.getZoom();
+      if (!center || !Number.isFinite(Number(zoom))) return false;
+      const latOk = Math.abs(Number(center.lat) - Number(config.map_default_center_lat)) < 1.0e-6;
+      const lonOk = Math.abs(Number(center.lng) - Number(config.map_default_center_lon)) < 1.0e-6;
+      const zoomOk = Number(zoom) === Number(config.map_default_zoom);
+      return latOk && lonOk && zoomOk;
+    }
+
+    function getCameraStreamProbeTimeoutMs() {
+      return Math.max(500, Math.round(Number(getUiConfig().camera_probe_timeout_ms || 3000)));
+    }
+
+    function getCameraStreamLoadTimeoutMs() {
+      return Math.max(1000, Math.round(Number(getUiConfig().camera_load_timeout_ms || 7000)));
+    }
+
+    function getManualLoopIntervalMs() {
+      return Math.max(20, Math.round(Number(getUiConfig().manual_loop_interval_ms || 50)));
+    }
+
+    function applyUiConfig(raw) {
+      const prevConfig = state.uiConfig || INITIAL_UI_CONFIG;
+      const nextConfig = normalizeUiConfig(raw);
+      const shouldMoveMap = mapIsAtDefaultView(prevConfig);
+      state.uiConfig = nextConfig;
+
+      ['real', 'sim'].forEach((preset) => {
+        const prevDefaults = getPresetDefaultsFromConfig(preset, prevConfig);
+        const nextDefaults = getPresetDefaultsFromConfig(preset, nextConfig);
+        const legacyDefaults = getLegacyPresetDefaults(preset);
+        const currentValues = state.connectionPresetValues[preset] || prevDefaults;
+        const matchesKnownDefault = (
+          connectionConfigMatchesDefault(currentValues, prevDefaults)
+          || connectionConfigMatchesDefault(currentValues, legacyDefaults)
+        );
+        state.connectionPresetValues[preset] = matchesKnownDefault
+          ? { ...nextDefaults }
+          : {
+              host: String(currentValues.host || '').trim() || nextDefaults.host,
+              port: String(currentValues.port || '').trim() || nextDefaults.port
+            };
+      });
+
+      const activePreset = getEffectiveConnectionPreset();
+      const prevActiveDefaults = getPresetDefaultsFromConfig(activePreset, prevConfig);
+      const nextActiveDefaults = getPresetDefaultsFromConfig(activePreset, nextConfig);
+      const legacyActiveDefaults = getLegacyPresetDefaults(activePreset);
+      const hostInput = document.getElementById('wsHost');
+      const portInput = document.getElementById('wsPort');
+      if (hostInput) {
+        const currentHost = String(hostInput.value || '').trim();
+        if (
+          !currentHost
+          || currentHost === prevActiveDefaults.host
+          || currentHost === legacyActiveDefaults.host
+        ) {
+          hostInput.value = nextActiveDefaults.host;
+        }
+      }
+      if (portInput) {
+        const currentPort = String(portInput.value || '').trim();
+        if (
+          !currentPort
+          || currentPort === prevActiveDefaults.port
+          || currentPort === legacyActiveDefaults.port
+        ) {
+          portInput.value = nextActiveDefaults.port;
+        }
+      }
+
+      const linearSlider = document.getElementById('manualLinearSlider');
+      if (linearSlider) {
+        const currentLinear = Number(linearSlider.value || nextConfig.manual_linear_speed_default);
+        linearSlider.min = String(nextConfig.manual_linear_speed_min);
+        linearSlider.max = String(nextConfig.manual_linear_speed_max);
+        linearSlider.step = '0.01';
+        linearSlider.value = String(
+          clampSliderValue(
+            currentLinear,
+            nextConfig.manual_linear_speed_default,
+            nextConfig.manual_linear_speed_min,
+            nextConfig.manual_linear_speed_max
+          )
+        );
+      }
+
+      const angularSlider = document.getElementById('manualAngularSlider');
+      if (angularSlider) {
+        const currentAngular = Number(angularSlider.value || nextConfig.manual_angular_speed_default);
+        angularSlider.min = String(nextConfig.manual_angular_speed_min);
+        angularSlider.max = String(nextConfig.manual_angular_speed_max);
+        angularSlider.step = '0.01';
+        angularSlider.value = String(
+          clampSliderValue(
+            currentAngular,
+            nextConfig.manual_angular_speed_default,
+            nextConfig.manual_angular_speed_min,
+            nextConfig.manual_angular_speed_max
+          )
+        );
+      }
+
+      if (shouldMoveMap) {
+        map.setView(
+          [nextConfig.map_default_center_lat, nextConfig.map_default_center_lon],
+          nextConfig.map_default_zoom,
+          { animate: false }
+        );
+      }
+
+      if (state.manualLoopTimer) {
+        startManualLoop();
+      }
+      updateManualSliderLabels();
+      renderManualStatus();
+      renderCameraStreamUi();
+    }
+
     function normalizeConnectionPreset(value) {
       return String(value || '').toLowerCase() === 'sim' ? 'sim' : 'real';
     }
 
     function getPresetDefaults(preset) {
-      if (normalizeConnectionPreset(preset) === 'sim') {
-        return { host: getPageHostnameOrLocalhost(), port: DEFAULT_WS_PORT };
-      }
-      return { host: REAL_WS_DEFAULT_HOST, port: DEFAULT_WS_PORT };
+      return getPresetDefaultsFromConfig(preset, getUiConfig());
     }
 
     function readConnectionPresetStorage() {
@@ -1491,10 +3242,7 @@
       applyConnectionPresetUi();
     }
 
-    const MANUAL_LOOP_HZ = 20.0;
     const MANUAL_EMERGENCY_BRAKE_PCT = 100;
-    const MANUAL_WHEELBASE_M = 0.94;
-    const MANUAL_STEERING_FALLBACK_SPEED_MPS = 0.5;
     const NAV_GOAL_STATUS = {
       UNKNOWN: 0,
       ACCEPTED: 1,
@@ -1504,8 +3252,6 @@
       CANCELED: 5,
       ABORTED: 6
     };
-    const CAMERA_STREAM_PROBE_TIMEOUT_MS = 3000;
-    const CAMERA_STREAM_LOAD_TIMEOUT_MS = 7000;
     const DEFAULT_REQUEST_TIMEOUT_MS = 8000;
     const REQUEST_TIMEOUT_OVERRIDES_MS = {
       set_goal_ll: 15000
@@ -1697,7 +3443,7 @@
           controller = new AbortController();
           timeoutId = window.setTimeout(() => {
             controller.abort();
-          }, CAMERA_STREAM_PROBE_TIMEOUT_MS);
+          }, getCameraStreamProbeTimeoutMs());
         }
         await fetch(cameraUrl, {
           method: 'GET',
@@ -1728,29 +3474,29 @@
       const pending = state.cameraStreamPending;
       const connected = state.cameraStreamConnected === true;
 
-      let label = 'Connect';
+      let label = 'Open Camera';
       let statusText = 'camera: disconnected';
       let className = 'status bad';
       let overlayText = 'camara desconectada';
       let overlayVisible = true;
 
       if (!cameraEnabled) {
-        label = 'Disabled';
+        label = 'Camera Off';
         statusText = 'camera: disabled in sim';
         className = 'status';
         overlayText = 'camara deshabilitada en simulacion';
       } else if (pending === 'connecting') {
-        label = 'Connecting...';
+        label = 'Opening...';
         statusText = 'camera: connecting';
         className = 'status';
         overlayText = 'conectando camara...';
       } else if (pending === 'disconnecting') {
-        label = 'Disconnecting...';
+        label = 'Closing...';
         statusText = 'camera: disconnecting';
         className = 'status';
         overlayText = 'desconectando camara...';
       } else if (connected) {
-        label = 'Disconnect';
+        label = 'Close Camera';
         statusText = 'camera: connected';
         className = 'status good';
         overlayVisible = false;
@@ -1834,7 +3580,7 @@
         if (streamSeq !== state.cameraStreamSeq) return;
         cleanup();
         finalizeCameraStreamConnect(false, 'stream timeout');
-      }, CAMERA_STREAM_LOAD_TIMEOUT_MS);
+      }, getCameraStreamLoadTimeoutMs());
     }
 
     function disconnectCameraStream(options = {}) {
@@ -2004,6 +3750,235 @@
       return `${Number(latlng.lat).toFixed(7)}, ${Number(latlng.lng).toFixed(7)}`;
     }
 
+    function normalizeBaseMapKey(value) {
+      const key = String(value || '').trim().toLowerCase();
+      return Object.prototype.hasOwnProperty.call(BASE_MAP_LAYERS, key)
+        ? key
+        : DEFAULT_BASE_MAP_KEY;
+    }
+
+    function normalizeMapOptions(raw) {
+      const values = raw && typeof raw === 'object' ? raw : {};
+      return {
+        baseMap: normalizeBaseMapKey(values.baseMap),
+        showZones: values.showZones !== false,
+        showRoute: values.showRoute !== false,
+        showRobot: values.showRobot !== false,
+        showMeasurements: values.showMeasurements !== false,
+        followRobot: values.followRobot === true,
+        mouseLatLng: null
+      };
+    }
+
+    function readMapOptionsStorage() {
+      try {
+        const raw = window.localStorage.getItem(MAP_OPTIONS_STORAGE_KEY);
+        return normalizeMapOptions(raw ? JSON.parse(raw) : null);
+      } catch (_) {
+        return normalizeMapOptions(null);
+      }
+    }
+
+    function persistMapOptionsStorage() {
+      try {
+        window.localStorage.setItem(
+          MAP_OPTIONS_STORAGE_KEY,
+          JSON.stringify({
+            baseMap: state.mapOptions.baseMap,
+            showZones: state.mapOptions.showZones,
+            showRoute: state.mapOptions.showRoute,
+            showRobot: state.mapOptions.showRobot,
+            showMeasurements: state.mapOptions.showMeasurements,
+            followRobot: state.mapOptions.followRobot
+          })
+        );
+      } catch (_) {
+        // Keep the page usable if local storage is blocked.
+      }
+    }
+
+    function setLayerGroupVisible(layer, visible) {
+      if (!layer) return;
+      const shouldShow = visible === true;
+      if (shouldShow && !map.hasLayer(layer)) {
+        map.addLayer(layer);
+      } else if (!shouldShow && map.hasLayer(layer)) {
+        map.removeLayer(layer);
+      }
+    }
+
+    function syncRobotLayerVisibility() {
+      if (!state.robotMarker) return;
+      if (state.mapOptions.showRobot) {
+        if (!map.hasLayer(state.robotMarker)) {
+          state.robotMarker.addTo(map);
+        }
+      } else if (map.hasLayer(state.robotMarker)) {
+        map.removeLayer(state.robotMarker);
+      }
+    }
+
+    function syncMapOverlayVisibility() {
+      setLayerGroupVisible(drawnItems, state.mapOptions.showZones);
+      setLayerGroupVisible(goalLayer, state.mapOptions.showRoute);
+      setLayerGroupVisible(measurementLayer, state.mapOptions.showMeasurements);
+      syncRobotLayerVisibility();
+    }
+
+    function applyBaseMap(key) {
+      const nextKey = normalizeBaseMapKey(key);
+      const nextLayer = BASE_MAP_LAYERS[nextKey].layer;
+      if (activeBaseMapLayer !== nextLayer) {
+        if (activeBaseMapLayer && map.hasLayer(activeBaseMapLayer)) {
+          map.removeLayer(activeBaseMapLayer);
+        }
+        activeBaseMapLayer = nextLayer;
+        activeBaseMapLayer.addTo(map);
+      } else if (!map.hasLayer(activeBaseMapLayer)) {
+        activeBaseMapLayer.addTo(map);
+      }
+      state.mapOptions.baseMap = nextKey;
+    }
+
+    function updateMapReadouts() {
+      const readoutEl = document.getElementById('mapCursorReadout');
+      if (!readoutEl) return;
+      const cursor = state.mapOptions.mouseLatLng
+        ? formatLatLon(state.mapOptions.mouseLatLng)
+        : 'cursor n/a';
+      const center = map.getCenter();
+      const zoom = map.getZoom();
+      readoutEl.textContent =
+        `${cursor} · zoom ${zoom} · center ${Number(center.lat).toFixed(5)}, ${Number(center.lng).toFixed(5)}`;
+    }
+
+    function updateMapOptionsUi() {
+      const baseSelect = document.getElementById('mapBaseLayerSelect');
+      const zonesToggle = document.getElementById('mapOverlayZones');
+      const routeToggle = document.getElementById('mapOverlayRoute');
+      const robotToggle = document.getElementById('mapOverlayRobot');
+      const measureToggle = document.getElementById('mapOverlayMeasure');
+      const followBtn = document.getElementById('mapToolFollowRobotBtn');
+
+      if (baseSelect) baseSelect.value = state.mapOptions.baseMap;
+      if (zonesToggle) zonesToggle.checked = state.mapOptions.showZones;
+      if (routeToggle) routeToggle.checked = state.mapOptions.showRoute;
+      if (robotToggle) robotToggle.checked = state.mapOptions.showRobot;
+      if (measureToggle) measureToggle.checked = state.mapOptions.showMeasurements;
+      if (followBtn) {
+        followBtn.classList.toggle('active', state.mapOptions.followRobot);
+        followBtn.title = state.mapOptions.followRobot ? 'seguimiento de robot activo' : 'seguir robot';
+        followBtn.setAttribute('aria-label', followBtn.title);
+      }
+      updateMapReadouts();
+    }
+
+    function setMapOption(key, value) {
+      if (!Object.prototype.hasOwnProperty.call(state.mapOptions, key)) return;
+      if (key === 'baseMap') {
+        applyBaseMap(value);
+      } else {
+        state.mapOptions[key] = value === true;
+        if (key === 'showRobot' && state.mapOptions.showRobot === false) {
+          state.mapOptions.followRobot = false;
+        }
+      }
+      syncMapOverlayVisibility();
+      persistMapOptionsStorage();
+      updateMapOptionsUi();
+      updateMapToolsToolbarUi();
+    }
+
+    function applyMapOptions(options) {
+      state.mapOptions = normalizeMapOptions(options);
+      applyBaseMap(state.mapOptions.baseMap);
+      syncMapOverlayVisibility();
+      updateMapOptionsUi();
+      updateMapToolsToolbarUi();
+    }
+
+    function extendBoundsWithLayer(bounds, layer) {
+      if (!layer) return bounds;
+      let nextBounds = bounds;
+      const ensureBounds = () => nextBounds || L.latLngBounds([]);
+
+      if (typeof layer.getBounds === 'function') {
+        const layerBounds = layer.getBounds();
+        if (layerBounds && layerBounds.isValid && layerBounds.isValid()) {
+          nextBounds = ensureBounds().extend(layerBounds);
+          return nextBounds;
+        }
+      }
+      if (typeof layer.getLatLng === 'function') {
+        const latLng = layer.getLatLng();
+        if (latLng) {
+          nextBounds = ensureBounds().extend(latLng);
+          return nextBounds;
+        }
+      }
+      if (typeof layer.eachLayer === 'function') {
+        layer.eachLayer((child) => {
+          nextBounds = extendBoundsWithLayer(nextBounds, child);
+        });
+      }
+      return nextBounds;
+    }
+
+    function fitMapBounds(bounds, emptyMessage) {
+      if (!bounds || !bounds.isValid || !bounds.isValid()) {
+        setStatus(emptyMessage || 'No map geometry available', false);
+        return false;
+      }
+      const southWest = bounds.getSouthWest();
+      const northEast = bounds.getNorthEast();
+      const isPoint = southWest && northEast
+        && Math.abs(southWest.lat - northEast.lat) < 1.0e-9
+        && Math.abs(southWest.lng - northEast.lng) < 1.0e-9;
+      if (isPoint) {
+        map.setView(southWest, Math.max(map.getZoom(), 18), { animate: true });
+      } else {
+        map.fitBounds(bounds.pad(0.16), { animate: true, maxZoom: 20 });
+      }
+      return true;
+    }
+
+    function fitMapToLayer(layer, emptyMessage, okMessage) {
+      const bounds = extendBoundsWithLayer(null, layer);
+      if (!fitMapBounds(bounds, emptyMessage)) return;
+      if (okMessage) setStatus(okMessage, true);
+    }
+
+    function fitMapToOperation() {
+      let bounds = null;
+      bounds = extendBoundsWithLayer(bounds, drawnItems);
+      bounds = extendBoundsWithLayer(bounds, goalLayer);
+      bounds = extendBoundsWithLayer(bounds, state.robotMarker);
+      if (fitMapBounds(bounds, 'No hay robot, ruta o zonas para encuadrar')) {
+        setStatus('Vista encuadrada en operacion', true);
+      }
+    }
+
+    function resetMapToConfiguredHome() {
+      const cfg = getUiConfig();
+      map.setView([cfg.map_default_center_lat, cfg.map_default_center_lon], cfg.map_default_zoom, {
+        animate: true
+      });
+      setStatus('Vista inicial restaurada', true);
+    }
+
+    async function copyMapViewToClipboard() {
+      const center = map.getCenter();
+      const payload = {
+        lat: Number(center.lat.toFixed(7)),
+        lon: Number(center.lng.toFixed(7)),
+        zoom: map.getZoom(),
+        base_map: state.mapOptions.baseMap
+      };
+      const text = JSON.stringify(payload);
+      const ok = await copyTextToClipboard(text);
+      setStatus(ok ? `Copied map view: ${text}` : 'Copy failed', ok);
+    }
+
     function setMapToolInfo(text) {
       const infoEl = document.getElementById('mapToolInfo');
       if (!infoEl) return;
@@ -2142,7 +4117,19 @@
       const areaBtn = document.getElementById('mapToolAreaBtn');
       const inspectBtn = document.getElementById('mapToolInspectBtn');
       const centerRobotBtn = document.getElementById('mapToolCenterRobotBtn');
+      const followRobotBtn = document.getElementById('mapToolFollowRobotBtn');
+      const fitRouteBtn = document.getElementById('mapToolFitRouteBtn');
+      const fitZonesBtn = document.getElementById('mapToolFitZonesBtn');
+      const fitAllBtn = document.getElementById('mapToolFitAllBtn');
+      const clearMeasureBtn = document.getElementById('mapToolClearMeasureBtn');
+      const homeBtn = document.getElementById('mapToolHomeBtn');
+      const copyViewBtn = document.getElementById('mapToolCopyViewBtn');
       const closeBtn = document.getElementById('mapToolCloseBtn');
+      const hudRulerBtn = document.getElementById('hudMeasureBtn');
+      const hudAreaBtn = document.getElementById('hudAreaBtn');
+      const hudInspectBtn = document.getElementById('hudInspectBtn');
+      const hudCenterBtn = document.getElementById('hudCenterBtn');
+      const hudCloseBtn = document.getElementById('hudToolCloseBtn');
       if (!toolbar || !rulerBtn || !areaBtn || !inspectBtn || !centerRobotBtn || !closeBtn) return;
 
       const gpsMain = isGpsMainView();
@@ -2157,7 +4144,37 @@
       areaBtn.disabled = disableAll;
       inspectBtn.disabled = disableAll;
       centerRobotBtn.disabled = disableAll || !state.robotMarker;
-      closeBtn.disabled = disableAll || !isMapToolActive();
+      if (followRobotBtn) {
+        followRobotBtn.disabled = disableAll;
+        followRobotBtn.classList.toggle('active', state.mapOptions.followRobot);
+      }
+      if (fitRouteBtn) fitRouteBtn.disabled = disableAll || state.goalWaypoints.length === 0;
+      if (fitZonesBtn) fitZonesBtn.disabled = disableAll || collectZonesFromLayers().length === 0;
+      if (fitAllBtn) fitAllBtn.disabled = disableAll || (!state.robotMarker && state.goalWaypoints.length === 0 && collectZonesFromLayers().length === 0);
+      if (clearMeasureBtn) clearMeasureBtn.disabled = disableAll || (!hasMapToolData() && !isMapToolActive());
+      if (homeBtn) homeBtn.disabled = disableAll;
+      if (copyViewBtn) copyViewBtn.disabled = disableAll;
+      closeBtn.disabled = disableAll || (!isMapToolActive() && !hasMapToolData());
+      if (hudRulerBtn) {
+        hudRulerBtn.classList.toggle('active-tool', state.activeMapTool === 'ruler');
+        hudRulerBtn.disabled = disableAll;
+      }
+      if (hudAreaBtn) {
+        hudAreaBtn.classList.toggle('active-tool', state.activeMapTool === 'area');
+        hudAreaBtn.disabled = disableAll;
+      }
+      if (hudInspectBtn) {
+        hudInspectBtn.classList.toggle('active-tool', state.activeMapTool === 'inspect');
+        hudInspectBtn.disabled = disableAll;
+      }
+      if (hudCenterBtn) {
+        hudCenterBtn.disabled = disableAll || !state.robotMarker;
+      }
+      if (hudCloseBtn) {
+        hudCloseBtn.classList.toggle('active-tool', isMapToolActive());
+        hudCloseBtn.disabled = disableAll || (!isMapToolActive() && !hasMapToolData());
+      }
+      updateMapOptionsUi();
     }
 
     function updateMapInteractionCursor() {
@@ -2357,6 +4374,11 @@
       if (state.activeMapTool !== toolName) {
         clearMapToolData();
       }
+      if (!state.mapOptions.showMeasurements) {
+        state.mapOptions.showMeasurements = true;
+        syncMapOverlayVisibility();
+        persistMapOptionsStorage();
+      }
       state.activeMapTool = toolName;
       state.mapToolPreviewLatLng = null;
       updateMapInteractionCursor();
@@ -2366,6 +4388,7 @@
         map.doubleClickZoom.disable();
       }
       renderActiveMapTool();
+      updateMapOptionsUi();
       setStatus(`Map tool: ${toolName}`, true);
     }
 
@@ -2711,6 +4734,7 @@
         });
         goalLayer.addLayer(marker);
       }
+      syncMapOverlayVisibility();
     }
 
     function updateGoalButtonsState() {
@@ -2759,6 +4783,12 @@
     function setGoalModeUi(enabled) {
       if (enabled === true && isMapToolActive()) {
         deactivateMapTool({ clear: false });
+      }
+      if (enabled === true && !state.mapOptions.showRoute) {
+        state.mapOptions.showRoute = true;
+        syncMapOverlayVisibility();
+        persistMapOptionsStorage();
+        updateMapOptionsUi();
       }
       state.goalMode = enabled === true;
       const btn = document.getElementById('goalModeBtn');
@@ -3452,22 +5482,9 @@
 
     function updateManualSliderLabels() {
       const linear = Number(document.getElementById('manualLinearSlider').value || 1.2);
-      const steeringDeg = Number(document.getElementById('manualAngularSlider').value || 18.0);
+      const angular = Number(document.getElementById('manualAngularSlider').value || 0.4);
       document.getElementById('manualLinearValue').textContent = linear.toFixed(2);
-      document.getElementById('manualAngularValue').textContent = steeringDeg.toFixed(1);
-    }
-
-    function ackermannYawRateFromSteering(linearX, steerDeg) {
-      const signedSpeed = Number(linearX || 0.0);
-      const requestedSteerDeg = Number(steerDeg || 0.0);
-      if (!Number.isFinite(signedSpeed) || !Number.isFinite(requestedSteerDeg)) return 0.0;
-      if (Math.abs(requestedSteerDeg) <= 1e-3) return 0.0;
-
-      const steeringRad = requestedSteerDeg * Math.PI / 180.0;
-      const referenceSpeed = Math.abs(signedSpeed) > 1e-3
-        ? signedSpeed
-        : MANUAL_STEERING_FALLBACK_SPEED_MPS;
-      return referenceSpeed * Math.tan(steeringRad) / MANUAL_WHEELBASE_M;
+      document.getElementById('manualAngularValue').textContent = angular.toFixed(2);
     }
 
     function renderManualStatus() {
@@ -3480,10 +5497,9 @@
       btn.setAttribute('aria-label', btn.title);
 
       const vx = Number(state.manualCmd.linearX || 0).toFixed(2);
-      const steer = Number(state.manualCmd.steerDeg || 0).toFixed(1);
       const wz = Number(state.manualCmd.angularZ || 0).toFixed(2);
       const status = document.getElementById('manualStatus');
-      status.textContent = `Manual: ${enabled ? 'ON' : 'OFF'} · keys=${manualKeysSummary()} · vx_cmd=${vx} · steer_cmd=${steer}deg · wz_cmd=${wz}`;
+      status.textContent = `Manual: ${enabled ? 'ON' : 'OFF'} · keys=${manualKeysSummary()} · vx_cmd=${vx} · wz_cmd=${wz}`;
       status.className = enabled ? 'status good' : 'status';
     }
 
@@ -3502,7 +5518,6 @@
       state.manualBrakeHeld = false;
       state.manualCmd.linearX = 0.0;
       state.manualCmd.angularZ = 0.0;
-      state.manualCmd.steerDeg = 0.0;
     }
 
     function resetNavTelemetryState() {
@@ -3537,10 +5552,9 @@
 
       if (state.manualBrakeHeld) {
         targetBrake = MANUAL_EMERGENCY_BRAKE_PCT;
-        state.manualCmd.steerDeg = 0.0;
       } else {
         const linearMax = Number(document.getElementById('manualLinearSlider').value || 1.2);
-        const steeringMaxDeg = Number(document.getElementById('manualAngularSlider').value || 18.0);
+        const angularMax = Number(document.getElementById('manualAngularSlider').value || 0.4);
 
         const forward = state.manualKeys.w;
         const reverse = state.manualKeys.s;
@@ -3549,16 +5563,12 @@
 
         if (forward && !reverse) targetLinear = linearMax;
         if (reverse && !forward) targetLinear = -linearMax;
-        let targetSteerDeg = 0.0;
-        if (left && !right) targetSteerDeg = steeringMaxDeg;
-        if (right && !left) targetSteerDeg = -steeringMaxDeg;
-        targetAngular = ackermannYawRateFromSteering(targetLinear, targetSteerDeg);
-        state.manualCmd.steerDeg = targetSteerDeg;
+        if (left && !right) targetAngular = angularMax;
+        if (right && !left) targetAngular = -angularMax;
       }
 
       state.manualCmd.linearX = targetLinear;
       state.manualCmd.angularZ = targetAngular;
-      if (!state.manualBrakeHeld && Math.abs(targetAngular) <= 1e-3) state.manualCmd.steerDeg = 0.0;
 
       if (Math.abs(state.manualCmd.linearX) < 1e-3) state.manualCmd.linearX = 0.0;
       if (Math.abs(state.manualCmd.angularZ) < 1e-3) state.manualCmd.angularZ = 0.0;
@@ -3571,7 +5581,7 @@
       stopManualLoop();
       state.manualLoopTimer = window.setInterval(
         manualControlTick,
-        Math.round(1000.0 / MANUAL_LOOP_HZ)
+        getManualLoopIntervalMs()
       );
     }
 
@@ -3824,6 +5834,7 @@
         if (msg.client_req_id != null) {
           finalizePendingRequestById(String(msg.client_req_id));
         }
+        applyUiConfig(msg.ui_config || null);
         state.frameId = msg.frame_id || 'map';
         const zones = Array.isArray(msg.zones) ? msg.zones : [];
         state.lastZones = zones;
@@ -4107,7 +6118,9 @@
       const hasPose = pose && Number.isFinite(pose.lat) && Number.isFinite(pose.lon);
       if (!hasPose) {
         if (state.robotMarker) {
-          map.removeLayer(state.robotMarker);
+          if (map.hasLayer(state.robotMarker)) {
+            map.removeLayer(state.robotMarker);
+          }
           state.robotMarker = null;
         }
         updateMapToolsToolbarUi();
@@ -4122,10 +6135,14 @@
         state.robotMarker = L.marker(latLng, {
           icon: buildRobotIcon(headingDeg),
           interactive: false
-        }).addTo(map);
+        });
       } else {
         state.robotMarker.setLatLng(latLng);
         state.robotMarker.setIcon(buildRobotIcon(headingDeg));
+      }
+      syncRobotLayerVisibility();
+      if (state.mapOptions.followRobot && state.mapOptions.showRobot) {
+        map.panTo(latLng, { animate: true });
       }
       updateMapToolsToolbarUi();
     }
@@ -4275,6 +6292,7 @@
       drawnItems.clearLayers();
       if (zones.length === 0) {
         renderZoneList({ zones: [] });
+        syncMapOverlayVisibility();
         return;
       }
 
@@ -4286,6 +6304,7 @@
         bindZoneLayerDrag(layer);
         drawnItems.addLayer(layer);
       });
+      syncMapOverlayVisibility();
     }
 
     function renderZoneList(doc) {
@@ -4580,6 +6599,12 @@
         setStatus('GPS en minimapa: intercambiá a GPS grande para editar zonas', false);
         return;
       }
+      if (!state.mapOptions.showZones) {
+        state.mapOptions.showZones = true;
+        syncMapOverlayVisibility();
+        persistMapOptionsStorage();
+        updateMapOptionsUi();
+      }
       const layer = e.layer;
       layer.zoneMeta = { id: newZoneId(), type: 'no_go', enabled: true };
       bindZoneLayerDrag(layer);
@@ -4649,6 +6674,17 @@
     map.on('click', handleMapToolClick);
     map.on('mousemove', handleMapToolMouseMove);
     map.on('dblclick', handleMapToolDoubleClick);
+    map.on('mousemove', (evt) => {
+      state.mapOptions.mouseLatLng = evt && evt.latlng ? evt.latlng : null;
+      updateMapReadouts();
+    });
+    map.on('mouseout', () => {
+      state.mapOptions.mouseLatLng = null;
+      updateMapReadouts();
+    });
+    map.on('zoomend moveend', () => {
+      updateMapReadouts();
+    });
 
     document.getElementById('connectBtn').addEventListener('click', connectWs);
     const connectOnEnter = (event) => {
@@ -4702,12 +6738,64 @@
     document.getElementById('mapToolInspectBtn').addEventListener('click', () => {
       activateMapTool('inspect');
     });
+    document.getElementById('mapToolClearMeasureBtn').addEventListener('click', () => {
+      clearMapToolData();
+      renderActiveMapTool();
+      updateMapToolsToolbarUi();
+      setStatus('Map measurements cleared', true);
+    });
     document.getElementById('mapToolCenterRobotBtn').addEventListener('click', () => {
       centerMapOnRobot();
+    });
+    document.getElementById('mapToolFollowRobotBtn').addEventListener('click', () => {
+      const nextFollow = !state.mapOptions.followRobot;
+      if (nextFollow && !state.robotMarker) {
+        setStatus('Pose del robot no disponible', false);
+      }
+      if (nextFollow && !state.mapOptions.showRobot) {
+        state.mapOptions.showRobot = true;
+      }
+      setMapOption('followRobot', nextFollow);
+      if (nextFollow) {
+        centerMapOnRobot();
+      } else {
+        setStatus('Seguimiento de robot desactivado', true);
+      }
+    });
+    document.getElementById('mapToolFitRouteBtn').addEventListener('click', () => {
+      fitMapToLayer(goalLayer, 'No hay ruta para encuadrar', 'Ruta encuadrada');
+    });
+    document.getElementById('mapToolFitZonesBtn').addEventListener('click', () => {
+      fitMapToLayer(drawnItems, 'No hay zonas para encuadrar', 'Zonas encuadradas');
+    });
+    document.getElementById('mapToolFitAllBtn').addEventListener('click', () => {
+      fitMapToOperation();
+    });
+    document.getElementById('mapToolHomeBtn').addEventListener('click', () => {
+      resetMapToConfiguredHome();
+    });
+    document.getElementById('mapToolCopyViewBtn').addEventListener('click', () => {
+      copyMapViewToClipboard();
     });
     document.getElementById('mapToolCloseBtn').addEventListener('click', () => {
       deactivateMapTool({ clear: true });
       setStatus('Map tool action canceled and cleared', false);
+    });
+    document.getElementById('mapBaseLayerSelect').addEventListener('change', (event) => {
+      setMapOption('baseMap', event.target?.value || DEFAULT_BASE_MAP_KEY);
+      setStatus(`Base map: ${BASE_MAP_LAYERS[state.mapOptions.baseMap].label}`, true);
+    });
+    document.getElementById('mapOverlayZones').addEventListener('change', (event) => {
+      setMapOption('showZones', event.target.checked);
+    });
+    document.getElementById('mapOverlayRoute').addEventListener('change', (event) => {
+      setMapOption('showRoute', event.target.checked);
+    });
+    document.getElementById('mapOverlayRobot').addEventListener('change', (event) => {
+      setMapOption('showRobot', event.target.checked);
+    });
+    document.getElementById('mapOverlayMeasure').addEventListener('change', (event) => {
+      setMapOption('showMeasurements', event.target.checked);
     });
 
     document.getElementById('goalModeBtn').addEventListener('click', () => {
@@ -4993,11 +7081,13 @@
       cameraFrameEl.blur();
     });
     cameraFrameEl.src = 'about:blank';
+    applyUiConfig(state.uiConfig);
     {
       const storedConnection = readConnectionPresetStorage();
       state.connectionPreset = storedConnection.preset;
       state.connectionPresetValues = storedConnection.presets;
     }
+    applyMapOptions(readMapOptionsStorage());
     initializeTrackedButtonsUi();
     setConnectButtonConnecting(false);
     setConnectionState(false);
@@ -5015,6 +7105,298 @@
     renderGoalWaypoints();
     updateMapToolsToolbarUi();
     renderActiveMapTool();
+
+    // HUD wiring keeps the cockpit controls bound to the existing hidden UI.
+    (function() {
+      const HUD_MENU_PAIRS = [
+        ['hudModeMenuBtn', 'hudModeMenu'],
+        ['hudZoomMenuBtn', 'hudZoomMenu'],
+        ['hudRouteMenuBtn', 'hudRouteMenu']
+      ];
+      let syncingHudConnectionFields = false;
+      let syncingHudLoop = false;
+
+      const byId = (id) => document.getElementById(id);
+
+      function clickHiddenControl(targetId) {
+        const target = byId(targetId);
+        if (target && !target.disabled) {
+          target.click();
+        }
+      }
+
+      function closeHudMenus(exceptMenuId = null) {
+        HUD_MENU_PAIRS.forEach(([buttonId, menuId]) => {
+          if (menuId === exceptMenuId) return;
+          const btn = byId(buttonId);
+          const menu = byId(menuId);
+          if (menu) menu.classList.remove('open');
+          if (btn) btn.setAttribute('aria-expanded', 'false');
+        });
+      }
+
+      function toggleHudMenu(buttonId, menuId) {
+        const btn = byId(buttonId);
+        const menu = byId(menuId);
+        if (!btn || !menu) return;
+        const open = !menu.classList.contains('open');
+        closeHudMenus(open ? menuId : null);
+        menu.classList.toggle('open', open);
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+
+      function cycleBaseMapLayer() {
+        const keys = Object.keys(BASE_MAP_LAYERS);
+        const currentIdx = keys.indexOf(state.mapOptions.baseMap);
+        const next = keys[(Math.max(0, currentIdx) + 1) % keys.length];
+        const sel = byId('mapBaseLayerSelect');
+        if (sel) {
+          sel.value = next;
+          sel.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+
+      function syncHudConnectionFieldsFromSource() {
+        const hostInput = byId('hudWsHostInput');
+        const portInput = byId('hudWsPortInput');
+        const sourceHost = byId('wsHost');
+        const sourcePort = byId('wsPort');
+        if (!hostInput || !portInput || !sourceHost || !sourcePort) return;
+        syncingHudConnectionFields = true;
+        hostInput.value = sourceHost.value || '';
+        portInput.value = sourcePort.value || '';
+        syncingHudConnectionFields = false;
+      }
+
+      function syncSourceConnectionField(field) {
+        if (syncingHudConnectionFields) return;
+        const hudInput = byId(field === 'port' ? 'hudWsPortInput' : 'hudWsHostInput');
+        const sourceInput = byId(field === 'port' ? 'wsPort' : 'wsHost');
+        if (!hudInput || !sourceInput) return;
+        sourceInput.value = hudInput.value;
+        rememberCurrentConnectionFields();
+      }
+
+      function syncHudLoopFromSource() {
+        const mirror = byId('hudGoalLoopMirror');
+        const source = byId('goalLoop');
+        if (!mirror || !source) return;
+        syncingHudLoop = true;
+        mirror.checked = source.checked === true;
+        syncingHudLoop = false;
+      }
+
+      function setHudButtonDisabled(id, disabled) {
+        const btn = byId(id);
+        if (btn) btn.disabled = disabled === true;
+      }
+
+      function updateHudZoom() {
+        const el = byId('hudZoomDisplay');
+        if (el) el.textContent = String(map.getZoom());
+      }
+
+      function updateHudRangeFill(input) {
+        if (!input) return;
+        const min = Number(input.min || 0);
+        const max = Number(input.max || 100);
+        const value = Number(input.value || 0);
+        const pct = max > min ? Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100)) : 0;
+        input.style.setProperty('--hud-range-fill', pct.toFixed(2) + '%');
+      }
+
+      function updateHudRangeFills() {
+        updateHudRangeFill(byId('manualLinearSlider'));
+        updateHudRangeFill(byId('manualAngularSlider'));
+      }
+
+      function updateHudMenuState() {
+        const modeRealBtn = byId('hudModeRealBtn');
+        const modeSimBtn = byId('hudModeSimBtn');
+        const activePreset = getEffectiveConnectionPreset();
+        if (modeRealBtn) modeRealBtn.classList.toggle('active', activePreset === 'real');
+        if (modeSimBtn) modeSimBtn.classList.toggle('active', activePreset === 'sim');
+
+        const connectToggle = byId('hudConnectToggleBtn');
+        if (connectToggle) {
+          const isBusy = state.connectAttemptActive === true;
+          connectToggle.textContent = state.connected || isBusy ? 'Disconnect' : 'Connect';
+          connectToggle.classList.toggle('danger', state.connected || isBusy);
+        }
+
+        const manualToggle = byId('hudManualToggleBtn');
+        if (manualToggle) {
+          const manualOn = state.manualControl && state.manualControl.enabled === true;
+          manualToggle.textContent = manualOn ? 'Manual ON' : 'Manual OFF';
+          manualToggle.classList.toggle('active', manualOn);
+        }
+
+        const cameraWrap = byId('hudCameraWrap');
+        if (cameraWrap) {
+          cameraWrap.classList.toggle('is-disabled', !getEffectiveConnectionConfig().cameraEnabled);
+        }
+
+        setHudButtonDisabled('hudRouteSendBtn', byId('sendGoalsBtn')?.disabled === true);
+        setHudButtonDisabled('hudRouteUndoBtn', byId('popGoalBtn')?.disabled === true);
+        setHudButtonDisabled('hudRouteClearBtn', byId('clearGoalsBtn')?.disabled === true);
+        syncHudLoopFromSource();
+        updateHudRangeFills();
+      }
+
+      // Override relocateTopSections to place camera+sliders in HUD right column.
+      const originalRelocateTopSections = relocateTopSections;
+      window.removeEventListener('resize', originalRelocateTopSections);
+      relocateTopSections = function() {
+        const slidersSection = byId('slidersSection');
+        const miniViewerSection = byId('miniViewerSection');
+        const mapToolInfo = byId('mapToolInfo');
+        const hudCameraWrap = byId('hudCameraWrap');
+        const hudSlidersWrap = byId('hudSlidersWrap');
+        if (slidersSection && hudSlidersWrap && slidersSection.parentElement !== hudSlidersWrap) {
+          hudSlidersWrap.appendChild(slidersSection);
+        }
+        if (mapToolInfo && hudSlidersWrap && mapToolInfo.parentElement !== hudSlidersWrap) {
+          hudSlidersWrap.appendChild(mapToolInfo);
+        }
+        if (miniViewerSection && hudCameraWrap && miniViewerSection.parentElement !== hudCameraWrap) {
+          hudCameraWrap.appendChild(miniViewerSection);
+        }
+        applyMiniViewerPlacement();
+        updateHudRangeFills();
+        window.requestAnimationFrame(() => { map.invalidateSize(false); });
+      };
+      window.addEventListener('resize', relocateTopSections);
+      relocateTopSections();
+
+      map.on('zoomend', updateHudZoom);
+      updateHudZoom();
+
+      let hudHeadingDeg = null;
+      const originalUpdateRobotPose = updateRobotPose;
+      updateRobotPose = function(pose) {
+        if (pose && Number.isFinite(Number(pose.heading_deg))) {
+          hudHeadingDeg = Number(pose.heading_deg);
+        }
+        originalUpdateRobotPose(pose);
+      };
+
+      function headingToBearing(deg) {
+        if (!Number.isFinite(deg)) return 'N';
+        const n = ((deg % 360) + 360) % 360;
+        const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+        return dirs[Math.round(n / 22.5) % 16];
+      }
+
+      function updateHudTelemetry() {
+        const speedEl = byId('hudSpeed');
+        if (speedEl) {
+          const vel = state.cmdVelSafe;
+          const spd = (vel && vel.available) ? Math.abs(Number(vel.linear_x || 0)) : 0;
+          speedEl.textContent = spd.toFixed(1) + ' m/s';
+        }
+
+        const headEl = byId('hudHeading');
+        if (headEl) headEl.textContent = headingToBearing(hudHeadingDeg);
+
+        const distEl = byId('hudDist');
+        if (distEl) {
+          let dist = null;
+          if (state.robotMarker && state.goalWaypoints && state.goalWaypoints.length > 0) {
+            const wp = state.goalWaypoints[0];
+            if (wp && Number.isFinite(wp.lat) && Number.isFinite(wp.lng)) {
+              dist = state.robotMarker.getLatLng().distanceTo(L.latLng(wp.lat, wp.lng));
+            }
+          }
+          distEl.textContent = (dist !== null) ? dist.toFixed(0) + ' m' : '—';
+        }
+
+        const routeEl = byId('hudRouteDisplay');
+        if (routeEl) {
+          const count = state.goalWaypoints ? state.goalWaypoints.length : 0;
+          routeEl.textContent = count + ' selected';
+        }
+
+        const modeEl = byId('hudModeDisplay');
+        if (modeEl) {
+          if (state.connected) {
+            modeEl.textContent = getEffectiveConnectionPreset() === 'sim' ? 'Sim' : 'Real';
+          } else if (state.connectAttemptActive) {
+            modeEl.textContent = 'Connecting';
+          } else {
+            modeEl.textContent = 'Standby';
+          }
+        }
+
+        updateHudZoom();
+        updateHudMenuState();
+      }
+
+      HUD_MENU_PAIRS.forEach(([buttonId, menuId]) => {
+        const btn = byId(buttonId);
+        if (btn) btn.addEventListener('click', () => toggleHudMenu(buttonId, menuId));
+      });
+
+      document.addEventListener('click', (event) => {
+        const panel = byId('hudControlPanel');
+        if (panel && !panel.contains(event.target)) closeHudMenus();
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeHudMenus();
+      });
+
+      byId('hudModeRealBtn')?.addEventListener('click', () => {
+        applyConnectionPreset('real');
+        syncHudConnectionFieldsFromSource();
+        updateHudTelemetry();
+      });
+      byId('hudModeSimBtn')?.addEventListener('click', () => {
+        applyConnectionPreset('sim');
+        syncHudConnectionFieldsFromSource();
+        updateHudTelemetry();
+      });
+      byId('hudWsHostInput')?.addEventListener('input', () => syncSourceConnectionField('host'));
+      byId('hudWsPortInput')?.addEventListener('input', () => syncSourceConnectionField('port'));
+      byId('hudConnectToggleBtn')?.addEventListener('click', () => {
+        if (state.connected || state.connectAttemptActive) {
+          disconnectWs();
+        } else {
+          connectWs();
+        }
+        updateHudTelemetry();
+      });
+      byId('hudManualToggleBtn')?.addEventListener('click', () => clickHiddenControl('manualModeBtn'));
+
+      byId('hudZoomInMenuBtn')?.addEventListener('click', () => map.zoomIn());
+      byId('hudZoomOutMenuBtn')?.addEventListener('click', () => map.zoomOut());
+      byId('hudHomeMenuBtn')?.addEventListener('click', () => clickHiddenControl('mapToolHomeBtn'));
+      byId('hudFitAllMenuBtn')?.addEventListener('click', () => clickHiddenControl('mapToolFitAllBtn'));
+
+      byId('hudMeasureBtn')?.addEventListener('click', () => clickHiddenControl('mapToolRulerBtn'));
+      byId('hudAreaBtn')?.addEventListener('click', () => clickHiddenControl('mapToolAreaBtn'));
+      byId('hudInspectBtn')?.addEventListener('click', () => clickHiddenControl('mapToolInspectBtn'));
+      byId('hudCenterBtn')?.addEventListener('click', () => clickHiddenControl('mapToolCenterRobotBtn'));
+      byId('hudToolCloseBtn')?.addEventListener('click', () => clickHiddenControl('mapToolCloseBtn'));
+      byId('hudDatumBtn')?.addEventListener('click', () => clickHiddenControl('mapToolHomeBtn'));
+      byId('manualLinearSlider')?.addEventListener('input', updateHudRangeFills);
+      byId('manualAngularSlider')?.addEventListener('input', updateHudRangeFills);
+
+      byId('hudRouteSendBtn')?.addEventListener('click', () => clickHiddenControl('sendGoalsBtn'));
+      byId('hudRouteCancelBtn')?.addEventListener('click', () => clickHiddenControl('cancelGoalBtn'));
+      byId('hudRouteUndoBtn')?.addEventListener('click', () => clickHiddenControl('popGoalBtn'));
+      byId('hudRouteClearBtn')?.addEventListener('click', () => clickHiddenControl('clearGoalsBtn'));
+      byId('hudRouteSaveBtn')?.addEventListener('click', () => clickHiddenControl('saveWaypointsBtn'));
+      byId('hudRouteLoadBtn')?.addEventListener('click', () => clickHiddenControl('loadWaypointsBtn'));
+      byId('hudGoalLoopMirror')?.addEventListener('change', (event) => {
+        if (syncingHudLoop) return;
+        const source = byId('goalLoop');
+        if (source) source.checked = event.target.checked === true;
+      });
+
+      syncHudConnectionFieldsFromSource();
+      syncHudLoopFromSource();
+      window.setInterval(updateHudTelemetry, 500);
+      updateHudTelemetry();
+    })();
   </script>
 </body>
 </html>

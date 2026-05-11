@@ -29,11 +29,13 @@ Fuente de verdad: `launch/`, `config/`, `setup.py` y tests del paquete
 - `ros2 launch navegacion_gps rviz_real_global_v2.launch.py`
 
 `real_global_v2` y `sim_global_v2` son las unicas navegaciones operativas vigentes del paquete.
+En simulacion, los bringups V2 arrancan por defecto con `models/cuatri_2gps.urdf` para reflejar el layout de dos GPS dentro de Gazebo.
 
 La V2 global agrega la capa `map -> odom` sobre la base local Ackermann, con `navsat_transform`, EKF global, datum configurable y goals LL en `map`.
 En los perfiles globales actuales, la corrección absoluta del EKF de `map` entra como `/gps/odometry_map` en frame `map` obtenido vía `fromLL`, y el heading global puede asistir al filtro mediante `/gps/course_heading`.
 La base local V2 sigue vigente como bloque interno: `ackermann_odometry`, `localization_v2` y `/odometry/local` sostienen la capa global.
 El datum de V2 global es fijo por sitio operativo. Los mecanismos para setear datum automaticamente quedan como LEGACY y no forman parte de los bringups vigentes.
+La fuente única para datum y frames de operación quedó en `config/navigation_profiles.yaml`. Si hay que realinear un sitio o volver a hacer coincidir local/global, corregir ahí antes de tocar varios launch files.
 
 ### Navegacion LEGACY / referencia
 - `ros2 launch navegacion_gps simulacion.launch.py`
@@ -95,3 +97,4 @@ Estos perfiles viejos pueden servir para consultar implementaciones puntuales, p
 - Si necesitás wiring fino o tuning de V2, usá los documentos específicos de V2.
 - Si encontrás decisiones escritas en futuro o en tono de propuesta, tratarlas como documentación histórica, no como fuente de verdad del checkout actual.
 - En `real_global_v2`, el nodo `scan_wifi_debug` publica un `LaserScan` de debug para Wi‑Fi en `/scan_wifi_debug` sin reemplazar `/scan`; el objetivo es visualización remota liviana, no alimentar Nav2.
+- En `rviz_global_v2.rviz`, la `Odom Grid` queda apagada por default y se usa solo para debug de `map -> odom`. En operación normal, verla activa tiende a confundir corrección global legítima con “desplazamiento”.

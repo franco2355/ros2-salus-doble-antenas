@@ -1,3 +1,6 @@
+import os
+
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.conditions import IfCondition
@@ -6,6 +9,13 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
+    navegacion_gps_share_dir = get_package_share_directory("navegacion_gps")
+    cyclonedds_config_path = os.path.join(
+        navegacion_gps_share_dir,
+        "config",
+        "cyclonedds_wifi.xml",
+    )
+
     ws_host = LaunchConfiguration("ws_host")
     ws_port = LaunchConfiguration("ws_port")
     gps_topic = LaunchConfiguration("gps_topic")
@@ -36,6 +46,13 @@ def generate_launch_description():
     snapshot_request_timeout_s = LaunchConfiguration("snapshot_request_timeout_s")
     set_zones_timeout_s = LaunchConfiguration("set_zones_timeout_s")
     set_goal_timeout_s = LaunchConfiguration("set_goal_timeout_s")
+    datum_lat = LaunchConfiguration("datum_lat")
+    datum_lon = LaunchConfiguration("datum_lon")
+    datum_yaw_deg = LaunchConfiguration("datum_yaw_deg")
+    rtk_source_status_topic = LaunchConfiguration("rtk_source_status_topic")
+    launch_waypoint_recorder = LaunchConfiguration("launch_waypoint_recorder")
+    waypoint_recorder_output_file = LaunchConfiguration("waypoint_recorder_output_file")
+    waypoint_recorder_min_distance_m = LaunchConfiguration("waypoint_recorder_min_distance_m")
 
     return LaunchDescription(
         [
@@ -97,6 +114,16 @@ def generate_launch_description():
             DeclareLaunchArgument("snapshot_request_timeout_s", default_value="2.0"),
             DeclareLaunchArgument("set_zones_timeout_s", default_value="12.0"),
             DeclareLaunchArgument("set_goal_timeout_s", default_value="12.0"),
+            DeclareLaunchArgument("datum_lat", default_value="nan"),
+            DeclareLaunchArgument("datum_lon", default_value="nan"),
+            DeclareLaunchArgument("datum_yaw_deg", default_value="0.0"),
+            DeclareLaunchArgument("rtk_source_status_topic", default_value="/gps/rtk_source/status_json"),
+            DeclareLaunchArgument("launch_waypoint_recorder", default_value="true"),
+            DeclareLaunchArgument(
+                "waypoint_recorder_output_file",
+                default_value="~/.ros/recorded_waypoints.yaml",
+            ),
+            DeclareLaunchArgument("waypoint_recorder_min_distance_m", default_value="3.0"),
             Node(
                 package="navegacion_gps",
                 executable="zones_manager",
@@ -149,6 +176,11 @@ def generate_launch_description():
                 executable="web_zone_server",
                 name="web_zone_server",
                 output="screen",
+                additional_env={
+                    "CYCLONEDDS_URI": cyclonedds_config_path,
+                    "ROS_LOCALHOST_ONLY": "0",
+                    "ROS_DOMAIN_ID": "0",
+                },
                 parameters=[
                     {
                         "ws_host": ws_host,
@@ -174,6 +206,24 @@ def generate_launch_description():
                         "snapshot_request_timeout_s": snapshot_request_timeout_s,
                         "set_zones_timeout_s": set_zones_timeout_s,
                         "set_goal_timeout_s": set_goal_timeout_s,
+                        "datum_lat": datum_lat,
+                        "datum_lon": datum_lon,
+                        "datum_yaw_deg": datum_yaw_deg,
+                        "rtk_source_status_topic": rtk_source_status_topic,
+                    }
+                ],
+            ),
+            Node(
+                package="navegacion_gps",
+                executable="manual_waypoint_recorder",
+                name="manual_waypoint_recorder",
+                output="screen",
+                condition=IfCondition(launch_waypoint_recorder),
+                parameters=[
+                    {
+                        "gps_topic": gps_topic,
+                        "output_file": waypoint_recorder_output_file,
+                        "min_distance_m": waypoint_recorder_min_distance_m,
                     }
                 ],
             ),
