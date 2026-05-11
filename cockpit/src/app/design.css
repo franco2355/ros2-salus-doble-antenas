@@ -5019,6 +5019,89 @@ button:disabled,
   color: rgba(148,163,184,0.75) !important;
 }
 
+/* Isolated settings scope tabs. Do not merge with .console-tabs/.settings-header-tabs. */
+.scope-tabs-shell {
+  inline-size: min(330px, 100%) !important;
+  min-width: 0 !important;
+  height: 40px !important;
+  display: grid !important;
+  align-items: center !important;
+  justify-self: start !important;
+  align-self: center !important;
+  gap: 3px !important;
+  padding: 3px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(176, 194, 220, 0.72) !important;
+  border-radius: 14px !important;
+  background:
+    linear-gradient(180deg, rgba(17, 27, 44, 0.98) 0%, rgba(7, 13, 25, 0.96) 100%) !important;
+  box-shadow:
+    0 10px 22px rgba(0, 0, 0, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(2, 6, 23, 0.72) !important;
+}
+
+.scope-tabs-option {
+  min-width: 0 !important;
+  width: 100% !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 12px !important;
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  color: #7e8da4 !important;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 820 !important;
+  letter-spacing: 0.07em !important;
+  line-height: 1 !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  transition:
+    color 150ms ease,
+    background 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease !important;
+}
+
+.scope-tabs-option:hover:not(.scope-tabs-option--active) {
+  border-color: rgba(132, 153, 184, 0.22) !important;
+  background: rgba(148, 163, 184, 0.08) !important;
+  color: #c7d2e2 !important;
+}
+
+.scope-tabs-option:focus-visible {
+  outline: 2px solid rgba(129, 140, 248, 0.72) !important;
+  outline-offset: 2px !important;
+}
+
+.scope-tabs-option--active,
+.scope-tabs-option--active:hover {
+  border-color: rgba(126, 108, 255, 0.72) !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.20), transparent 46%),
+    linear-gradient(180deg, #5b39ff 0%, #3f22dd 100%) !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 7px 16px rgba(71, 45, 230, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    inset 0 -1px 0 rgba(36, 20, 150, 0.64) !important;
+}
+
+.scope-tabs-label {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
 /* Right: tab bar — white pill container */
 .settings-header-tabs {
   height: auto !important;

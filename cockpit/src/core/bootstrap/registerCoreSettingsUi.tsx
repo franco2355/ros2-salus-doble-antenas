@@ -255,6 +255,46 @@ function fieldTypeLabel(type: PackageSettingFieldSchema["type"]): string {
   return labels[type];
 }
 
+interface SettingsScopeTabItem {
+  id: SettingsTabId;
+  label: string;
+}
+
+function SettingsScopeTabs({
+  tabs,
+  activeTab,
+  onSelect
+}: {
+  tabs: SettingsScopeTabItem[];
+  activeTab: SettingsTabId;
+  onSelect: (tabId: SettingsTabId) => void;
+}): JSX.Element {
+  return (
+    <div
+      className="scope-tabs-shell"
+      role="tablist"
+      aria-label="Settings scope"
+      style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
+    >
+      {tabs.map((tab) => {
+        const selected = tab.id === activeTab;
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={selected}
+            className={`scope-tabs-option${selected ? " scope-tabs-option--active" : ""}`}
+            onClick={() => onSelect(tab.id)}
+          >
+            <span className="scope-tabs-label">{tab.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function SettingsFieldCard({
   scopeId,
   field,
@@ -339,6 +379,13 @@ function SettingsFieldCard({
 
 function SettingsModalHeader({ runtime }: { runtime: AppRuntime; close: () => void }): JSX.Element {
   const state = useSettingsUi(runtime);
+  const scopeTabs: SettingsScopeTabItem[] = [
+    { id: "global", label: "Global" },
+    ...runtime.packages.map((cockpitPackage) => ({
+      id: `package:${cockpitPackage.id}` as const,
+      label: cockpitPackage.id.toUpperCase()
+    }))
+  ];
 
   return (
     <div className="settings-modal-header">
@@ -349,37 +396,17 @@ function SettingsModalHeader({ runtime }: { runtime: AppRuntime; close: () => vo
           <span className="settings-header-subtitle">Global notifications and package runtime controls.</span>
         </div>
       </div>
-      <div className="console-tabs settings-header-tabs">
-        <button
-          type="button"
-          className={state.activeTab === "global" ? "active" : ""}
-          onClick={() => {
-            updateSettingsUiState((current) => ({
-              ...current,
-              activeTab: "global",
-              footerNotice: ""
-            }));
-          }}
-        >
-          Global
-        </button>
-        {runtime.packages.map((cockpitPackage) => (
-          <button
-            key={cockpitPackage.id}
-            type="button"
-            className={state.activeTab === `package:${cockpitPackage.id}` ? "active" : ""}
-            onClick={() => {
-              updateSettingsUiState((current) => ({
-                ...current,
-                activeTab: `package:${cockpitPackage.id}`,
-                footerNotice: ""
-              }));
-            }}
-          >
-            {cockpitPackage.id}
-          </button>
-        ))}
-      </div>
+      <SettingsScopeTabs
+        tabs={scopeTabs}
+        activeTab={state.activeTab}
+        onSelect={(tabId) => {
+          updateSettingsUiState((current) => ({
+            ...current,
+            activeTab: tabId,
+            footerNotice: ""
+          }));
+        }}
+      />
     </div>
   );
 }
