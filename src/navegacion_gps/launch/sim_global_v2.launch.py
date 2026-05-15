@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -9,27 +10,38 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 
-from navegacion_gps.navigation_profiles import load_navigation_profile
+from navegacion_gps.datum_profile_resolver import resolve_selected_datum
+
+
+def _resolve_config_file_path(package_share_dir: str, filename: str) -> str:
+    package_share_path = Path(package_share_dir)
+    default_path = package_share_path / "config" / filename
+    try:
+        workspace_root = package_share_path.parents[3]
+        source_path = workspace_root / "src" / "navegacion_gps" / "config" / filename
+        if source_path.exists():
+            return str(source_path)
+    except IndexError:
+        pass
+    return str(default_path)
 
 
 def generate_launch_description():
     gps_wpf_dir = get_package_share_directory("navegacion_gps")
     map_tools_dir = get_package_share_directory("map_tools")
-    keepout_mask_yaml = os.path.join(gps_wpf_dir, "config", "keepout_mask.yaml")
-    navigation_profiles_file = os.path.join(
-        gps_wpf_dir, "config", "navigation_profiles.yaml"
+    keepout_mask_yaml = _resolve_config_file_path(gps_wpf_dir, "keepout_mask.yaml")
+    default_nav2_params_file = _resolve_config_file_path(
+        gps_wpf_dir, "nav2_global_v2_sim_rolling_params.yaml"
     )
-    global_profile = load_navigation_profile(navigation_profiles_file, "global_v2")
-    if (
-        global_profile.datum_lat is None
-        or global_profile.datum_lon is None
-        or global_profile.datum_yaw_deg is None
-        or global_profile.navsat_use_odometry_yaw is None
-    ):
-        raise ValueError(
-            "Navigation profile 'global_v2' must define datum_* and "
-            "navsat_use_odometry_yaw"
-        )
+    default_collision_monitor_params_file = _resolve_config_file_path(
+        gps_wpf_dir, "collision_monitor_v2.yaml"
+    )
+    default_global_localization_params_file = _resolve_config_file_path(
+        gps_wpf_dir, "localization_global_v2.yaml"
+    )
+    default_datum_lat, default_datum_lon, default_datum_yaw_deg, default_datums_file = (
+        resolve_selected_datum(gps_wpf_dir)
+    )
 
     use_sim_time = LaunchConfiguration("use_sim_time")
     wheelbase_m = LaunchConfiguration("wheelbase_m")
@@ -39,10 +51,6 @@ def generate_launch_description():
     vx_deadband_mps = LaunchConfiguration("vx_deadband_mps")
     vx_min_effective_mps = LaunchConfiguration("vx_min_effective_mps")
     invert_steer_from_cmd_vel = LaunchConfiguration("invert_steer_from_cmd_vel")
-    map_frame = LaunchConfiguration("map_frame")
-    fromll_frame = LaunchConfiguration("fromll_frame")
-    odom_topic = LaunchConfiguration("odom_topic")
-    navsat_use_odometry_yaw = LaunchConfiguration("navsat_use_odometry_yaw")
     nav2_params_file = LaunchConfiguration("nav2_params_file")
     collision_monitor_params_file = LaunchConfiguration("collision_monitor_params_file")
     keepout_mask_yaml_arg = LaunchConfiguration("keepout_mask_yaml")
@@ -59,6 +67,7 @@ def generate_launch_description():
     datum_lat = LaunchConfiguration("datum_lat")
     datum_lon = LaunchConfiguration("datum_lon")
     datum_yaw_deg = LaunchConfiguration("datum_yaw_deg")
+    datums_file = LaunchConfiguration("datums_file")
     datum_setter = LaunchConfiguration("datum_setter")
     enable_map_gps_absolute_measurement = LaunchConfiguration(
         "enable_map_gps_absolute_measurement"
@@ -69,6 +78,7 @@ def generate_launch_description():
     map_gps_fromll_service_fallback = LaunchConfiguration("map_gps_fromll_service_fallback")
     map_gps_fromll_wait_timeout_s = LaunchConfiguration("map_gps_fromll_wait_timeout_s")
     enable_gps_course_heading = LaunchConfiguration("enable_gps_course_heading")
+    enable_global_imu_yaw = LaunchConfiguration("enable_global_imu_yaw")
     gps_course_heading_min_distance_m = LaunchConfiguration(
         "gps_course_heading_min_distance_m"
     )
@@ -92,6 +102,14 @@ def generate_launch_description():
     gps_course_heading_hold_yaw_variance_multiplier = LaunchConfiguration(
         "gps_course_heading_hold_yaw_variance_multiplier"
     )
+    gps_course_heading_require_rtk = LaunchConfiguration("gps_course_heading_require_rtk")
+    gps_course_heading_allowed_rtk_statuses = LaunchConfiguration(
+        "gps_course_heading_allowed_rtk_statuses"
+    )
+    gps_course_heading_rtk_status_max_age_s = LaunchConfiguration(
+        "gps_course_heading_rtk_status_max_age_s"
+    )
+    gps_rtk_status_topic = LaunchConfiguration("gps_rtk_status_topic")
     gps_profile = LaunchConfiguration("gps_profile")
     launch_web_app = LaunchConfiguration("launch_web_app")
     ws_host = LaunchConfiguration("ws_host")
@@ -107,25 +125,22 @@ def generate_launch_description():
             DeclareLaunchArgument("vx_deadband_mps", default_value="0.01"),
             DeclareLaunchArgument("vx_min_effective_mps", default_value="0.5"),
             DeclareLaunchArgument("invert_steer_from_cmd_vel", default_value="True"),
-            DeclareLaunchArgument("map_frame", default_value=global_profile.map_frame),
-            DeclareLaunchArgument("fromll_frame", default_value=global_profile.fromll_frame),
-            DeclareLaunchArgument("odom_topic", default_value=global_profile.odom_topic),
             DeclareLaunchArgument(
                 "nav2_params_file",
-                default_value=os.path.join(gps_wpf_dir, "config", "nav2_global_v2_params.yaml"),
+                default_value=default_nav2_params_file,
             ),
             DeclareLaunchArgument(
                 "collision_monitor_params_file",
-                default_value=os.path.join(gps_wpf_dir, "config", "collision_monitor_v2.yaml"),
+                default_value=default_collision_monitor_params_file,
             ),
             DeclareLaunchArgument("keepout_mask_yaml", default_value=keepout_mask_yaml),
             DeclareLaunchArgument(
                 "global_localization_params_file",
-                default_value=os.path.join(gps_wpf_dir, "config", "localization_global_v2.yaml"),
+                default_value=default_global_localization_params_file,
             ),
             DeclareLaunchArgument(
                 "custom_urdf",
-                default_value=os.path.join(gps_wpf_dir, "models", "cuatri_2gps.urdf"),
+                default_value=os.path.join(gps_wpf_dir, "models", "cuatri_real.urdf"),
             ),
             DeclareLaunchArgument(
                 "world",
@@ -138,14 +153,12 @@ def generate_launch_description():
             DeclareLaunchArgument("twist_covariance_vx", default_value="0.05"),
             DeclareLaunchArgument("twist_covariance_vy", default_value="0.01"),
             DeclareLaunchArgument("twist_covariance_yaw_rate", default_value="0.1"),
-            DeclareLaunchArgument("datum_lat", default_value=str(global_profile.datum_lat)),
-            DeclareLaunchArgument("datum_lon", default_value=str(global_profile.datum_lon)),
+            DeclareLaunchArgument("datum_lat", default_value=str(default_datum_lat)),
+            DeclareLaunchArgument("datum_lon", default_value=str(default_datum_lon)),
             # Convencion fija operativa para `global v2`: por default el robot
             # arranca mirando al Este (`datum_yaw_deg = 0.0` en ROS ENU).
-            DeclareLaunchArgument(
-                "datum_yaw_deg",
-                default_value=str(global_profile.datum_yaw_deg),
-            ),
+            DeclareLaunchArgument("datum_yaw_deg", default_value=str(default_datum_yaw_deg)),
+            DeclareLaunchArgument("datums_file", default_value=default_datums_file),
             DeclareLaunchArgument("datum_setter", default_value="false"),
             DeclareLaunchArgument("enable_map_gps_absolute_measurement", default_value="true"),
             DeclareLaunchArgument("map_gps_absolute_topic", default_value="/gps/odometry_map"),
@@ -156,38 +169,40 @@ def generate_launch_description():
                 default_value="/navsat_transform/fromLL",
             ),
             DeclareLaunchArgument("map_gps_fromll_wait_timeout_s", default_value="0.2"),
-            DeclareLaunchArgument(
-                "navsat_use_odometry_yaw",
-                default_value=(
-                    "true" if global_profile.navsat_use_odometry_yaw else "false"
-                ),
-            ),
-            # Con el wheel-odom fix (sim_max_joint_odom_steer_delta_deg=0.0) el
-            # heading del EKF local ya es estable. Habilitamos gps_course_heading
-            # para dar al EKF global una medicion directa de yaw en rectas (steer<8°)
-            # y eliminar el residuo de ~4-5° que quedaba sin ancla de heading.
-            # En curvas el gate lo desactiva automaticamente (steer>=8°, ~23° min turn).
-            DeclareLaunchArgument("enable_gps_course_heading", default_value="true"),
-            DeclareLaunchArgument("gps_course_heading_min_distance_m", default_value="1.0"),
-            DeclareLaunchArgument("gps_course_heading_min_speed_mps", default_value="0.4"),
-            # Gate conservador: el smoother de angular.z ya atenua microcorrecciones
-            # del RPP en recta, por lo que 8° es suficientemente ancho sin meter
-            # heading en curvas donde el GPS-track no representa la tangente.
-            DeclareLaunchArgument("gps_course_heading_max_abs_steer_deg", default_value="8.0"),
-            DeclareLaunchArgument("gps_course_heading_max_abs_yaw_rate_rps", default_value="0.12"),
+            DeclareLaunchArgument("enable_gps_course_heading", default_value="false"),
+            DeclareLaunchArgument("enable_global_imu_yaw", default_value="true"),
+            # Mantener estos defaults alineados con real_global_v2 para que el
+            # heading GPS tenga el mismo gating en sim y real.
+            DeclareLaunchArgument("gps_course_heading_min_distance_m", default_value="2.0"),
+            DeclareLaunchArgument("gps_course_heading_min_speed_mps", default_value="0.8"),
+            DeclareLaunchArgument("gps_course_heading_max_abs_steer_deg", default_value="3.0"),
+            DeclareLaunchArgument("gps_course_heading_max_abs_yaw_rate_rps", default_value="0.05"),
+            # Cuando el vehiculo entra en una curva leve, dejar caer el heading
+            # en un solo ciclo hace que el EKF global reoriente `map->odom`
+            # demasiado brusco. Mantenemos el ultimo yaw valido por una ventana
+            # corta y con menor confianza para suavizar esa transicion.
             DeclareLaunchArgument("gps_course_heading_invalid_hold_s", default_value="0.8"),
+            # Limita cuan viejo puede ser el segmento GPS usado para inferir
+            # el heading. En curvas largas, usar una cuerda demasiado antigua
+            # reinyecta un yaw que ya no representa la tangente actual.
             DeclareLaunchArgument("gps_course_heading_max_sample_dt_s", default_value="2.5"),
-            DeclareLaunchArgument("gps_course_heading_publish_hz", default_value="10.0"),
-            # GPS ideal en sim -> varianza apretada para que sea ancla efectiva.
-            # En real usar >=0.1 para tolerar ruido de track GPS.
-            DeclareLaunchArgument("gps_course_heading_yaw_variance_rad2", default_value="0.01"),
+            DeclareLaunchArgument("gps_course_heading_publish_hz", default_value="5.0"),
+            DeclareLaunchArgument("gps_course_heading_yaw_variance_rad2", default_value="0.05"),
             DeclareLaunchArgument(
                 "gps_course_heading_hold_yaw_variance_multiplier",
-                default_value="8.0",
+                default_value="4.0",
             ),
-            # Sim global defaults to the ideal profile so LL/map debugging is not
-            # polluted by GNSS noise unless the operator opts into RTK/M8N.
-            DeclareLaunchArgument("gps_profile", default_value="ideal"),
+            DeclareLaunchArgument("gps_course_heading_require_rtk", default_value="True"),
+            DeclareLaunchArgument(
+                "gps_course_heading_allowed_rtk_statuses",
+                default_value="RTK_FIXED,RTK_FIX,RTK_FLOAT,RTCM_OK",
+            ),
+            DeclareLaunchArgument(
+                "gps_course_heading_rtk_status_max_age_s",
+                default_value="2.5",
+            ),
+            DeclareLaunchArgument("gps_rtk_status_topic", default_value="/gps/rtk_status"),
+            DeclareLaunchArgument("gps_profile", default_value="f9p_rtk"),
             DeclareLaunchArgument("launch_web_app", default_value="True"),
             DeclareLaunchArgument("ws_host", default_value="0.0.0.0"),
             DeclareLaunchArgument("web_app_port", default_value="8766"),
@@ -200,7 +215,7 @@ def generate_launch_description():
                     {
                         "use_sim_time": ParameterValue(use_sim_time, value_type=bool),
                         "gps_profile": gps_profile,
-                        "gps_rtk_status_topic": "/gps/rtk_status",
+                        "gps_rtk_status_topic": gps_rtk_status_topic,
                         # En simulacion global mantenemos el fix RTK congelado
                         # cuando el vehiculo esta quieto para que el EKF global
                         # no amplifique el jitter estacionario del GPS.
@@ -256,8 +271,11 @@ def generate_launch_description():
                         "sim_telemetry_timeout_s": 0.5,
                         "sim_invert_actuation_steer_sign": True,
                         "sim_invert_measured_steer_sign": True,
-                        # 0.0 forces odom-derived steer; joint angles read ~15% larger than
-                        # Gazebo's physics steer, causing heading drift. See map->odom drift.
+                        # Gazebo joint telemetry reads steering a bit larger
+                        # than the physics yaw that actually moves the model.
+                        # Deriving odom from that joint angle rotates odom and
+                        # shows up as a map->odom drift between global/local
+                        # costmap footprints. 0.0 forces odom-derived steer.
                         "sim_max_joint_odom_steer_delta_deg": 0.0,
                     }
                 ],
@@ -281,12 +299,12 @@ def generate_launch_description():
                         ),
                         "approx_fromll_zero_threshold_m": 1.0e-3,
                         "approx_fromll_min_distance_for_fallback_m": 0.5,
-                        "fromll_frame": fromll_frame,
-                        "map_frame": map_frame,
+                        "fromll_frame": "map",
+                        "map_frame": "map",
                         "gps_topic": "/gps/fix",
-                        "cmd_vel_safe_topic": "/cmd_vel_safe_smooth",
+                        "cmd_vel_safe_topic": "/cmd_vel_safe",
                         "cmd_vel_final_topic": "/cmd_vel_final",
-                        "forward_cmd_vel_safe_without_goal": False,
+                        "forward_cmd_vel_safe_without_goal": True,
                         "brake_topic": "/cmd_vel_safe",
                         "manual_cmd_topic": "/cmd_vel_safe",
                         "teleop_cmd_topic": "/cmd_vel_teleop",
@@ -305,45 +323,20 @@ def generate_launch_description():
                     }
                 ],
             ),
-            # Suavizador de angular.z: atenúa la oscilación del RPP controller
-            # (zigzag lateral) antes de que el comando llegue al vehículo.
-            # Lee /cmd_vel_safe y publica /cmd_vel_safe_smooth.
-            # El nav_command_server consume /cmd_vel_safe_smooth.
             Node(
                 package="navegacion_gps",
-                executable="cmd_vel_angular_smoother",
-                name="cmd_vel_angular_smoother",
+                executable="route_executor",
+                name="route_executor",
                 output="screen",
                 parameters=[
                     {
                         "use_sim_time": ParameterValue(use_sim_time, value_type=bool),
-                        "input_topic": "/cmd_vel_safe",
-                        "output_topic": "/cmd_vel_safe_smooth",
-                        # tau_s=0.20 → ~9 dB de atenuación a 2 Hz (frecuencia
-                        # típica de oscilación del RPP en Ackermann).
-                        "tau_s": 0.20,
-                        # max_rate_rps2=1.5 → máx 0.075 rad/s de cambio a 20 Hz.
-                        "max_rate_rps2": 1.5,
-                        "timeout_s": 0.5,
-                        "watchdog_hz": 20.0,
-                    }
-                ],
-            ),
-            # Simulamos el `ublox navheading` a partir del yaw de verdad de Gazebo
-            # para que RViz y la integracion dual-GPS tengan una fuente estable y
-            # unica de `/ublox_rover/navheading` en simulacion.
-            Node(
-                package="navegacion_gps",
-                executable="dual_gps_heading_sim",
-                name="dual_gps_heading_sim",
-                output="screen",
-                parameters=[
-                    {
-                        "use_sim_time": ParameterValue(use_sim_time, value_type=bool),
-                        "odom_heading_topic": "/odom_raw",
-                        "output_topic": "/ublox_rover/navheading",
-                        "output_frame": "base_link",
-                        "raw_yaw_offset_rad": 0.0,
+                        "nav_set_goal_service": "/nav_command_server/set_goal_ll",
+                        "nav_cancel_goal_service": "/nav_command_server/cancel_goal",
+                        "nav_telemetry_topic": "/nav_command_server/telemetry",
+                        "set_route_service": "/route_executor/set_route_ll",
+                        "cancel_route_service": "/route_executor/cancel_route",
+                        "get_state_service": "/route_executor/get_state",
                     }
                 ],
             ),
@@ -390,6 +383,14 @@ def generate_launch_description():
                             gps_course_heading_hold_yaw_variance_multiplier,
                             value_type=float,
                         ),
+                        "rtk_status_topic": gps_rtk_status_topic,
+                        "require_rtk": ParameterValue(
+                            gps_course_heading_require_rtk, value_type=bool
+                        ),
+                        "allowed_rtk_statuses": gps_course_heading_allowed_rtk_statuses,
+                        "rtk_status_max_age_s": ParameterValue(
+                            gps_course_heading_rtk_status_max_age_s, value_type=float
+                        ),
                     }
                 ],
             ),
@@ -416,10 +417,11 @@ def generate_launch_description():
                     "map_gps_fromll_service": map_gps_fromll_service,
                     "map_gps_fromll_service_fallback": map_gps_fromll_service_fallback,
                     "map_gps_fromll_wait_timeout_s": map_gps_fromll_wait_timeout_s,
-                    # `navsat_transform` debe proyectar LL usando el yaw del EKF
-                    # local; si vuelve a derivar heading desde el movimiento GPS,
-                    # `map->odom` rota arbitrariamente al arranque y en reposo.
-                    "navsat_use_odometry_yaw": navsat_use_odometry_yaw,
+                    # Simulacion global: mantener yaw global atado al IMU/Gazebo
+                    # evita que el EKF rote map->odom al reconciliar GPS con
+                    # odometria local durante curvas.
+                    "navsat_use_odometry_yaw": "true",
+                    "enable_global_imu_yaw": enable_global_imu_yaw,
                     "enable_gps_course_heading": enable_gps_course_heading,
                     "gps_course_heading_topic": "/gps/course_heading",
                     "datum_lat": datum_lat,
@@ -453,9 +455,16 @@ def generate_launch_description():
                     "ws_host": ws_host,
                     "ws_port": web_app_port,
                     "gps_topic": "/gps/fix",
-                    "odom_topic": odom_topic,
-                    "map_frame": map_frame,
+                    "odom_topic": "/odometry/global",
+                    "map_frame": "map",
                     "launch_nav_command_server": "false",
+                    "launch_route_executor": "false",
+                    "sensor_bridge_enabled": "false",
+                    "fixed_datum_lat": datum_lat,
+                    "fixed_datum_lon": datum_lon,
+                    "fixed_datum_yaw_deg": datum_yaw_deg,
+                    "fixed_datum_source": "sim_global_v2_fixed",
+                    "datums_file": datums_file,
                 }.items(),
                 condition=IfCondition(launch_web_app),
             ),

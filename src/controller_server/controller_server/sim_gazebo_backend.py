@@ -211,10 +211,17 @@ def synthesize_telemetry(
             float(odom_sample.linear_x_mps),
             float(odom_sample.linear_y_mps),
         )
+        signed_odom_speed_mps = float(speed_mps)
+        if float(command_state.speed_mps) < 0.0:
+            signed_odom_speed_mps = -signed_odom_speed_mps
         steering_angle_rad = select_physical_steering_angle_rad(
             left_joint_angle_rad=left_joint_angle_rad,
             right_joint_angle_rad=right_joint_angle_rad,
-            odom_linear_x_mps=odom_sample.linear_x_mps,
+            # Gazebo Odometry twist is expressed in the odom/world frame on this
+            # stack. During turns, linear.x alone shrinks with heading and
+            # would inflate the derived steering angle, making local odometry
+            # over-rotate relative to GPS. Use planar speed magnitude instead.
+            odom_linear_x_mps=signed_odom_speed_mps,
             odom_angular_z_rps=odom_sample.angular_z_rps,
             wheelbase_m=wheelbase_m,
             track_width_m=track_width_m,

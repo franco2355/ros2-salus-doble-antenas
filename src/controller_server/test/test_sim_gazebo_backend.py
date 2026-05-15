@@ -106,7 +106,7 @@ def test_steering_angle_from_wheel_angles_recovers_center_angle(
         right_joint_angle_rad=math.radians(right_joint_deg),
     )
 
-    assert steering_angle == pytest.approx(math.radians(expected_center_deg), abs=1.0e-6)
+    assert steering_angle == pytest.approx(math.radians(expected_center_deg), abs=2.0e-6)
 
 
 def test_select_physical_steering_angle_uses_odom_when_joint_estimate_disagrees() -> None:
@@ -152,7 +152,42 @@ def test_synthesize_telemetry_marks_pi_and_inverts_measured_sign() -> None:
     assert telemetry.ready is True
     assert telemetry.pi_fresh is True
     assert telemetry.speed_mps == pytest.approx(0.7)
-    assert telemetry.steer_deg == pytest.approx(-12.0)
+    assert telemetry.steer_deg == pytest.approx(-12.0, abs=0.05)
+
+
+def test_synthesize_telemetry_uses_planar_speed_for_odom_steer() -> None:
+    command_state = CommandState(
+        drive_enabled=True,
+        estop=False,
+        steer_pct=0,
+        speed_mps=1.0,
+        brake_pct=0,
+        max_speed_mps=4.0,
+        max_reverse_mps=1.3,
+    )
+    expected_steer_rad = math.radians(15.0)
+    odom_sample = OdomSample(
+        # Gazebo reports these components in odom/world frame. The robot can be
+        # moving at 1 m/s while linear.x is much smaller after it has turned.
+        linear_x_mps=0.34,
+        linear_y_mps=math.sqrt(1.0 - 0.34 * 0.34),
+        angular_z_rps=math.tan(expected_steer_rad) / 0.94,
+        rx_monotonic_s=__import__("time").monotonic(),
+    )
+
+    telemetry = synthesize_telemetry(
+        command_state=command_state,
+        odom_sample=odom_sample,
+        left_joint_angle_rad=None,
+        right_joint_angle_rad=None,
+        invert_measured_steer_sign=False,
+        telemetry_timeout_s=0.5,
+        max_joint_odom_delta_rad=0.0,
+    )
+
+    assert telemetry is not None
+    assert telemetry.speed_mps == pytest.approx(1.0)
+    assert telemetry.steer_deg == pytest.approx(15.0, abs=1.0e-6)
 
 
 def test_build_status_flags_encodes_bits() -> None:

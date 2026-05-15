@@ -129,48 +129,6 @@
     <origin xyz="0.76 0.04 0.62" rpy="0 0 0"/>
   </joint>
 
-  <!-- Extra GPS frames so the same real URDF works for 1-GPS and 2-GPS setups.
-       The current dual-GPS layout is front/rear on the vehicle centerline. -->
-  <link name="gps1_link">
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry><box size="0.07 0.04 0.035"/></geometry>
-      <material name="gray"/>
-    </visual>
-    <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <mass value="0.05"/>
-      <inertia ixx="3e-5" ixy="0" ixz="0" iyy="3e-5" iyz="0" izz="3e-5"/>
-    </inertial>
-  </link>
-
-  <joint name="gps1_joint" type="fixed">
-    <parent link="base_link"/>
-    <child link="gps1_link"/>
-    <!-- Front antenna: near the front axle, centered laterally. -->
-    <origin xyz="0.94 0.0 0.65" rpy="0 0 0"/>
-  </joint>
-
-  <link name="gps2_link">
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry><box size="0.07 0.04 0.035"/></geometry>
-      <material name="gray"/>
-    </visual>
-    <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <mass value="0.05"/>
-      <inertia ixx="3e-5" ixy="0" ixz="0" iyy="3e-5" iyz="0" izz="3e-5"/>
-    </inertial>
-  </link>
-
-  <joint name="gps2_joint" type="fixed">
-    <parent link="base_link"/>
-    <child link="gps2_link"/>
-    <!-- Rear antenna: near the rear axle, centered laterally. -->
-    <origin xyz="0.0 0.0 0.65" rpy="0 0 0"/>
-  </joint>
-
 
   <!-- =========================
        WHEELS

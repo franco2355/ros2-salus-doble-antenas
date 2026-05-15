@@ -10,7 +10,12 @@ from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 
-from navegacion_gps.navigation_profiles import load_navigation_profile
+
+DEFAULT_DATUM_LAT = -31.4858037
+DEFAULT_DATUM_LON = -64.2410570
+# Convencion fija operativa para `global v2`: arranca mirando al Este.
+# En ROS ENU eso corresponde a `datum_yaw_deg = 0.0`.
+DEFAULT_DATUM_YAW_DEG = 0.0
 
 
 def _resolve_config_file_path(package_share_dir: str, filename: str) -> str:
@@ -81,6 +86,9 @@ def _build_map_ekf(context):
         LaunchConfiguration("enable_global_imu_stationary_gate").perform(context).lower()
         == "true"
     )
+    enable_global_imu_yaw = (
+        LaunchConfiguration("enable_global_imu_yaw").perform(context).lower() == "true"
+    )
     global_imu_gated_topic = LaunchConfiguration("global_imu_gated_topic").perform(context)
     enable_global_stationary_yaw_hold = (
         LaunchConfiguration("enable_global_stationary_yaw_hold").perform(context).lower()
@@ -111,6 +119,28 @@ def _build_map_ekf(context):
         {"odom0": map_filter_odom_topic},
         {"imu0": map_filter_imu_topic},
     ]
+    if enable_global_imu_yaw:
+        parameters.append(
+            {
+                "imu0_config": [
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    True,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    True,
+                    False,
+                    False,
+                    False,
+                ],
+            }
+        )
     if enable_global_stationary_yaw_hold:
         parameters.append(
             {
@@ -187,20 +217,6 @@ def generate_launch_description():
     default_global_params_file = _resolve_config_file_path(
         gps_wpf_dir, "localization_global_v2.yaml"
     )
-    navigation_profiles_file = _resolve_config_file_path(
-        gps_wpf_dir, "navigation_profiles.yaml"
-    )
-    global_profile = load_navigation_profile(navigation_profiles_file, "global_v2")
-    if (
-        global_profile.datum_lat is None
-        or global_profile.datum_lon is None
-        or global_profile.datum_yaw_deg is None
-        or global_profile.navsat_use_odometry_yaw is None
-    ):
-        raise ValueError(
-            "Navigation profile 'global_v2' must define datum_* and "
-            "navsat_use_odometry_yaw"
-        )
 
     use_sim_time = LaunchConfiguration("use_sim_time")
     drive_telemetry_topic = LaunchConfiguration("drive_telemetry_topic")
@@ -270,12 +286,7 @@ def generate_launch_description():
                 "gps_topic",
                 default_value="/global_position/raw/fix",
             ),
-            DeclareLaunchArgument(
-                "navsat_use_odometry_yaw",
-                default_value=(
-                    "true" if global_profile.navsat_use_odometry_yaw else "false"
-                ),
-            ),
+            DeclareLaunchArgument("navsat_use_odometry_yaw", default_value="false"),
             DeclareLaunchArgument(
                 "enable_global_odom_stationary_gate",
                 default_value="true",
@@ -296,6 +307,7 @@ def generate_launch_description():
                 "enable_global_imu_stationary_gate",
                 default_value="true",
             ),
+            DeclareLaunchArgument("enable_global_imu_yaw", default_value="false"),
             DeclareLaunchArgument(
                 "global_imu_gated_topic",
                 default_value="/imu/data_global",
@@ -369,18 +381,9 @@ def generate_launch_description():
                 default_value=default_global_params_file,
             ),
             DeclareLaunchArgument("datum_setter", default_value="false"),
-            DeclareLaunchArgument(
-                "datum_lat",
-                default_value=str(global_profile.datum_lat),
-            ),
-            DeclareLaunchArgument(
-                "datum_lon",
-                default_value=str(global_profile.datum_lon),
-            ),
-            DeclareLaunchArgument(
-                "datum_yaw_deg",
-                default_value=str(global_profile.datum_yaw_deg),
-            ),
+            DeclareLaunchArgument("datum_lat", default_value=str(DEFAULT_DATUM_LAT)),
+            DeclareLaunchArgument("datum_lon", default_value=str(DEFAULT_DATUM_LON)),
+            DeclareLaunchArgument("datum_yaw_deg", default_value=str(DEFAULT_DATUM_YAW_DEG)),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     str(Path(gps_wpf_dir) / "launch" / "localization_v2.launch.py")

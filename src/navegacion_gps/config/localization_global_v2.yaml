@@ -73,20 +73,23 @@ ekf_filter_node_map:
     # [x, y, z, roll, pitch, yaw, vx, vy, vz, vroll, vpitch, vyaw, ax, ay, az]
     #
     # Aquí se usan de `/odometry/local`:
+    # - yaw
     # - vx
     # - vy
     # - vyaw
     #
-    # No se usan x, y ni yaw absolutos para que el frame global no copie la
-    # deriva acumulada del EKF local. En esta variante dejamos yaw fuera del
-    # EKF global para desacoplarlo de errores de heading local durante curvas
-    # pronunciadas. Tambien usamos vy=0 del modelo Ackermann como restriccion
+    # No se usan x ni y absolutos para que el frame global no copie la deriva
+    # acumulada del EKF local. Si dejamos yaw totalmente libre, `map -> odom`
+    # puede rotar durante maniobras largas para reconciliar la posicion GPS con
+    # la odometria local. Usar el yaw local mantiene el frame global estable,
+    # mientras GPS sigue corrigiendo posicion absoluta. Tambien usamos vy=0 del
+    # modelo Ackermann como restriccion
     # no holonomica:
     # no representa una velocidad lateral "medida" por GPS, sino la cinemática
     # esperada del vehículo para evitar que el EKF explique el ruido global como
     # deslizamiento lateral.
     odom0_config: [false, false, false,
-                   false, false, false,
+                   false, false, true,
                    true,  true,  false,
                    false, false, true,
                    false, false, false]

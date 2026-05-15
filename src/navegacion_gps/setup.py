@@ -40,7 +40,6 @@ setup(
             # site datum from launch/configuration.
             'datum_setter = navegacion_gps.datum_setter:main',
             'dual_gps_heading_sim = navegacion_gps.dual_gps_heading_sim:main',
-            'dual_gps_heading_real = navegacion_gps.dual_gps_heading_real:main',
             'gazebo_utils = navegacion_gps.gazebo_utils:main',
             'goal_pose_to_follow_path_v2 = navegacion_gps.goal_pose_to_follow_path_v2:main',
             'global_odom_stationary_gate = navegacion_gps.global_odom_stationary_gate:main',
@@ -60,6 +59,7 @@ setup(
             'nav_observability = navegacion_gps.nav_observability:main',
             'polygon_stamped_republisher = navegacion_gps.polygon_stamped_republisher:main',
             'replay_localization_compare = navegacion_gps.replay_localization_compare:main',
+            'route_executor = navegacion_gps.route_executor:main',
             'scan_wifi_debug = navegacion_gps.scan_wifi_debug:main',
             'sim_drive_telemetry = navegacion_gps.sim_drive_telemetry:main',
             'sim_sensor_normalizer_v2 = navegacion_gps.sim_sensor_normalizer_v2:main',
